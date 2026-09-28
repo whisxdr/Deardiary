@@ -6,7 +6,6 @@ export const STORAGE_KEYS = {
   entries: `${STORAGE_NAMESPACE}:entries`,
   settings: `${STORAGE_NAMESPACE}:settings`,
   draft: `${STORAGE_NAMESPACE}:draft`,
-  seeded: `${STORAGE_NAMESPACE}:seeded`,
   view: `${STORAGE_NAMESPACE}:view`,
 } as const;
 

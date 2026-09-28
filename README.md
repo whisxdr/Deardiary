@@ -18,7 +18,7 @@ npm run dev
 
 Then open http://localhost:5173.
 
-The first visit seeds eight sample entries so the dashboard, calendar and stats pages are not empty. Delete them from Settings → Data whenever you like.
+The diary starts empty. Write your first entry, or import a JSON backup from Settings → Data.
 
 ## Scripts
 
@@ -75,7 +75,6 @@ The codebase is split by responsibility so no file grows into a "fat file":
 - `src/utils/` — pure functions with no side effects
 - `src/constants/` — moods, quotes, routes, storage keys, limits, editor config
 - `src/types/` — shared TypeScript interfaces
-- `src/data/` — the eight seed entries
 
 Every folder has an `index.ts` barrel export, and imports use the `@/` alias.
 

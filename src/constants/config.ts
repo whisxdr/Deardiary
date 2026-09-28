@@ -29,6 +29,3 @@ export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as con
 
 /** Reading speed used to estimate how long an entry takes to read. */
 export const WORDS_PER_MINUTE = 200;
-
-/** Entries seeded on first visit so the app is never empty on a demo. */
-export const SEED_ON_FIRST_VISIT = true;
