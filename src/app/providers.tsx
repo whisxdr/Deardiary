@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { ToastHost } from '@/components/ui';
 import { ErrorBoundary } from '@/components/common';
 import { useEntryStore, useSettingsStore } from '@/store';
@@ -26,6 +27,7 @@ export function Providers({ children }: ProvidersProps) {
     <ErrorBoundary>
       {children}
       <ToastHost />
+      <SpeedInsights />
     </ErrorBoundary>
   );
 }
