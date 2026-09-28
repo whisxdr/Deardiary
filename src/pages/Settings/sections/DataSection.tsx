@@ -4,7 +4,7 @@ import { ConfirmDialog } from '@/components/common';
 import { STORAGE_KEYS } from '@/constants';
 import { exportBackup, importBackupFile } from '@/services';
 import { estimateUsage } from '@/lib/storage';
-import { formatBytes } from '@/lib';
+import { formatBytes, formatCount } from '@/lib';
 import { useEntryStore } from '@/store';
 import type { Entry } from '@/types';
 
@@ -33,7 +33,7 @@ export function DataSection() {
         Data
       </h2>
       <p className="font-body text-xs text-primary-500 dark:text-primary-300">
-        {`Using about ${formatBytes(estimateUsage())} of browser storage for ${entries.length} entries.`}
+        {`Using about ${formatBytes(estimateUsage())} of browser storage for ${formatCount(entries.length, 'entry', 'entries')}.`}
       </p>
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => exportBackup(entries)}>

@@ -1,6 +1,7 @@
 import { MOODS } from '@/constants';
 import { MoodBadge } from '@/components/mood';
 import { MoodPickerGrid } from '@/components/mood';
+import { formatCount } from '@/lib';
 import { moodLabel } from '@/utils';
 import type { Mood } from '@/types';
 
@@ -16,7 +17,7 @@ export function MoodPicker({ value, onChange, className }: MoodPickerProps) {
     <div className={className}>
       <MoodPickerGrid value={value} onChange={onChange} />
       <p className="mt-1 font-body text-xs text-muted">
-        {`${MOODS.length} moods available · selected: ${moodLabel(value)}`}
+        {`${formatCount(MOODS.length, 'mood')} available · selected: ${moodLabel(value)}`}
       </p>
     </div>
   );

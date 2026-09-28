@@ -54,7 +54,11 @@ export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
         <EntriesLineChart data={stats.weeklyActivity} />
       </StatCard>
 
-      <StatCard label="Mood distribution" value={`${stats.moodDistribution.length} moods`} hint="How your feelings split up">
+      <StatCard
+        label="Mood distribution"
+        value={formatCount(stats.moodDistribution.length, 'mood')}
+        hint="How your feelings split up"
+      >
         <MoodDistribution data={stats.moodDistribution} />
       </StatCard>
 
@@ -68,7 +72,7 @@ export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
 
       <StatCard
         label="Popular tags"
-        value={`${stats.popularTags.length} tags`}
+        value={formatCount(stats.popularTags.length, 'tag')}
         hint={stats.topMood ? `Favorite feeling: ${moodLabel(stats.topMood.mood)}` : undefined}
         className="lg:col-span-2"
       >
@@ -77,7 +81,11 @@ export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
 
       <StatCard label="Favorites" value={<StatNumber value={stats.favorites} />} hint="Entries you starred" />
 
-      <StatCard label="Writing activity" value={`${stats.heatmap.filter((cell) => cell.count > 0).length} active days`} className="lg:col-span-3">
+      <StatCard
+        label="Writing activity"
+        value={formatCount(stats.heatmap.filter((cell) => cell.count > 0).length, 'active day')}
+        className="lg:col-span-3"
+      >
         <HeatmapChart cells={stats.heatmap} />
       </StatCard>
     </div>

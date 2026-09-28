@@ -1,5 +1,6 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { CHART_TOKENS, TOOLTIP_STYLE } from './chartTheme';
+import { formatCount } from '@/lib';
 import type { MoodCount } from '@/types';
 
 export interface MoodPieChartProps {
@@ -34,7 +35,7 @@ export function MoodPieChart({ data }: MoodPieChartProps) {
         />
         <Tooltip
           contentStyle={TOOLTIP_STYLE}
-          formatter={(value: number, name: string) => [`${value} entries`, name]}
+          formatter={(value: number, name: string) => [formatCount(value, 'entry', 'entries'), name]}
         />
       </PieChart>
     </ResponsiveContainer>

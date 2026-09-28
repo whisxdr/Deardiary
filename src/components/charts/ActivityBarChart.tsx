@@ -1,5 +1,6 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CHART_TOKENS, TICK_STYLE, TOOLTIP_STYLE } from './chartTheme';
+import { formatCount } from '@/lib';
 import type { HourBucket } from '@/types';
 
 export interface ActivityBarChartProps {
@@ -22,7 +23,7 @@ export function ActivityBarChart({ data }: ActivityBarChartProps) {
         <YAxis tick={TICK_STYLE} axisLine={false} tickLine={false} allowDecimals={false} />
         <Tooltip
           contentStyle={TOOLTIP_STYLE}
-          formatter={(value: number) => [`${value} entries`, 'Written']}
+          formatter={(value: number) => [formatCount(value, 'entry', 'entries'), 'Written']}
         />
         <Bar dataKey="entries" fill={CHART_TOKENS.bar} radius={[3, 3, 0, 0]} isAnimationActive={false} />
       </BarChart>
