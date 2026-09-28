@@ -4,17 +4,45 @@ import { exportEntryAsPdf } from '@/services';
 import { stripHtml } from '@/utils';
 import type { Entry } from '@/types';
 
+/**
+ * Copies text to the clipboard.
+ *
+ * `navigator.clipboard` needs a secure context and permission, and can be blocked
+ * inside sandboxed frames, so fall back to a hidden textarea with `execCommand`.
+ */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fall through to the legacy path.
+  }
+
+  try {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand('copy');
+    area.remove();
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Share and export handlers for the reader page. */
 export function useReaderActions(entry: Entry | null) {
   const share = useCallback(async () => {
     if (!entry) return;
     const text = `${entry.title}\n\n${stripHtml(entry.content)}`;
-    try {
-      await navigator.clipboard.writeText(text.trim());
-      toast.success('Entry copied to clipboard');
-    } catch {
-      toast.error('Could not copy this entry');
-    }
+    const ok = await copyText(text.trim());
+    if (ok) toast.success('Entry copied to clipboard');
+    else toast.error('Could not copy this entry');
   }, [entry]);
 
   const exportPdf = useCallback(() => {
