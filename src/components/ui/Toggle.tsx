@@ -38,7 +38,7 @@ export function Toggle({ checked, onChange, label, description, disabled }: Togg
       >
         <span
           className={cn(
-            'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-soft transition-transform duration-fast',
+            'absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow-soft transition-transform duration-fast',
             checked ? 'translate-x-[22px]' : 'translate-x-0.5',
           )}
         />
