@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 5 requires ^18 || >=20. Pin it so a Netlify default change cannot break the build.
+  NODE_VERSION = "22"
+
+# Client-side routing: every path must serve index.html or deep links 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
