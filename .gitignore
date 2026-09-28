@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.DS_Store
+*.log
+.vite
+
+# Local tool artifacts, not part of the app
+.mimosa
+.v2c

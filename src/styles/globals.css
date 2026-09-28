@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-paper: 245 240 230;
+    --color-ink: 42 26 20;
+    --color-leather: 62 39 35;
+    --color-gold: 201 169 97;
+    color-scheme: light;
+  }
+
+  [data-theme='night'] {
+    --color-paper: 42 26 20;
+    --color-ink: 240 230 210;
+    --color-leather: 26 15 10;
+    color-scheme: dark;
+  }
+
+  [data-theme='paper'] {
+    --color-paper: 250 246 240;
+    --color-ink: 62 39 35;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-primary-50 font-body text-primary-800 antialiased;
+    background-color: rgb(var(--color-paper));
+  }
+
+  [data-font-size='sm'] .entry-body,
+  [data-font-size='sm'] .editor-surface .ProseMirror {
+    font-size: 0.9rem;
+  }
+
+  [data-font-size='lg'] .entry-body,
+  [data-font-size='lg'] .editor-surface .ProseMirror {
+    font-size: 1.15rem;
+  }
+
+  ::selection {
+    background-color: rgba(201, 169, 97, 0.35);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .paper-texture {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05)),
+      url('/textures/paper.svg');
+    background-size: cover, 320px 320px;
+    background-blend-mode: overlay, normal;
+  }
+
+  [data-theme='night'] .paper-texture {
+    background-image: url('/textures/paper.svg');
+    background-size: 320px 320px;
+    background-blend-mode: normal;
+  }
+
+  .leather-texture {
+    background-image: url('/textures/leather.svg'), radial-gradient(circle at 30% 20%, rgba(201, 169, 97, 0.18), transparent 55%);
+    background-size: 420px 420px, cover;
+  }
+
+  .book-page-left {
+    box-shadow: inset -18px 0 28px -22px rgba(62, 39, 35, 0.55);
+  }
+
+  .book-page-right {
+    box-shadow: inset 18px 0 28px -22px rgba(62, 39, 35, 0.55);
+  }
+
+  .reader-drop-cap::first-letter {
+    float: left;
+    padding-right: 0.5rem;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 3.25rem;
+    line-height: 0.85;
+    color: #7d5a3c;
+  }
+
+  .entry-body :is(h1, h2, h3) {
+    @apply mb-2 mt-5 font-display text-primary-800;
+  }
+
+  .entry-body p {
+    @apply mb-4;
+  }
+
+  .entry-body blockquote {
+    @apply my-4 border-l-2 border-accent-gold pl-4 font-sub text-lg italic text-primary-600;
+  }
+
+  .entry-body ul {
+    @apply mb-4 list-disc pl-5;
+  }
+
+  .entry-body ol {
+    @apply mb-4 list-decimal pl-5;
+  }
+
+  .entry-body a {
+    @apply text-accent-ink underline decoration-accent-gold/60 underline-offset-2;
+  }
+
+  .entry-body img {
+    @apply my-4 max-w-full rounded-md shadow-soft;
+  }
+
+  .entry-body hr {
+    @apply my-6 border-primary-200;
+  }
+
+  .editor-surface .ProseMirror {
+    @apply min-h-[22rem] font-body text-base leading-[1.8] outline-none;
+  }
+
+  .editor-surface .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    @apply pointer-events-none float-left h-0 font-sub text-lg italic text-primary-300;
+  }
+
+  .editor-surface .ProseMirror :is(h1, h2, h3) {
+    @apply mb-2 mt-4 font-display;
+  }
+}

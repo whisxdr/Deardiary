@@ -1,0 +1,64 @@
+import { useMemo, useState } from 'react';
+import { parseISO } from 'date-fns';
+import { stripHtml } from '@/utils';
+import type { Entry, EntryFilters, SortOrder } from '@/types';
+
+/** Default filter state shared by the dashboard toolbar and the search hook. */
+export const DEFAULT_FILTERS: EntryFilters = {
+  query: '',
+  mood: 'all',
+  tag: 'all',
+  favoritesOnly: false,
+  dateFrom: '',
+  dateTo: '',
+  sort: 'newest',
+};
+
+/** Sorts entries according to the selected order. */
+function sortEntries(entries: Entry[], sort: string): Entry[] {
+  const order = sort as SortOrder;
+  const list = [...entries];
+  switch (order) {
+    case 'oldest':
+      return list.sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
+    case 'title':
+      return list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    case 'mood':
+      return list.sort((a, b) => a.mood.localeCompare(b.mood));
+    default:
+      return list.sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+  }
+}
+
+/** Filters and sorts an entry collection, with a reset helper for the toolbar. */
+export function useFilter(source: Entry[], initial: Partial<EntryFilters> = {}) {
+  const [filters, setFilters] = useState<EntryFilters>({ ...DEFAULT_FILTERS, ...initial });
+
+  const update = (patch: Partial<EntryFilters>) => setFilters((current) => ({ ...current, ...patch }));
+
+  const reset = () => setFilters({ ...DEFAULT_FILTERS, ...initial });
+
+  const filtered = useMemo(() => {
+    const query = filters.query.trim().toLowerCase();
+    const from = filters.dateFrom ? parseISO(filters.dateFrom).getTime() : null;
+    const to = filters.dateTo ? parseISO(filters.dateTo).getTime() : null;
+
+    const result = source.filter((entry) => {
+      if (filters.mood !== 'all' && entry.mood !== filters.mood) return false;
+      if (filters.tag !== 'all' && !entry.tags.includes(filters.tag)) return false;
+      if (filters.favoritesOnly && !entry.isFavorite) return false;
+      const time = parseISO(entry.date).getTime();
+      if (from !== null && time < from) return false;
+      if (to !== null && time > to + 86_399_000) return false;
+      if (query) {
+        const haystack = `${entry.title} ${stripHtml(entry.content)} ${entry.tags.join(' ')}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+
+    return sortEntries(result, filters.sort);
+  }, [filters, source]);
+
+  return { filters, update, reset, filtered } as const;
+}

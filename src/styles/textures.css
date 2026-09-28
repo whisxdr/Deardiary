@@ -1,0 +1,24 @@
+/* Texture helpers kept in CSS so the SVGs stay cached and reusable. */
+
+.texture-noise {
+  background-image: url('/textures/noise.svg');
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  opacity: 0.05;
+}
+
+.texture-paper {
+  background-image: url('/textures/paper.svg');
+  background-repeat: repeat;
+  background-size: 320px 320px;
+}
+
+.texture-leather {
+  background-image: url('/textures/leather.svg');
+  background-repeat: repeat;
+  background-size: 420px 420px;
+}
+
+.texture-vignette {
+  background-image: radial-gradient(ellipse at center, transparent 40%, rgba(26, 15, 10, 0.55) 100%);
+}

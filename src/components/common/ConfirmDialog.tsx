@@ -1,0 +1,49 @@
+import { Modal } from '@/components/ui';
+import { Button } from '@/components/ui';
+
+export interface ConfirmDialogProps {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+/** Yes/no dialog used before destructive actions such as deleting an entry. */
+export function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  destructive,
+  onConfirm,
+  onCancel,
+}: ConfirmDialogProps) {
+  return (
+    <Modal
+      open={open}
+      title={title}
+      description={description}
+      onClose={onCancel}
+      size="sm"
+      footer={
+        <>
+          <Button variant="ghost" onClick={onCancel}>
+            {cancelLabel}
+          </Button>
+          <Button variant={destructive ? 'danger' : 'primary'} onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </>
+      }
+    >
+      <p className="font-body text-sm text-primary-600 dark:text-primary-200">
+        This action cannot be undone. Make sure you have exported a backup if you need these words later.
+      </p>
+    </Modal>
+  );
+}

@@ -1,0 +1,61 @@
+:root {
+  --shadow-soft: 0 2px 8px rgba(62, 39, 35, 0.08);
+  --shadow-medium: 0 4px 16px rgba(62, 39, 35, 0.12);
+  --shadow-hard: 0 8px 32px rgba(62, 39, 35, 0.2);
+  --shadow-book: 0 20px 60px rgba(62, 39, 35, 0.35), inset 0 0 100px rgba(0, 0, 0, 0.05);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-flip: 800ms;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Chart colors, kept in CSS so Recharts picks up the active theme. */
+  --chart-grid: #e0c9a6;
+  --chart-tick: #7d5a3c;
+  --chart-tooltip-bg: #f5f0e6;
+  --chart-tooltip-border: #e0c9a6;
+  --chart-tooltip-text: #3e2723;
+  --chart-slice-stroke: #f5f0e6;
+  --chart-bar: #a67c52;
+  --chart-line: #c9a961;
+  --chart-dot: #3e2723;
+
+  /* Muted text tones, so night mode can lighten them in one place. */
+  --text-muted: #7d5a3c;
+  --text-faint: #7d5a3c;
+
+  /* Ink used by unselected mood stamps. */
+  --mood-stamp-ink: #1a237e;
+}
+
+[data-theme='night'] {
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-hard: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-book: 0 20px 60px rgba(0, 0, 0, 0.65), inset 0 0 120px rgba(0, 0, 0, 0.25);
+
+  --chart-grid: #5d4037;
+  --chart-tick: #e0c9a6;
+  --chart-tooltip-bg: #2a1a14;
+  --chart-tooltip-border: #5d4037;
+  --chart-tooltip-text: #f0e6d2;
+  --chart-slice-stroke: #2a1a14;
+  --chart-bar: #c9a961;
+  --chart-line: #e0c9a6;
+  --chart-dot: #f0e6d2;
+
+  --text-muted: #e0c9a6;
+  --text-faint: #e0c9a6;
+
+  /* Deep ink is unreadable on dark paper, so night mode uses a light ink. */
+  --mood-stamp-ink: #d9cbb0;
+}
+
