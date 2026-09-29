@@ -3,12 +3,26 @@ import { createId } from '@/lib/id';
 import { readJson, writeJson } from '@/lib/storage';
 import { sanitizeTitle } from '@/lib/validate';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
-import { byNewest, resolveTitle, withDerivedFields } from './entryFields';
+import { byNewest, coerceEntry, looksLikeEntry, needsRepair, resolveTitle, withDerivedFields } from './entryFields';
 
-/** Reads every entry from storage. */
+/**
+ * Reads every entry from storage.
+ *
+ * Records that do not match the current shape are coerced and written back, so a
+ * payload from an older build heals on first read instead of crashing a page that
+ * assumes every field is present.
+ */
 export function listEntries(): Entry[] {
-  const stored = readJson<Entry[]>(STORAGE_KEYS.entries, []);
-  return Array.isArray(stored) ? byNewest(stored) : [];
+  const stored = readJson<unknown>(STORAGE_KEYS.entries, []);
+  if (!Array.isArray(stored)) return [];
+
+  const records = stored.filter(looksLikeEntry);
+  if (records.length !== stored.length || records.some(needsRepair)) {
+    const repaired = byNewest(records.map(coerceEntry));
+    writeJson(STORAGE_KEYS.entries, repaired);
+    return repaired;
+  }
+  return byNewest(records as Entry[]);
 }
 
 /** Persists the full entry collection. */

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/common';
 import { Loading } from '@/components/illustrations';
 import { READER_PATTERN, ROUTES, WRITE_ENTRY_PATTERN } from '@/constants';
 
@@ -22,16 +23,21 @@ function RouteFallback() {
   );
 }
 
+/** Every route renders inside the app boundary, so a crash shows its own message. */
+function withBoundary(element: React.ReactNode) {
+  return <ErrorBoundary>{element}</ErrorBoundary>;
+}
+
 const router = createBrowserRouter([
-  { path: ROUTES.landing, element: <Landing /> },
-  { path: ROUTES.dashboard, element: <Dashboard /> },
-  { path: ROUTES.write, element: <Write /> },
-  { path: WRITE_ENTRY_PATTERN, element: <Write /> },
-  { path: READER_PATTERN, element: <Reader /> },
-  { path: ROUTES.calendar, element: <Calendar /> },
-  { path: ROUTES.stats, element: <Stats /> },
-  { path: ROUTES.settings, element: <Settings /> },
-  { path: '*', element: <NotFoundPage /> },
+  { path: ROUTES.landing, element: withBoundary(<Landing />) },
+  { path: ROUTES.dashboard, element: withBoundary(<Dashboard />) },
+  { path: ROUTES.write, element: withBoundary(<Write />) },
+  { path: WRITE_ENTRY_PATTERN, element: withBoundary(<Write />) },
+  { path: READER_PATTERN, element: withBoundary(<Reader />) },
+  { path: ROUTES.calendar, element: withBoundary(<Calendar />) },
+  { path: ROUTES.stats, element: withBoundary(<Stats />) },
+  { path: ROUTES.settings, element: withBoundary(<Settings />) },
+  { path: '*', element: withBoundary(<NotFoundPage />) },
 ]);
 
 /** Route table with lazy chunks and a shared suspense boundary. */

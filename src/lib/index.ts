@@ -1,5 +1,5 @@
 export { createId, createIdFrom, shortId } from './id';
-export { estimateUsage, hasKey, readJson, removeKey, writeJson } from './storage';
+export { estimateUsage, hasKey, isPersistent, readJson, removeKey, writeJson } from './storage';
 export {
   entryPreview,
   entryTitle,
@@ -15,4 +15,5 @@ export {
   readingTimeMinutes,
 } from './format';
 export { escapeHtml, htmlToMarkdown, htmlToText, htmlWordCount, isHtmlEmpty, plainToHtml } from './parse';
+export { sanitizeEntryHtml } from './sanitize';
 export { normalizeTag, normalizeText, parseTagInput, sanitizeDateTime, sanitizeTags, sanitizeTitle } from './validate';

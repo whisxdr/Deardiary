@@ -1,7 +1,7 @@
 import { DEFAULT_AVATAR_SEED } from '@/constants/avatar';
 import { STORAGE_KEYS } from '@/constants';
 import { readJson, writeJson } from '@/lib/storage';
-import type { UserSettings } from '@/types';
+import type { FontSize, ThemeName, UserSettings } from '@/types';
 
 /** Defaults applied on first run and when a stored field is missing. */
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -22,15 +22,55 @@ export const DEFAULT_SETTINGS: UserSettings = {
   },
 };
 
-/** Reads settings, merging stored values over the defaults. */
-export function loadSettings(): UserSettings {
-  const stored = readJson<Partial<UserSettings>>(STORAGE_KEYS.settings, {});
+const THEMES: ThemeName[] = ['leather', 'paper', 'night'];
+const FONT_SIZES: FontSize[] = ['sm', 'md', 'lg'];
+
+/** Keeps a string field only when it is a usable string. */
+function str(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.trim() ? value : fallback;
+}
+
+/** Keeps a boolean field only when it is a boolean. */
+function bool(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
+/**
+ * Coerces stored settings into a usable shape.
+ *
+ * The header renders `displayName` on every page, so a single wrong type in storage
+ * used to take the whole app down rather than just the settings page.
+ */
+export function coerceSettings(stored: Partial<UserSettings> | null): UserSettings {
+  const raw = stored ?? {};
+  const theme = THEMES.includes(raw.theme as ThemeName) ? (raw.theme as ThemeName) : DEFAULT_SETTINGS.theme;
+  const fontSize = FONT_SIZES.includes(raw.fontSize as FontSize)
+    ? (raw.fontSize as FontSize)
+    : DEFAULT_SETTINGS.fontSize;
+
   return {
-    ...DEFAULT_SETTINGS,
-    ...stored,
-    notifications: { ...DEFAULT_SETTINGS.notifications, ...stored.notifications },
-    privacy: { ...DEFAULT_SETTINGS.privacy, ...stored.privacy },
+    displayName: str(raw.displayName, DEFAULT_SETTINGS.displayName),
+    bio: str(raw.bio, DEFAULT_SETTINGS.bio),
+    avatarSeed: str(raw.avatarSeed, DEFAULT_SETTINGS.avatarSeed),
+    theme,
+    fontSize,
+    reminderTime: typeof raw.reminderTime === 'string' ? raw.reminderTime : DEFAULT_SETTINGS.reminderTime,
+    notifications: {
+      dailyReminder: bool(raw.notifications?.dailyReminder, DEFAULT_SETTINGS.notifications.dailyReminder),
+      streakAlerts: bool(raw.notifications?.streakAlerts, DEFAULT_SETTINGS.notifications.streakAlerts),
+      weeklyDigest: bool(raw.notifications?.weeklyDigest, DEFAULT_SETTINGS.notifications.weeklyDigest),
+    },
+    privacy: {
+      requirePassword: bool(raw.privacy?.requirePassword, DEFAULT_SETTINGS.privacy.requirePassword),
+      hidePrivateEntries: bool(raw.privacy?.hidePrivateEntries, DEFAULT_SETTINGS.privacy.hidePrivateEntries),
+    },
+    passwordHash: typeof raw.passwordHash === 'string' ? raw.passwordHash : undefined,
   };
+}
+
+/** Reads settings, filling in defaults for anything missing or malformed. */
+export function loadSettings(): UserSettings {
+  return coerceSettings(readJson<Partial<UserSettings> | null>(STORAGE_KEYS.settings, null));
 }
 
 /** Persists settings. */

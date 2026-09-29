@@ -4,6 +4,8 @@ import type { FontSize, ThemeName, UserSettings } from '@/types';
 
 interface SettingsState {
   settings: UserSettings;
+  /** True once settings have been read from storage. */
+  hydrated: boolean;
   hydrate: () => void;
   update: (patch: Partial<UserSettings>) => void;
   setTheme: (theme: ThemeName) => void;
@@ -22,18 +24,22 @@ export function applySettingsToDocument(settings: UserSettings): void {
 /** User preferences store; every write also updates the document attributes. */
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
+  hydrated: false,
 
+  // Hydrating once matters: `useTheme` calls this on every page, and re-reading storage
+  // on each navigation would discard a change whose write failed.
   hydrate: () => {
+    if (get().hydrated) return;
     const settings = loadSettings();
     applySettingsToDocument(settings);
-    set({ settings });
+    set({ settings, hydrated: true });
   },
 
   update: (patch) => {
     const settings = { ...get().settings, ...patch };
     saveSettings(settings);
     applySettingsToDocument(settings);
-    set({ settings });
+    set({ settings, hydrated: true });
   },
 
   setTheme: (theme) => get().update({ theme }),
@@ -43,6 +49,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   reset: () => {
     const settings = resetSettings();
     applySettingsToDocument(settings);
-    set({ settings });
+    set({ settings, hydrated: true });
   },
 }));
