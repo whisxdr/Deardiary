@@ -12,18 +12,28 @@ import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 interface EntryState {
   entries: Entry[];
   hydrated: boolean;
+  /** True when the last write did not reach localStorage (quota or blocked). */
+  writeFailed: boolean;
   hydrate: () => void;
   addEntry: (draft: Partial<EntryDraft>) => Entry;
   patchEntry: (id: string, patch: EntryUpdate) => Entry | null;
   removeEntry: (id: string) => void;
   favorite: (id: string) => void;
   replaceAll: (entries: Entry[]) => void;
+  clearWriteError: () => void;
 }
 
-/** Single source of truth for entries, backed by localStorage. */
+/**
+ * Single source of truth for entries, backed by localStorage.
+ *
+ * Each action re-reads storage after writing so the store cannot drift from disk,
+ * and records when a write only reached the in-memory fallback so the UI can say so
+ * instead of silently showing a change that a reload will discard.
+ */
 export const useEntryStore = create<EntryState>((set, get) => ({
   entries: [],
   hydrated: false,
+  writeFailed: false,
 
   hydrate: () => {
     if (get().hydrated) return;
@@ -53,7 +63,9 @@ export const useEntryStore = create<EntryState>((set, get) => ({
   },
 
   replaceAll: (entries) => {
-    replaceEntries(entries);
-    set({ entries: listEntries() });
+    const ok = replaceEntries(entries);
+    set({ entries: listEntries(), writeFailed: !ok });
   },
+
+  clearWriteError: () => set({ writeFailed: false }),
 }));
