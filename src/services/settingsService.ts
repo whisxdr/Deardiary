@@ -17,7 +17,6 @@ export const DEFAULT_SETTINGS: UserSettings = {
     weeklyDigest: false,
   },
   privacy: {
-    requirePassword: false,
     hidePrivateEntries: false,
   },
 };
@@ -61,10 +60,8 @@ export function coerceSettings(stored: Partial<UserSettings> | null): UserSettin
       weeklyDigest: bool(raw.notifications?.weeklyDigest, DEFAULT_SETTINGS.notifications.weeklyDigest),
     },
     privacy: {
-      requirePassword: bool(raw.privacy?.requirePassword, DEFAULT_SETTINGS.privacy.requirePassword),
       hidePrivateEntries: bool(raw.privacy?.hidePrivateEntries, DEFAULT_SETTINGS.privacy.hidePrivateEntries),
     },
-    passwordHash: typeof raw.passwordHash === 'string' ? raw.passwordHash : undefined,
   };
 }
 

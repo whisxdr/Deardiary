@@ -1,6 +1,7 @@
 import { DEFAULT_MOOD, LIMITS, MOODS } from '@/constants';
 import { createId } from '@/lib/id';
 import { countWords, readingTimeMinutes } from '@/lib';
+import { looksUnsafe, sanitizeEntryHtml } from '@/lib/sanitize';
 import { sanitizeTags, sanitizeTitle } from '@/lib/validate';
 import type { Entry, Mood } from '@/types';
 
@@ -49,10 +50,14 @@ function safeMood(value: unknown): Mood {
  *
  * Used for both imported backups and records already in storage, so a payload
  * written by an older build cannot reach a component that assumes every field.
+ *
+ * The body is sanitized here, at the boundary where external data enters: the reader
+ * sanitizes on render too, but the PDF export builds a live DOM node from the stored
+ * value, so cleaning on write keeps every consumer safe rather than one.
  */
 export function coerceEntry(raw: Partial<Entry>): Entry {
   const now = new Date().toISOString();
-  const content = typeof raw.content === 'string' ? raw.content : '';
+  const content = sanitizeEntryHtml(typeof raw.content === 'string' ? raw.content : '');
   const words = countWords(content);
   const date = safeIso(raw.date, now);
   return {
@@ -75,7 +80,13 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
   };
 }
 
-/** True when a stored record is missing something the current shape relies on. */
+/**
+ * True when a stored record needs to be coerced and written back.
+ *
+ * Covers both a record missing a field the current shape relies on and one whose body
+ * carries markup that could execute — a record written before the sanitizer existed is
+ * otherwise shape-complete and would skip the repair path entirely.
+ */
 export function needsRepair(raw: Partial<Entry>): boolean {
   return (
     typeof raw.id !== 'string' ||
@@ -83,6 +94,7 @@ export function needsRepair(raw: Partial<Entry>): boolean {
     typeof raw.title !== 'string' ||
     !Array.isArray(raw.tags) ||
     typeof raw.wordCount !== 'number' ||
-    typeof raw.readingTime !== 'number'
+    typeof raw.readingTime !== 'number' ||
+    (typeof raw.content === 'string' && looksUnsafe(raw.content))
   );
 }

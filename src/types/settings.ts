@@ -17,9 +17,14 @@ export interface NotificationSettings {
   weeklyDigest: boolean;
 }
 
-/** Privacy preferences. */
+/**
+ * Privacy preferences.
+ *
+ * Only flags the app actually honours live here. A "require a password" toggle was
+ * removed because there is no unlock screen and no hashing code: the setting was
+ * stored and never read, so it claimed a protection the app did not provide.
+ */
 export interface PrivacySettings {
-  requirePassword: boolean;
   hidePrivateEntries: boolean;
 }
 
@@ -33,7 +38,6 @@ export interface UserSettings {
   reminderTime?: string;
   notifications: NotificationSettings;
   privacy: PrivacySettings;
-  passwordHash?: string;
 }
 
 /** Shape written by the export service and accepted by the import service. */

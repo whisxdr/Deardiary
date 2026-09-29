@@ -19,16 +19,14 @@ export function PrivacySection() {
       </p>
       <Toggle
         label="Hide private entries by default"
-        description="Private entries stay out of the dashboard until you ask for them."
+        description="Private entries stay out of the entries list and the stats until you turn this off."
         checked={settings.privacy.hidePrivateEntries}
         onChange={(hidePrivateEntries) => setPrivacy({ hidePrivateEntries })}
       />
-      <Toggle
-        label="Ask for a password"
-        description="Show a local unlock screen before opening the diary."
-        checked={settings.privacy.requirePassword}
-        onChange={(requirePassword) => setPrivacy({ requirePassword })}
-      />
+      <p className="font-body text-xs text-primary-500 dark:text-primary-300">
+        This hides private entries from the app's own screens. It does not encrypt them: anything in this browser's
+        storage can still be read by someone with access to this device.
+      </p>
     </section>
   );
 }

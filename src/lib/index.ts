@@ -15,5 +15,5 @@ export {
   readingTimeMinutes,
 } from './format';
 export { escapeHtml, htmlToMarkdown, htmlToText, htmlWordCount, isHtmlEmpty, plainToHtml } from './parse';
-export { sanitizeEntryHtml } from './sanitize';
+export { looksUnsafe, sanitizeEntryHtml } from './sanitize';
 export { normalizeTag, normalizeText, parseTagInput, sanitizeDateTime, sanitizeTags, sanitizeTitle } from './validate';
