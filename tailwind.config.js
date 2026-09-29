@@ -36,7 +36,7 @@ export default {
         display: ['"Playfair Display"', 'Georgia', 'serif'],
         sub: ['"Cormorant Garamond"', 'Georgia', 'serif'],
         body: ['Inter', 'system-ui', 'sans-serif'],
-        hand: ['Caveat', '"Dancing Script"', 'cursive'],
+        hand: ['Caveat', 'cursive'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       spacing: {
@@ -83,11 +83,26 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        // Rising gold dust for the cover. Transform and opacity only, so the browser
+        // can run it on the compositor without touching layout or paint.
+        dust: {
+          '0%': { transform: 'translate3d(0, 110%, 0)', opacity: '0' },
+          '50%': { opacity: '0.8' },
+          '100%': { transform: 'translate3d(0, -10%, 0)', opacity: '0' },
+        },
+        // Page turn for the loading illustration. Lives here rather than in Framer
+        // Motion because that component renders in the router's Suspense fallback.
+        'page-turn': {
+          '0%, 100%': { transform: 'rotateY(0deg)' },
+          '50%': { transform: 'rotateY(-150deg)' },
+        },
       },
       animation: {
         'ink-drop': 'ink-drop 400ms cubic-bezier(0.16, 1, 0.3, 1) both',
         drift: 'drift 6s ease-in-out infinite',
         'fade-slide': 'fade-slide 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
+        dust: 'dust 7s linear infinite',
+        'page-turn': 'page-turn 3s ease-in-out infinite',
       },
     },
   },

@@ -12,8 +12,8 @@ const PORT = Number(process.argv[2] ?? 5212);
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   "img-src 'self' data: https:",
   "connect-src 'self'",
   "object-src 'none'",
@@ -28,6 +28,7 @@ const TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.json': 'application/json',
+  '.woff2': 'font/woff2',
 };
 
 const server = createServer(async (req, res) => {

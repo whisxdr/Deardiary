@@ -1,0 +1,51 @@
+/*
+ * Self-hosted fonts, latin subset only.
+ *
+ * These were loaded from fonts.googleapis.com, which put a third-party origin in the
+ * render-blocking path: the stylesheet cost ~780ms on a throttled phone and the font
+ * files added a 684ms critical chain. Serving them from this origin removes two DNS
+ * lookups and two TLS handshakes from the critical path.
+ *
+ * Playfair Display and Inter are variable fonts, so one file covers every weight the
+ * UI uses. Only the latin subset ships; the app is English-only.
+ */
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/playfair-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/cormorant-400-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/caveat-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-400.woff2') format('woff2');
+}

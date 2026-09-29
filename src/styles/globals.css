@@ -85,6 +85,24 @@
     box-shadow: inset 18px 0 28px -22px rgba(62, 39, 35, 0.55);
   }
 
+  /*
+   * Cover tilt. The offsets come from useParallax as CSS variables, so the pointer
+   * handler never triggers a React render. On a touch device the variables stay unset
+   * and the transform is a no-op.
+   */
+  .cover-tilt {
+    perspective: 1200px;
+    transform: rotateX(var(--tilt-y, 0deg)) rotateY(var(--tilt-x, 0deg));
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cover-tilt {
+      transform: none;
+      will-change: auto;
+    }
+  }
+
   .reader-drop-cap::first-letter {
     float: left;
     padding-right: 0.5rem;
