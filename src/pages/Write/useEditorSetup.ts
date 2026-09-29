@@ -16,6 +16,8 @@ export interface UseEditorSetupOptions {
   /** Body of the stored entry, applied once the store has hydrated. */
   storedContent?: string;
   onUpdate: (html: string) => void;
+  /** Runs on Ctrl/Cmd+Enter. Tiptap binds that combo to a hard break by default. */
+  onSubmit?: () => void;
 }
 
 interface AppliedContent {
@@ -24,10 +26,15 @@ interface AppliedContent {
 }
 
 /** Builds the Tiptap instance with the diary extensions and exposes live counters. */
-export function useEditorSetup({ initialContent, entryId, storedContent, onUpdate }: UseEditorSetupOptions) {
+export function useEditorSetup({ initialContent, entryId, storedContent, onUpdate, onSubmit }: UseEditorSetupOptions) {
   const [words, setWords] = useState(0);
   const [characters, setCharacters] = useState(0);
   const appliedRef = useRef<AppliedContent | null>(null);
+  const submitRef = useRef(onSubmit);
+
+  useEffect(() => {
+    submitRef.current = onSubmit;
+  }, [onSubmit]);
 
   const editor = useEditor({
     extensions: [
@@ -52,9 +59,27 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     },
   });
 
+  /** Ctrl/Cmd+Enter publishes; Shift+Enter keeps inserting a hard break. */
+  useEffect(() => {
+    if (!editor) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
+        event.preventDefault();
+        submitRef.current?.();
+      }
+    };
+    const dom = editor.view.dom;
+    dom.addEventListener('keydown', onKeyDown);
+    return () => dom.removeEventListener('keydown', onKeyDown);
+  }, [editor]);
+
   /**
    * Loads the stored body once per editor instance. StrictMode destroys and recreates
    * the editor, so the guard tracks the instance rather than a plain boolean.
+   *
+   * `addToHistory: false` matters: the editor starts empty, so without it this load is
+   * the first undo step and pressing Undo empties the page, which the autosave then
+   * stores. Loading a page is not an edit and must not be undoable.
    */
   useEffect(() => {
     if (!editor || !entryId || storedContent === undefined) return;
@@ -62,7 +87,7 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     if (applied && applied.editor === editor && applied.entryId === entryId) return;
     appliedRef.current = { editor, entryId };
     if (storedContent === editor.getHTML()) return;
-    editor.commands.setContent(storedContent, false);
+    editor.chain().setContent(storedContent, false).setMeta('addToHistory', false).run();
     setWords(countWords(storedContent));
     setCharacters(countCharacters(storedContent));
   }, [editor, entryId, storedContent]);
