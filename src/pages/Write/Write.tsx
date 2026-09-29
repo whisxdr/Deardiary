@@ -20,6 +20,7 @@ export default function Write() {
     id,
     templateId: searchParams.get('template'),
     backdated: searchParams.get('backdated') === 'true',
+    dated: searchParams.get('date'),
   });
 
   const { editor, words, characters, insertImage } = useEditorSetup({
@@ -27,13 +28,13 @@ export default function Write() {
     entryId: id,
     storedContent: entry?.content,
     onUpdate: (html) => patch({ content: html }),
+    onSubmit: publish,
   });
 
+  // Tiptap already binds Ctrl+B, Ctrl+I and Ctrl+Enter inside the editor. Binding them
+  // here too makes both handlers run and the toggle cancels itself out.
   useKeyboard([
     { key: 's', ctrl: true, handler: saveNow },
-    { key: 'b', ctrl: true, handler: () => editor?.chain().focus().toggleBold().run() },
-    { key: 'i', ctrl: true, handler: () => editor?.chain().focus().toggleItalic().run() },
-    { key: 'Enter', ctrl: true, handler: publish },
     { key: 'Escape', handler: () => navigate(isEditing && id ? ROUTES.reader(id) : ROUTES.dashboard) },
   ]);
 

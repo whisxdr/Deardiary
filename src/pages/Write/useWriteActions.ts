@@ -17,6 +17,8 @@ export function useWriteActions(form: StoredDraft, id: string | undefined) {
   /** Writes the current form values to storage; also used by autosave. */
   const persist = useCallback(() => {
     if (id) {
+      // A missing id means the entry was deleted in another tab; there is nothing to
+      // patch and recreating it silently would resurrect a page the user removed.
       patchEntry(id, {
         title: form.title,
         content: form.content,
@@ -46,7 +48,11 @@ export function useWriteActions(form: StoredDraft, id: string | undefined) {
     };
 
     if (id) {
-      patchEntry(id, payload);
+      const updated = patchEntry(id, payload);
+      if (!updated) {
+        toast.error('That entry no longer exists. Publish it as a new entry instead.');
+        return;
+      }
       toast.success('Entry updated');
       navigate(ROUTES.reader(id));
       return;

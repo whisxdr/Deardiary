@@ -1,31 +1,68 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { STORAGE_KEYS } from '@/constants';
 import { readJson } from '@/lib/storage';
 import { useAutosave, useEntry } from '@/hooks';
 import type { Entry } from '@/types';
-import { draftFromEntry, emptyDraft, initialDraft, type StoredDraft } from './writeDraft';
+import { draftDeps, draftFromEntry, emptyDraft, initialDraft, type StoredDraft } from './writeDraft';
 import { useWriteActions } from './useWriteActions';
 
 export interface UseWriteFormOptions {
   id?: string;
   templateId?: string | null;
   backdated?: boolean;
+  /** ISO date chosen on the calendar, used as the entry's day. */
+  dated?: string | null;
 }
 
-/** Owns the write-page form state, autosave, publish and delete flows. */
-export function useWriteForm({ id, templateId, backdated }: UseWriteFormOptions) {
+/**
+ * Owns the write-page form state, autosave, publish and delete flows.
+ *
+ * The route for a new entry and the route for an existing one render the same
+ * component, so the form resets whenever `id` changes; otherwise "New entry" opened
+ * from the editor would keep the previous entry's text and publish a duplicate.
+ */
+export function useWriteForm({ id, templateId, backdated, dated }: UseWriteFormOptions) {
   const existing = useEntry(id);
 
-  const [form, setForm] = useState<StoredDraft>(() => {
-    if (id) return emptyDraft();
-    return initialDraft(readJson<StoredDraft | null>(STORAGE_KEYS.draft, null), templateId ?? null, Boolean(backdated));
-  });
+  const startDraft = useCallback(
+    () =>
+      initialDraft(
+        readJson<StoredDraft | null>(STORAGE_KEYS.draft, null),
+        templateId ?? null,
+        Boolean(backdated),
+        dated,
+      ),
+    [backdated, dated, templateId],
+  );
+
+  const [form, setForm] = useState<StoredDraft>(() => (id ? emptyDraft() : startDraft()));
 
   const [loadedEntryId, setLoadedEntryId] = useState<string | null>(null);
+  /** Signature of the values as they came from storage; see `useAutosave.baseline`. */
+  const [baseline, setBaseline] = useState<string | undefined>(() => (id ? undefined : JSON.stringify(draftDeps(form))));
+
+  // Reset when the route switches between composing and editing, or between entries.
+  const previousId = useRef(id);
+  useEffect(() => {
+    if (previousId.current === id) return;
+    previousId.current = id;
+    setLoadedEntryId(null);
+    if (id) {
+      setForm(emptyDraft());
+      setBaseline(undefined);
+      return;
+    }
+    const next = startDraft();
+    setForm(next);
+    setBaseline(JSON.stringify(draftDeps(next)));
+  }, [id, startDraft]);
 
   useEffect(() => {
     if (!id || !existing || loadedEntryId === existing.id) return;
-    setForm(draftFromEntry(existing));
+    const loaded = draftFromEntry(existing);
+    setForm(loaded);
+    // Opening an entry is not an edit: treat the stored values as already saved.
+    setBaseline(JSON.stringify(draftDeps(loaded)));
     setLoadedEntryId(existing.id);
   }, [existing, id, loadedEntryId]);
 
@@ -36,9 +73,12 @@ export function useWriteForm({ id, templateId, backdated }: UseWriteFormOptions)
   const { persist, publish, remove } = useWriteActions(form, id);
 
   const { savedAt, dirty, saveNow } = useAutosave({
-    enabled: Boolean(form.title || form.content),
+    // A saved entry being emptied is a real edit, so only a new entry needs content
+    // before there is anything worth writing.
+    enabled: Boolean(id) || Boolean(form.title || form.content),
     onSave: persist,
-    deps: [form.title, form.content, form.mood, form.tags, form.date, form.location],
+    deps: draftDeps(form),
+    baseline,
   });
 
   const savedLabel = useMemo(() => {
