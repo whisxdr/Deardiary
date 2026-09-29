@@ -4,7 +4,7 @@ import { Avatar } from '@/components/ui';
 import { IconButton } from '@/components/common';
 import { ROUTES } from '@/constants';
 import { useClickOutside } from '@/hooks';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSettingsStore } from '@/store';
 import { useTheme } from '@/hooks';
 
@@ -14,6 +14,16 @@ export function HeaderProfile() {
   const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
   const { displayName, avatarSeed } = useSettingsStore((state) => state.settings);
   const { toggleTheme, isDark } = useTheme();
+
+  // Click-outside only covers the mouse; the menu also has to answer Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
 
   return (
     <div className="relative" ref={ref}>

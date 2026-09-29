@@ -20,18 +20,20 @@ async function copyText(text: string): Promise<boolean> {
     // Fall through to the legacy path.
   }
 
+  const area = document.createElement('textarea');
   try {
-    const area = document.createElement('textarea');
     area.value = text;
     area.setAttribute('readonly', '');
     area.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
     document.body.appendChild(area);
     area.select();
-    const ok = document.execCommand('copy');
-    area.remove();
-    return ok;
+    return document.execCommand('copy');
   } catch {
     return false;
+  } finally {
+    // Removing in a `finally` keeps a throw from leaving an invisible textarea in the
+    // DOM for the life of the page, one per failed attempt.
+    area.remove();
   }
 }
 

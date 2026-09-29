@@ -34,6 +34,9 @@ export function computeStats(source: Entry[] = listEntries()): StatsSummary {
   const totalWords = source.reduce((total, entry) => total + entry.wordCount, 0);
   const moodDistribution = computeMoodDistribution(source);
   const weeks = computeWeeklyActivity(source);
+  // The card is labelled "Based on the last eight weeks", so average that window
+  // rather than dividing the all-time total by eight.
+  const recentEntries = weeks.reduce((total, week) => total + week.entries, 0);
 
   return {
     totalEntries: source.length,
@@ -44,7 +47,7 @@ export function computeStats(source: Entry[] = listEntries()): StatsSummary {
     entriesThisMonth: thisMonth.length,
     entriesLastMonth: lastMonth.length,
     monthChangePercent: monthChange(thisMonth.length, lastMonth.length),
-    averagePerWeek: weeks.length ? Number((source.length / weeks.length).toFixed(1)) : 0,
+    averagePerWeek: weeks.length ? Number((recentEntries / weeks.length).toFixed(1)) : 0,
     averageWords: source.length ? Math.round(totalWords / source.length) : 0,
     topMood: moodDistribution[0] ?? null,
     moodDistribution,

@@ -3,15 +3,16 @@ import { Button, toast } from '@/components/ui';
 import { ConfirmDialog } from '@/components/common';
 import { STORAGE_KEYS } from '@/constants';
 import { exportBackup, importBackupFile } from '@/services';
-import { estimateUsage } from '@/lib/storage';
+import { estimateUsage, isPersistent, removeKey } from '@/lib/storage';
 import { formatBytes, formatCount } from '@/lib';
-import { useEntryStore } from '@/store';
+import { useEntryStore, useSettingsStore } from '@/store';
 import type { Entry } from '@/types';
 
 /** Data section: export a backup, import one, or wipe everything. */
 export function DataSection() {
   const entries = useEntryStore((state) => state.entries);
   const replaceAll = useEntryStore((state) => state.replaceAll);
+  const updateSettings = useSettingsStore((state) => state.update);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -22,8 +23,14 @@ export function DataSection() {
       toast.error(result.message);
       return;
     }
-    const merged: Entry[] = [...entries.filter((entry) => !result.entries.some((item) => item.id === entry.id)), ...result.entries];
+    // Merge against storage at write time: the file read is async, so a list captured
+    // from an earlier render can drop entries added while the read was in flight.
+    const current = useEntryStore.getState().entries;
+    const importedIds = new Set(result.entries.map((entry) => entry.id));
+    const merged: Entry[] = [...current.filter((entry) => !importedIds.has(entry.id)), ...result.entries];
     replaceAll(merged);
+    // A backup carries settings too; restoring them is what makes it a full restore.
+    if (result.settings) updateSettings(result.settings);
     toast.success(result.message);
   };
 
@@ -35,6 +42,12 @@ export function DataSection() {
       <p className="font-body text-xs text-primary-500 dark:text-primary-300">
         {`Using about ${formatBytes(estimateUsage())} of browser storage for ${formatCount(entries.length, 'entry', 'entries')}.`}
       </p>
+      {isPersistent() ? null : (
+        <p role="alert" className="font-body text-xs text-error">
+          This browser is blocking local storage, so changes are kept in memory only and are lost when the page closes.
+          Export a backup to keep them.
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => exportBackup(entries)}>
           Export backup (JSON)
@@ -65,7 +78,7 @@ export function DataSection() {
         destructive
         onConfirm={() => {
           replaceAll([]);
-          window.localStorage.removeItem(STORAGE_KEYS.draft);
+          removeKey(STORAGE_KEYS.draft);
           setConfirmOpen(false);
           toast.success('All entries removed');
         }}

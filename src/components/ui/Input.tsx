@@ -1,6 +1,6 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+import { useId } from 'react';
 import { cn } from '@/utils';
-import { shortId } from '@/lib/id';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -13,7 +13,8 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 /** Text input with optional label, hint, error message and icon slots. */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, hint, error, leading, trailing, id, ...props }, ref) => {
-    const inputId = id ?? shortId('input');
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
     return (
       <div className="flex w-full flex-col gap-1">
         {label ? (

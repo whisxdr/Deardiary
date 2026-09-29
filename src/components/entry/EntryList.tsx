@@ -1,4 +1,5 @@
-import { FixedSizeList, type ListChildComponentProps } from 'react-window';
+import { useEffect, useState } from 'react';
+import { FixedSizeGrid, type GridChildComponentProps } from 'react-window';
 import { LIMITS } from '@/constants';
 import { EntryCard } from './EntryCard';
 import type { Entry } from '@/types';
@@ -11,10 +12,40 @@ export interface EntryListProps {
   className?: string;
 }
 
-const ROW_HEIGHT = 220;
+const ROW_HEIGHT = 232;
+const COLUMN_GAP = 16;
+const SCROLLER_HEIGHT = 640;
 
-/** Virtualized list for large collections, plain grid below the threshold. */
+/** Column count that matches the Tailwind grid used for small collections. */
+function columnsFor(width: number, layout: 'grid' | 'list'): number {
+  if (layout === 'list') return 1;
+  if (width >= 1280) return 3;
+  if (width >= 640) return 2;
+  return 1;
+}
+
+/** Tracks the container width so the virtualized grid matches the responsive grid. */
+function useContainerWidth<T extends HTMLElement>() {
+  const [element, setElement] = useState<T | null>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setWidth(entry.contentRect.width);
+    });
+    observer.observe(element);
+    setWidth(element.getBoundingClientRect().width);
+    return () => observer.disconnect();
+  }, [element]);
+
+  return { ref: setElement, width } as const;
+}
+
+/** Virtualized grid for large collections, plain grid below the threshold. */
 export function EntryList({ entries, layout = 'grid', onToggleFavorite, onTagClick, className }: EntryListProps) {
+  const { ref, width } = useContainerWidth<HTMLDivElement>();
+
   if (entries.length <= LIMITS.virtualizeThreshold) {
     return (
       <div
@@ -35,35 +66,50 @@ export function EntryList({ entries, layout = 'grid', onToggleFavorite, onTagCli
     );
   }
 
+  const columns = columnsFor(width, layout);
+  const columnWidth = columns > 0 ? (width - COLUMN_GAP * (columns - 1)) / columns : width;
+  const rowCount = Math.ceil(entries.length / columns);
+
   return (
-    <div className={className}>
-      <FixedSizeList
-        height={640}
-        width="100%"
-        itemCount={entries.length}
-        itemSize={ROW_HEIGHT}
-        itemData={{ entries, layout, onToggleFavorite, onTagClick }}
-        itemKey={(index, data: { entries: Entry[] }) => data.entries[index].id}
-        overscanCount={4}
-      >
-        {renderRow}
-      </FixedSizeList>
+    <div ref={ref} className={className}>
+      {width > 0 ? (
+        <FixedSizeGrid
+          height={SCROLLER_HEIGHT}
+          width={width}
+          columnCount={columns}
+          columnWidth={columnWidth + COLUMN_GAP}
+          rowCount={rowCount}
+          rowHeight={ROW_HEIGHT}
+          itemData={{ entries, columns, columnWidth, layout, onToggleFavorite, onTagClick }}
+          itemKey={({ rowIndex, columnIndex, data }) => {
+            const item = data.entries[rowIndex * data.columns + columnIndex];
+            return item ? item.id : `empty-${rowIndex}-${columnIndex}`;
+          }}
+          overscanRowCount={3}
+        >
+          {renderCell}
+        </FixedSizeGrid>
+      ) : null}
     </div>
   );
 }
 
-interface RowData {
+interface CellData {
   entries: Entry[];
+  columns: number;
+  columnWidth: number;
   layout: 'grid' | 'list';
   onToggleFavorite: (id: string) => void;
   onTagClick?: (tag: string) => void;
 }
 
-/** Renders one virtualized row. */
-function renderRow({ index, style, data }: ListChildComponentProps<RowData>) {
-  const entry = data.entries[index];
+/** Renders one virtualized cell; empty trailing cells render nothing. */
+function renderCell({ columnIndex, rowIndex, style, data }: GridChildComponentProps<CellData>) {
+  const entry = data.entries[rowIndex * data.columns + columnIndex];
+  if (!entry) return null;
+
   return (
-    <div style={{ ...style, paddingBottom: 16, paddingRight: 8 }}>
+    <div style={{ ...style, width: data.columnWidth, paddingBottom: 16, paddingRight: COLUMN_GAP }}>
       <EntryCard
         entry={entry}
         layout={data.layout}

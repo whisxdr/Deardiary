@@ -14,7 +14,8 @@ export function download(filename: string, content: string, mime: string): void 
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  // Revoking immediately can cancel the download before it starts; defer a tick.
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 /** Builds the plain-text rendering of an entry. */

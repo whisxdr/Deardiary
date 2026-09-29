@@ -25,8 +25,13 @@ export const QUOTES: string[] = [
   'Your life is worth the ink.',
 ];
 
-/** Rotates the quote list so a new quote shows each day. */
+/**
+ * Rotates the quote list so a new quote shows each day.
+ *
+ * The day index comes from local calendar parts: dividing a UTC timestamp by a day
+ * changes the quote at UTC midnight, which is mid-afternoon for users well ahead of UTC.
+ */
 export function quoteForDate(date: Date): string {
-  const dayIndex = Math.floor(date.getTime() / 86_400_000);
-  return QUOTES[dayIndex % QUOTES.length];
+  const dayNumber = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000);
+  return QUOTES[((dayNumber % QUOTES.length) + QUOTES.length) % QUOTES.length];
 }

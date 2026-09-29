@@ -16,15 +16,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    // The export chunk carries jsPDF and html2canvas, both loaded lazily on demand.
     chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
+        // Split only the vendor groups that every route shares. Letting Rollup decide
+        // the rest keeps jsPDF and Recharts in the route chunks that actually use them.
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom'],
-          editor: ['@tiptap/react', '@tiptap/starter-kit'],
-          charts: ['recharts'],
-          export: ['jspdf', 'html2canvas'],
         },
       },
     },

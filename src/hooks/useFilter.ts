@@ -36,7 +36,14 @@ export function useFilter(source: Entry[], initial: Partial<EntryFilters> = {}) 
 
   const update = (patch: Partial<EntryFilters>) => setFilters((current) => ({ ...current, ...patch }));
 
-  const reset = () => setFilters({ ...DEFAULT_FILTERS, ...initial });
+  /**
+   * Clears every filter, including any that arrived from the URL.
+   *
+   * Resetting to the seeded `initial` state would restore the URL's tag and leave the
+   * grid filtered, which reads as a broken button: the toolbar showed "All tags" while
+   * one tag was still applied.
+   */
+  const reset = () => setFilters(DEFAULT_FILTERS);
 
   const filtered = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
@@ -48,8 +55,10 @@ export function useFilter(source: Entry[], initial: Partial<EntryFilters> = {}) 
       if (filters.tag !== 'all' && !entry.tags.includes(filters.tag)) return false;
       if (filters.favoritesOnly && !entry.isFavorite) return false;
       const time = parseISO(entry.date).getTime();
-      if (from !== null && time < from) return false;
-      if (to !== null && time > to + 86_399_000) return false;
+      // A bad stored date yields NaN, and every NaN comparison is false, so a range
+      // filter would silently pass it instead of excluding it.
+      if (from !== null && !(time >= from)) return false;
+      if (to !== null && !(time <= to + 86_399_000)) return false;
       if (query) {
         const haystack = `${entry.title} ${stripHtml(entry.content)} ${entry.tags.join(' ')}`.toLowerCase();
         if (!haystack.includes(query)) return false;

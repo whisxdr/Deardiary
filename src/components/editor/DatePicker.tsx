@@ -7,14 +7,24 @@ export interface DatePickerProps {
   label?: string;
 }
 
-/** Splits an ISO timestamp into the date and time parts a native picker needs. */
+/** Pads a number to two digits for the native picker formats. */
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+/**
+ * Splits an ISO timestamp into the date and time parts a native picker needs.
+ *
+ * Both halves come from the same local clock. Mixing a UTC date with a local time
+ * shifts the entry by a day whenever the local time is behind the UTC offset.
+ */
 function splitIso(value: string): { date: string; time: string } {
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    const now = new Date();
-    return { date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5) };
-  }
-  return { date: parsed.toISOString().slice(0, 10), time: parsed.toTimeString().slice(0, 5) };
+  const at = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  return {
+    date: `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`,
+    time: `${pad(at.getHours())}:${pad(at.getMinutes())}`,
+  };
 }
 
 /** Native date and time inputs that emit a single ISO timestamp. */
@@ -22,7 +32,10 @@ export function DatePicker({ value, onChange, label = 'Date & time' }: DatePicke
   const { date, time } = splitIso(value);
 
   const emit = (nextDate: string, nextTime: string) => {
-    const merged = new Date(`${nextDate}T${nextTime}:00`);
+    const [year, month, day] = nextDate.split('-').map(Number);
+    const [hour, minute] = nextTime.split(':').map(Number);
+    // Built from local parts so the wall-clock values the user picked are preserved.
+    const merged = new Date(year, month - 1, day, hour, minute, 0);
     onChange(Number.isNaN(merged.getTime()) ? value : merged.toISOString());
   };
 

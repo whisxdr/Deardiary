@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { BookOpen, CalendarBlank, ChartBar, Gear, Notebook, PencilSimple } from '@phosphor-icons/react';
 import { ROUTES } from '@/constants';
@@ -17,6 +18,16 @@ export interface SidebarProps {
 
 /** Slide-over navigation used on small screens. */
 export function Sidebar({ open, onClose }: SidebarProps) {
+  // Escape closes the panel and focus moves into it, so the drawer is not mouse-only.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose, open]);
+
   if (!open) return null;
 
   return (
@@ -29,6 +40,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <NavLink
           to={ROUTES.landing}
           onClick={onClose}
+          autoFocus
           className="mb-4 flex items-center gap-2 font-display text-lg text-accent-gold"
         >
           <BookOpen size={20} weight="duotone" aria-hidden="true" />

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui';
 import { EmptyState } from '@/components/common';
 import { EmptyDiary } from '@/components/illustrations';
 import { EntryCard } from '@/components/entry';
-import { formatLongDate } from '@/utils/date';
+import { formatLongDate, toDateKey } from '@/utils/date';
 import { formatCount, formatWordCount } from '@/lib';
 import { ROUTES } from '@/constants';
 import type { Entry } from '@/types';
@@ -33,7 +33,8 @@ export function CalendarDayDetail({ date, entries, onToggleFavorite }: CalendarD
           description="This day is still a blank page. Start writing and it will appear here."
           illustration={<EmptyDiary size={240} />}
           action={
-            <Link to={ROUTES.write}>
+            // Carries the selected day so the composer opens dated to it rather than today.
+            <Link to={`${ROUTES.write}?date=${toDateKey(date)}`}>
               <Button size="sm" variant="gold">
                 Write this day
               </Button>

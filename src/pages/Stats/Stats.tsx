@@ -7,6 +7,7 @@ import { Button } from '@/components/ui';
 import { ROUTES } from '@/constants';
 import { computeStats } from '@/services';
 import { useEntries } from '@/hooks';
+import { tagFilterUrl } from '@/utils';
 import { StatsGrid } from './StatsGrid';
 
 /** Statistics page: totals, streaks, charts and tag cloud. */
@@ -37,7 +38,7 @@ export default function Stats() {
             }
           />
         ) : (
-          <StatsGrid stats={stats} onTagClick={(tag) => navigate(`${ROUTES.dashboard}?tag=${tag}`)} />
+          <StatsGrid stats={stats} onTagClick={(tag) => navigate(tagFilterUrl(ROUTES.dashboard, tag))} />
         )}
       </div>
     </AppLayout>

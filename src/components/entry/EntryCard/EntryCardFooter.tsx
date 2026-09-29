@@ -14,7 +14,7 @@ export function EntryCardFooter({ entry, maxTags = 3, onTagClick }: EntryCardFoo
   return (
     <footer className="flex flex-col gap-2 border-t border-primary-200/60 pt-3 dark:border-primary-700/60">
       <EntryTags tags={entry.tags} max={maxTags} onTagClick={onTagClick} />
-      <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-primary-400 dark:text-primary-300">
+      <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-muted">
         <span className="inline-flex items-center gap-1">
           <Clock size={14} aria-hidden="true" />
           {formatWordCount(entry.wordCount)}

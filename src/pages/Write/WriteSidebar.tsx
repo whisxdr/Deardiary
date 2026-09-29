@@ -1,6 +1,7 @@
-import { CheckCircle, FloppyDisk, PaperPlaneTilt, Trash } from '@phosphor-icons/react';
-import { Button, Input, Toggle } from '@/components/ui';
-import { DatePicker, MoodPicker, TagInput } from '@/components/editor';
+import { Toggle } from '@/components/ui';
+import { MoodPicker, TagInput } from '@/components/editor';
+import { SidebarActions } from './SidebarActions';
+import { SidebarDetails } from './SidebarDetails';
 import type { Mood } from '@/types';
 
 export interface WriteSidebarProps {
@@ -30,26 +31,28 @@ function SectionTitle({ children }: { children: string }) {
 }
 
 /** Detail, mood, tag and action sections beside the editor. */
-export function WriteSidebar({
-  date,
-  location,
-  mood,
-  tags,
-  isFavorite,
-  isPrivate,
-  savedLabel,
-  isSaving,
-  onDateChange,
-  onLocationChange,
-  onMoodChange,
-  onTagsChange,
-  onFavoriteChange,
-  onPrivateChange,
-  onSaveDraft,
-  onPublish,
-  onDelete,
-  canDelete,
-}: WriteSidebarProps) {
+export function WriteSidebar(props: WriteSidebarProps) {
+  const {
+    date,
+    location,
+    mood,
+    tags,
+    isFavorite,
+    isPrivate,
+    savedLabel,
+    isSaving,
+    onDateChange,
+    onLocationChange,
+    onMoodChange,
+    onTagsChange,
+    onFavoriteChange,
+    onPrivateChange,
+    onSaveDraft,
+    onPublish,
+    onDelete,
+    canDelete,
+  } = props;
+
   return (
     <aside
       aria-label="Entry details"
@@ -57,23 +60,14 @@ export function WriteSidebar({
     >
       <section className="flex flex-col gap-3">
         <SectionTitle>Details</SectionTitle>
-        <DatePicker value={date} onChange={onDateChange} />
-        <Input
-          label="Location"
-          value={location}
-          onChange={(event) => onLocationChange(event.target.value)}
-          placeholder="Where were you?"
+        <SidebarDetails
+          date={date}
+          location={location}
+          savedLabel={savedLabel}
+          isSaving={isSaving}
+          onDateChange={onDateChange}
+          onLocationChange={onLocationChange}
         />
-        <p aria-live="polite" className="flex items-center gap-1 font-body text-xs text-muted">
-          {isSaving ? (
-            'Saving…'
-          ) : (
-            <>
-              <CheckCircle size={14} weight="fill" aria-hidden="true" className="text-success" />
-              {savedLabel}
-            </>
-          )}
-        </p>
       </section>
 
       <section className="flex flex-col gap-2">
@@ -93,20 +87,7 @@ export function WriteSidebar({
 
       <section className="flex flex-col gap-2 border-t border-primary-200/60 pt-3 dark:border-primary-700/60">
         <SectionTitle>Actions</SectionTitle>
-        <Button variant="outline" onClick={onSaveDraft}>
-          <FloppyDisk size={16} weight="regular" aria-hidden="true" />
-          Save draft
-        </Button>
-        <Button variant="gold" onClick={onPublish}>
-          <PaperPlaneTilt size={16} weight="regular" aria-hidden="true" />
-          Publish
-        </Button>
-        {canDelete ? (
-          <Button variant="danger" onClick={onDelete}>
-            <Trash size={16} weight="regular" aria-hidden="true" />
-            Delete
-          </Button>
-        ) : null}
+        <SidebarActions onSaveDraft={onSaveDraft} onPublish={onPublish} onDelete={onDelete} canDelete={canDelete} />
       </section>
     </aside>
   );

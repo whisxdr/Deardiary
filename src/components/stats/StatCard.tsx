@@ -22,7 +22,7 @@ export function StatCard({ label, value, hint, icon, accent = '#C9A961', classNa
       )}
     >
       <header className="flex items-center justify-between gap-2">
-        <h3 className="font-body text-xs uppercase tracking-wide text-primary-400 dark:text-primary-300">{label}</h3>
+        <h3 className="font-body text-xs uppercase tracking-wide text-muted">{label}</h3>
         {icon ? (
           <span aria-hidden="true" style={{ color: accent }}>
             {icon}

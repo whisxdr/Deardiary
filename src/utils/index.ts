@@ -6,9 +6,9 @@ export {
   formatShortDate,
   formatTime,
   isSameCalendarDay,
-  minutesBetween,
   toDateKey,
 } from './date';
 export { stripHtml, textToHtml } from './html';
 export { dominantMood, moodColor, moodLabel, moodMeta } from './mood';
 export { initials, signed, slugify, titleCase, truncate } from './string';
+export { searchFilterUrl, tagFilterUrl } from './url';

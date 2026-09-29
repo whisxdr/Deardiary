@@ -3,6 +3,7 @@ import { Select } from '@/components/ui';
 import { Chip } from '@/components/ui';
 import { IconButton } from '@/components/common';
 import { MOOD_FILTER_OPTIONS, SORT_OPTIONS } from '@/constants';
+import { formatCount } from '@/lib';
 import type { EntryFilters, SelectOption, ViewMode } from '@/types';
 
 export interface DashboardToolbarProps {
@@ -51,7 +52,9 @@ export function DashboardToolbar({
         Favorites
       </Chip>
 
-      <span className="font-body text-xs text-primary-500 dark:text-primary-300">{`${resultCount} results`}</span>
+      <span className="font-body text-xs text-primary-500 dark:text-primary-300">
+        {formatCount(resultCount, 'result')}
+      </span>
 
       <div className="ml-auto flex items-center gap-1">
         <IconButton

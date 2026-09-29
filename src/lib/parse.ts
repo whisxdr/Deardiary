@@ -48,7 +48,14 @@ export function htmlToMarkdown(html: string): string {
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n\n')
     .replace(/<[^>]*>/g, '')
+    // Decode after tags are gone, so an escaped `&lt;3` exports as `<3` rather than
+    // staying literal while a real tag was already stripped.
     .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }

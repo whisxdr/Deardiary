@@ -1,5 +1,5 @@
+import { useId } from 'react';
 import { cn } from '@/utils';
-import { shortId } from '@/lib/id';
 
 export interface ToggleProps {
   checked: boolean;
@@ -11,7 +11,7 @@ export interface ToggleProps {
 
 /** Switch control used by the settings sections. */
 export function Toggle({ checked, onChange, label, description, disabled }: ToggleProps) {
-  const id = shortId('toggle');
+  const id = useId();
   return (
     <div className="flex items-start justify-between gap-4 py-2">
       <div className="flex flex-col">
@@ -19,7 +19,7 @@ export function Toggle({ checked, onChange, label, description, disabled }: Togg
           {label}
         </label>
         {description ? (
-          <span className="font-body text-xs text-primary-400 dark:text-primary-300">{description}</span>
+          <span className="font-body text-xs text-muted">{description}</span>
         ) : null}
       </div>
       <button

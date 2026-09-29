@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
+import { ROUTES } from '@/constants';
 import { useUiStore } from '@/store';
 import { cn } from '@/utils';
 
@@ -12,11 +14,30 @@ export interface AppLayoutProps {
   className?: string;
 }
 
-/** Shell shared by every authenticated page: header, sidebar, footer. */
+/**
+ * Shell shared by every authenticated page: header, sidebar, footer.
+ *
+ * Pages that filter their own content pass `onSearchChange`. On every other page the
+ * box would otherwise render but do nothing, so it hands the query to the dashboard,
+ * which is the page that can act on it.
+ */
 export function AppLayout({ children, searchValue = '', onSearchChange, className }: AppLayoutProps) {
+  const navigate = useNavigate();
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
   const setSidebar = useUiStore((state) => state.setSidebar);
+  const [fallbackSearch, setFallbackSearch] = useState('');
+
+  const controlled = onSearchChange !== undefined;
+  const handleSearchChange = (value: string) => {
+    if (onSearchChange) {
+      onSearchChange(value);
+      return;
+    }
+    setFallbackSearch(value);
+    // `replace` keeps typing from filling the history with one entry per keystroke.
+    navigate(`${ROUTES.dashboard}?q=${encodeURIComponent(value)}`, { replace: true });
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-primary-50 dark:bg-primary-900">
@@ -27,8 +48,8 @@ export function AppLayout({ children, searchValue = '', onSearchChange, classNam
         Skip to content
       </a>
       <Header
-        searchValue={searchValue}
-        onSearchChange={onSearchChange ?? (() => undefined)}
+        searchValue={controlled ? searchValue : fallbackSearch}
+        onSearchChange={handleSearchChange}
         onOpenSidebar={toggleSidebar}
       />
       <Sidebar open={sidebarOpen} onClose={() => setSidebar(false)} />

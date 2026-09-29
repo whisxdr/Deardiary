@@ -8,20 +8,39 @@ export interface EntryTypeOption {
   name: string;
   description: string;
   icon: 'blank' | 'template' | 'dated';
+  /** Template to open the editor with; `free` is the empty page. */
+  templateId: string;
 }
-
-/** Choices offered by the composer modal. */
-export const ENTRY_TYPE_OPTIONS: EntryTypeOption[] = [
-  { id: 'blank', name: 'Blank page', description: 'Start with an empty page.', icon: 'blank' },
-  { id: 'template', name: 'From a template', description: 'Gratitude or evening reflection.', icon: 'template' },
-  { id: 'dated', name: 'Backdated entry', description: 'Write about an earlier day.', icon: 'dated' },
-];
 
 const ICONS = {
   blank: FileText,
   template: Sparkle,
   dated: CalendarBlank,
 } as const;
+
+/**
+ * Choices offered by the composer modal.
+ *
+ * Every template with content gets its own row. Listing them from the constants keeps
+ * a template from being reachable in the editor but unreachable from here.
+ */
+export const ENTRY_TYPE_OPTIONS: EntryTypeOption[] = [
+  { id: 'blank', name: 'Blank page', description: 'Start with an empty page.', icon: 'blank', templateId: 'free' },
+  ...ENTRY_TEMPLATES.filter((template) => template.content).map((template) => ({
+    id: template.id,
+    name: template.name,
+    description: template.description,
+    icon: 'template' as const,
+    templateId: template.id,
+  })),
+  {
+    id: 'dated',
+    name: 'Backdated entry',
+    description: 'Write about an earlier day.',
+    icon: 'dated',
+    templateId: 'free',
+  },
+];
 
 export interface ComposerModalProps {
   open: boolean;
@@ -48,7 +67,7 @@ export function ComposerModal({ open, onClose, onSelect }: ComposerModalProps) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05, duration: 0.25 }}
-              onClick={() => onSelect(option.id === 'template' ? ENTRY_TEMPLATES[1].id : ENTRY_TEMPLATES[0].id, option.id === 'dated')}
+              onClick={() => onSelect(option.templateId, option.id === 'dated')}
               className="flex items-start gap-3 rounded-md border border-primary-200 bg-primary-50/70 p-3 text-left transition-colors duration-fast hover:border-accent-gold dark:border-primary-700 dark:bg-primary-800/60"
             >
               <span aria-hidden="true" className="mt-0.5 text-accent-gold">

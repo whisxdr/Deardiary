@@ -1,6 +1,6 @@
 import { cn } from '@/utils';
 import type { ReactNode, SelectHTMLAttributes } from 'react';
-import { shortId } from '@/lib/id';
+import { useId } from 'react';
 import type { SelectOption } from '@/types';
 
 export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
@@ -11,7 +11,8 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
 
 /** Native select styled to match the paper surface, used by toolbar filters. */
 export function Select({ label, options, leading, className, id, ...props }: SelectProps) {
-  const selectId = id ?? shortId('select');
+  const generatedId = useId();
+  const selectId = id ?? generatedId;
   return (
     <div className="flex items-center gap-2">
       {label ? (

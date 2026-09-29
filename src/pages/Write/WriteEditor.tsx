@@ -33,7 +33,7 @@ export function WriteEditor({
         onChange={(event) => onTitleChange(event.target.value)}
         placeholder="Give this page a title"
         maxLength={120}
-        className="w-full border-0 border-b border-primary-200 bg-transparent pb-2 font-display text-2xl text-primary-800 placeholder:text-primary-300 focus:border-accent-gold focus:outline-none dark:border-primary-700 dark:text-primary-100"
+        className="w-full border-0 border-b border-primary-200 bg-transparent pb-2 font-display text-2xl text-primary-800 placeholder:text-muted focus:border-accent-gold focus:outline-none dark:border-primary-700 dark:text-primary-100"
       />
       <EditorToolbar editor={editor} onInsertImage={onInsertImage} />
       <EditorBody editor={editor} />

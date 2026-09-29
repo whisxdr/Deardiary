@@ -1,6 +1,6 @@
 import { forwardRef, type TextareaHTMLAttributes } from 'react';
+import { useId } from 'react';
 import { cn } from '@/utils';
-import { shortId } from '@/lib/id';
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -11,7 +11,8 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 /** Multi-line input styled to match the paper surface. */
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, hint, error, id, ...props }, ref) => {
-    const textareaId = id ?? shortId('textarea');
+    const generatedId = useId();
+    const textareaId = id ?? generatedId;
     return (
       <div className="flex w-full flex-col gap-1">
         {label ? (

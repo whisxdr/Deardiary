@@ -1,33 +1,49 @@
 import { motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookCover, GoldDust } from '@/components/book';
 import { LandingHero } from '@/components/illustrations';
 import { ROUTES, STORAGE_KEYS } from '@/constants';
-import { hasKey, readJson } from '@/lib/storage';
+import { hasKey } from '@/lib/storage';
 import { useParallax } from './useParallax';
 import { CoverActions } from './CoverActions';
 import { CoverBookmark } from './CoverBookmark';
 import { CoverDate } from './CoverDate';
 import { CoverQuote } from './CoverQuote';
 import { CoverTitle } from './CoverTitle';
-import type { EntryDraft } from '@/types';
 
 /** Cover page: leather book, daily quote and the two entry actions. */
 export default function Landing() {
   const navigate = useNavigate();
   const [isOpening, setIsOpening] = useState(false);
   const tilt = useParallax();
+  const openTimer = useRef<number | null>(null);
 
-  const draftId = useMemo(() => {
-    const draft = readJson<Partial<EntryDraft> & { id?: string } | null>(STORAGE_KEYS.draft, null);
-    return draft?.id ?? null;
-  }, []);
+  // A draft is stored without an id, so "Continue writing" always opens the composer,
+  // which reloads the draft from storage.
+  const hasDraft = hasKey(STORAGE_KEYS.draft);
 
-  const openBook = () => {
+  // The cover animation delays navigation; clear the timer so leaving early (or
+  // clicking "Continue writing" during the animation) cannot hijack the next page.
+  useEffect(
+    () => () => {
+      if (openTimer.current !== null) window.clearTimeout(openTimer.current);
+    },
+    [],
+  );
+
+  const openBook = useCallback(() => {
     setIsOpening(true);
-    window.setTimeout(() => navigate(ROUTES.dashboard), 800);
-  };
+    openTimer.current = window.setTimeout(() => navigate(ROUTES.dashboard), 800);
+  }, [navigate]);
+
+  const continueWriting = useCallback(() => {
+    if (openTimer.current !== null) {
+      window.clearTimeout(openTimer.current);
+      openTimer.current = null;
+    }
+    navigate(ROUTES.write);
+  }, [navigate]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-primary-900 px-4 py-10 leather-texture">
@@ -46,9 +62,9 @@ export default function Landing() {
             <LandingHero size={260} className="opacity-90" />
             <CoverQuote />
             <CoverActions
-              hasDraft={hasKey(STORAGE_KEYS.draft)}
+              hasDraft={hasDraft}
               onOpen={openBook}
-              onContinue={() => navigate(draftId ? ROUTES.writeEntry(draftId) : ROUTES.write)}
+              onContinue={continueWriting}
               isOpening={isOpening}
             />
           </div>
@@ -57,3 +73,4 @@ export default function Landing() {
     </main>
   );
 }
+

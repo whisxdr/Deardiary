@@ -1,4 +1,4 @@
-import { eachDayOfInterval, parseISO, startOfWeek, subDays } from 'date-fns';
+import { eachDayOfInterval, endOfWeek, parseISO, startOfWeek, subDays } from 'date-fns';
 import { MOODS } from '@/constants';
 import { countBy, toDateKey } from '@/utils';
 import type { Entry, HeatmapCell, HourBucket, MoodCount, TagCount, WeeklyPoint } from '@/types';
@@ -11,7 +11,9 @@ export function computeWeeklyActivity(entries: Entry[], weeks = 8): WeeklyPoint[
   const points: WeeklyPoint[] = [];
   for (let index = weeks - 1; index >= 0; index -= 1) {
     const weekStart = startOfWeek(subDays(new Date(), index * 7));
-    const weekEnd = new Date(weekStart.getTime() + 6 * 86_400_000);
+    // endOfWeek is Saturday 23:59:59.999. A fixed +6 days lands on Saturday 00:00
+    // and drops the rest of that day from every bucket.
+    const weekEnd = endOfWeek(weekStart);
     const inWeek = entries.filter((entry) => {
       const time = parseISO(entry.date).getTime();
       return time >= weekStart.getTime() && time <= weekEnd.getTime();
@@ -33,7 +35,10 @@ export function computeActivityByHour(entries: Entry[]): HourBucket[] {
     entries: 0,
   }));
   entries.forEach((entry) => {
-    buckets[parseISO(entry.date).getHours()].entries += 1;
+    const parsed = parseISO(entry.date);
+    if (Number.isNaN(parsed.getTime())) return;
+    const bucket = buckets[parsed.getHours()];
+    if (bucket) bucket.entries += 1;
   });
   return buckets;
 }
@@ -42,7 +47,10 @@ export function computeActivityByHour(entries: Entry[]): HourBucket[] {
 export function computeHeatmap(entries: Entry[]): HeatmapCell[] {
   const counts = countBy(entries, (entry) => toDateKey(entry.date));
   const days = eachDayOfInterval({ start: subDays(new Date(), DAYS_IN_HEATMAP), end: new Date() });
-  const max = Math.max(1, ...Object.values(counts));
+  // Scale against the window that is actually drawn: using the all-time maximum lets
+  // one busy day a year ago flatten every visible cell to the lowest level.
+  const inWindow = days.map((day) => counts[toDateKey(day)] ?? 0);
+  const max = Math.max(1, ...inWindow);
   return days.map((day) => {
     const date = toDateKey(day);
     const count = counts[date] ?? 0;

@@ -8,8 +8,10 @@ import { ROUTES } from '@/constants';
 import { printEntry } from '@/services';
 import { useEntries, useEntry, useKeyboard } from '@/hooks';
 import { useEntryStore } from '@/store';
+import { tagFilterUrl } from '@/utils';
 import { ReaderContent } from './ReaderContent';
-import { ReaderDeleteDialog, ReaderExportRow, ReaderMissing } from './ReaderExtras';
+import { ReaderDeleteDialog, ReaderExportRow } from './ReaderExtras';
+import { ReaderLoading, ReaderNotFound } from './ReaderStates';
 import { ReaderMetadata } from './ReaderMetadata';
 import { ReaderNav } from './ReaderNav';
 import { useReaderActions } from './useReaderActions';
@@ -18,7 +20,7 @@ import { useReaderActions } from './useReaderActions';
 export default function Reader() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { entries } = useEntries();
+  const { entries, hydrated } = useEntries();
   const entry = useEntry(id);
   const favorite = useEntryStore((state) => state.favorite);
   const removeEntry = useEntryStore((state) => state.removeEntry);
@@ -49,13 +51,10 @@ export default function Reader() {
     };
   }, [entry]);
 
-  if (!entry) {
-    return (
-      <AppLayout>
-        <ReaderMissing onBack={() => navigate(ROUTES.dashboard)} />
-      </AppLayout>
-    );
-  }
+  // The store hydrates after the first paint, so an unhydrated lookup would flash
+  // "that page is missing" for an entry that is about to appear.
+  if (!hydrated) return <ReaderLoading />;
+  if (!entry) return <ReaderNotFound onBack={() => navigate(ROUTES.dashboard)} />;
 
   return (
     <AppLayout>
@@ -70,7 +69,7 @@ export default function Reader() {
         />
         <BookFlip pageKey={entry.id} direction={direction}>
           <BookSpread
-            left={<ReaderMetadata entry={entry} onTagClick={(tag) => navigate(`${ROUTES.dashboard}?tag=${tag}`)} />}
+            left={<ReaderMetadata entry={entry} onTagClick={(tag) => navigate(tagFilterUrl(ROUTES.dashboard, tag))} />}
             right={<ReaderContent content={entry.content} />}
           />
         </BookFlip>
