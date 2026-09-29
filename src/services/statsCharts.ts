@@ -1,6 +1,5 @@
-import { eachDayOfInterval, endOfWeek, parseISO, startOfWeek, subDays } from 'date-fns';
+import { countBy, eachDayOfInterval, endOfWeek, parseDate, startOfWeek, subDays, toDateKey } from '@/utils';
 import { MOODS } from '@/constants';
-import { countBy, toDateKey } from '@/utils';
 import type { Entry, HeatmapCell, HourBucket, MoodCount, TagCount, WeeklyPoint } from '@/types';
 
 const DAYS_IN_HEATMAP = 182;
@@ -15,7 +14,7 @@ export function computeWeeklyActivity(entries: Entry[], weeks = 8): WeeklyPoint[
     // and drops the rest of that day from every bucket.
     const weekEnd = endOfWeek(weekStart);
     const inWeek = entries.filter((entry) => {
-      const time = parseISO(entry.date).getTime();
+      const time = parseDate(entry.date).getTime();
       return time >= weekStart.getTime() && time <= weekEnd.getTime();
     });
     points.push({
@@ -35,7 +34,7 @@ export function computeActivityByHour(entries: Entry[]): HourBucket[] {
     entries: 0,
   }));
   entries.forEach((entry) => {
-    const parsed = parseISO(entry.date);
+    const parsed = parseDate(entry.date);
     if (Number.isNaN(parsed.getTime())) return;
     const bucket = buckets[parsed.getHours()];
     if (bucket) bucket.entries += 1;
@@ -46,7 +45,7 @@ export function computeActivityByHour(entries: Entry[]): HourBucket[] {
 /** GitHub-style contribution heatmap for the trailing six months. */
 export function computeHeatmap(entries: Entry[]): HeatmapCell[] {
   const counts = countBy(entries, (entry) => toDateKey(entry.date));
-  const days = eachDayOfInterval({ start: subDays(new Date(), DAYS_IN_HEATMAP), end: new Date() });
+  const days = eachDayOfInterval(subDays(new Date(), DAYS_IN_HEATMAP), new Date());
   // Scale against the window that is actually drawn: using the all-time maximum lets
   // one busy day a year ago flatten every visible cell to the lowest level.
   const inWindow = days.map((day) => counts[toDateKey(day)] ?? 0);

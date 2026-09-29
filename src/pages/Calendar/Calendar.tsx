@@ -1,4 +1,3 @@
-import { addMonths, subMonths } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout';
 import { CalendarDayDetail, CalendarGrid, CalendarHeader } from '@/components/calendar';
@@ -6,7 +5,7 @@ import { EmptyState } from '@/components/common';
 import { EmptyCalendar } from '@/components/illustrations';
 import { useEntries } from '@/hooks';
 import { useEntryStore } from '@/store';
-import { toDateKey } from '@/utils/date';
+import { addMonths, toDateKey } from '@/utils';
 import { Button } from '@/components/ui';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants';
@@ -29,7 +28,7 @@ export default function Calendar() {
         <h1 className="sr-only">Calendar of entries</h1>
         <CalendarHeader
           month={month}
-          onPrevious={() => setMonth((current) => subMonths(current, 1))}
+          onPrevious={() => setMonth((current) => addMonths(current, -1))}
           onNext={() => setMonth((current) => addMonths(current, 1))}
           onToday={() => {
             const today = new Date();

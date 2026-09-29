@@ -1,5 +1,9 @@
 import { useEffect } from 'react';
-import { ToastHost } from '@/components/ui';
+// Imported from its own module rather than the `@/components/ui` barrel: the barrel also
+// exports Modal, which imports Framer Motion, and this file is in the entry chunk for
+// every route. Going through the barrel pulled the whole animation library into the
+// initial bundle just to mount the toast host.
+import { ToastHost } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/common';
 import { useEntryStore, useSettingsStore } from '@/store';
 

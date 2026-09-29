@@ -1,5 +1,4 @@
-import { differenceInCalendarDays, parseISO, subDays } from 'date-fns';
-import { toDateKey } from '@/utils';
+import { daysBetweenKeys, subDays, toDateKey } from '@/utils';
 import type { Entry } from '@/types';
 
 /**
@@ -27,7 +26,7 @@ export function computeLongestStreak(entries: Entry[]): number {
   let current = 0;
   let previous: string | null = null;
   for (const key of keys) {
-    current = previous && differenceInCalendarDays(parseISO(key), parseISO(previous)) === 1 ? current + 1 : 1;
+    current = previous && daysBetweenKeys(previous, key) === 1 ? current + 1 : 1;
     longest = Math.max(longest, current);
     previous = key;
   }

@@ -96,6 +96,12 @@ export default {
           '0%, 100%': { transform: 'rotateY(0deg)' },
           '50%': { transform: 'rotateY(-150deg)' },
         },
+        // Cover opening tilt on first paint. CSS so the landing page does not pull
+        // Framer Motion into the initial bundle.
+        'cover-open': {
+          '0%': { transform: 'perspective(1400px) rotateY(-8deg)', opacity: '0' },
+          '100%': { transform: 'perspective(1400px) rotateY(0deg)', opacity: '1' },
+        },
       },
       animation: {
         'ink-drop': 'ink-drop 400ms cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -103,6 +109,7 @@ export default {
         'fade-slide': 'fade-slide 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
         dust: 'dust 7s linear infinite',
         'page-turn': 'page-turn 3s ease-in-out infinite',
+        'cover-open': 'cover-open 800ms cubic-bezier(0.16, 1, 0.3, 1) both',
       },
     },
   },

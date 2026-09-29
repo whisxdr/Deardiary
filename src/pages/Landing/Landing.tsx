@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookCover, GoldDust } from '@/components/book';
+// Imported from their own modules rather than the `@/components/book` barrel: that barrel
+// also exports BookFlip and Bookmark, which import Framer Motion. Landing is the first
+// paint for every visitor, so pulling the animation library in through the barrel would
+// put it in the initial bundle for a page that no longer animates with it.
+import { BookCover } from '@/components/book/BookCover';
+import { GoldDust } from '@/components/book/GoldDust';
 import { LandingHero } from '@/components/illustrations';
 import { ROUTES, STORAGE_KEYS } from '@/constants';
 import { hasKey } from '@/lib/storage';

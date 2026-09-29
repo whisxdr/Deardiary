@@ -1,6 +1,8 @@
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
-import { format } from 'date-fns';
 import { IconButton } from '@/components/common';
+
+/** Month label, e.g. "September 2026". Locale is pinned with the other date helpers. */
+const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
 
 export interface CalendarHeaderProps {
   month: Date;
@@ -14,7 +16,7 @@ export function CalendarHeader({ month, onPrevious, onNext, onToday }: CalendarH
   return (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <h2 className="font-display text-xl text-primary-800 dark:text-primary-100" aria-live="polite">
-        {format(month, 'MMMM yyyy')}
+        {monthFormatter.format(month)}
       </h2>
       <div className="flex items-center gap-1">
         <button

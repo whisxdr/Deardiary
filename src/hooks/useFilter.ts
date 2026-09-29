@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { parseISO } from 'date-fns';
-import { stripHtml } from '@/utils';
+import { parseDate, stripHtml } from '@/utils';
 import type { Entry, EntryFilters, SortOrder } from '@/types';
 
 /** Default filter state shared by the dashboard toolbar and the search hook. */
@@ -20,13 +19,13 @@ function sortEntries(entries: Entry[], sort: string): Entry[] {
   const list = [...entries];
   switch (order) {
     case 'oldest':
-      return list.sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
+      return list.sort((a, b) => parseDate(a.date).getTime() - parseDate(b.date).getTime());
     case 'title':
       return list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     case 'mood':
       return list.sort((a, b) => a.mood.localeCompare(b.mood));
     default:
-      return list.sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+      return list.sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime());
   }
 }
 
@@ -47,14 +46,14 @@ export function useFilter(source: Entry[], initial: Partial<EntryFilters> = {}) 
 
   const filtered = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
-    const from = filters.dateFrom ? parseISO(filters.dateFrom).getTime() : null;
-    const to = filters.dateTo ? parseISO(filters.dateTo).getTime() : null;
+    const from = filters.dateFrom ? parseDate(filters.dateFrom).getTime() : null;
+    const to = filters.dateTo ? parseDate(filters.dateTo).getTime() : null;
 
     const result = source.filter((entry) => {
       if (filters.mood !== 'all' && entry.mood !== filters.mood) return false;
       if (filters.tag !== 'all' && !entry.tags.includes(filters.tag)) return false;
       if (filters.favoritesOnly && !entry.isFavorite) return false;
-      const time = parseISO(entry.date).getTime();
+      const time = parseDate(entry.date).getTime();
       // A bad stored date yields NaN, and every NaN comparison is false, so a range
       // filter would silently pass it instead of excluding it.
       if (from !== null && !(time >= from)) return false;

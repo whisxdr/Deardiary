@@ -3,7 +3,7 @@ import { Button } from '@/components/ui';
 import { EmptyState } from '@/components/common';
 import { EmptyDiary } from '@/components/illustrations';
 import { EntryCard } from '@/components/entry';
-import { formatLongDate, toDateKey } from '@/utils/date';
+import { formatLongDate, toDateKey } from '@/utils';
 import { formatCount, formatWordCount } from '@/lib';
 import { ROUTES } from '@/constants';
 import type { Entry } from '@/types';

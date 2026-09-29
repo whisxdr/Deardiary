@@ -1,6 +1,6 @@
 import { cn } from '@/utils';
 import { moodColor } from '@/utils/mood';
-import { formatRelativeDay } from '@/utils/date';
+import { formatRelativeDay } from '@/utils/calendar';
 import type { Mood } from '@/types';
 
 export interface CalendarCellProps {

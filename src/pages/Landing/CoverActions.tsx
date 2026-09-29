@@ -1,5 +1,7 @@
 import { BookOpen, PencilSimple } from '@phosphor-icons/react';
-import { Button } from '@/components/ui';
+// Imported from its own module rather than the `@/components/ui` barrel, which also
+// exports Modal and so pulls Framer Motion onto the landing page's critical path.
+import { Button } from '@/components/ui/Button';
 
 export interface CoverActionsProps {
   hasDraft: boolean;

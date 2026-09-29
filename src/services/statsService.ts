@@ -1,4 +1,4 @@
-import { parseISO } from 'date-fns';
+import { parseDate } from '@/utils';
 import type { Entry, StatsSummary } from '@/types';
 import {
   computeActivityByHour,
@@ -13,7 +13,7 @@ import { listEntries } from './entryService';
 /** Entries in the current calendar month. */
 function entriesInMonth(entries: Entry[], date: Date): Entry[] {
   return entries.filter((entry) => {
-    const parsed = parseISO(entry.date);
+    const parsed = parseDate(entry.date);
     return parsed.getMonth() === date.getMonth() && parsed.getFullYear() === date.getFullYear();
   });
 }
