@@ -15,16 +15,51 @@ export interface MergeResult {
  *
  * The later `updatedAt` wins, which also makes a deletion win over an edit made before
  * it: `deleteEntry` stamps `updatedAt` alongside `deletedAt`, so a tombstone is simply a
- * newer version of the record. A tie keeps the local copy, because the local one is the
- * one the user is looking at.
+ * newer version of the record.
+ *
+ * An exact tie is broken by content, not by "local wins". Two devices can stamp the same
+ * millisecond, and the server rejects a push whose stamp is not strictly newer — so if
+ * each device kept its own copy on a tie, both would re-push, both would be rejected, and
+ * they would disagree forever. Comparing content gives both devices the same answer, so
+ * they converge on one version instead of deadlocking.
  */
 function preferred(local: Entry, remote: Entry): Entry {
-  return new Date(remote.updatedAt).getTime() > new Date(local.updatedAt).getTime() ? remote : local;
+  const localAt = new Date(local.updatedAt).getTime();
+  const remoteAt = new Date(remote.updatedAt).getTime();
+  if (remoteAt !== localAt) return remoteAt > localAt ? remote : local;
+  return pickByContent(local, remote);
 }
 
-/** True when two records carry the same content, so nothing needs writing. */
+/** Deterministic tiebreak: both sides compute the same winner from the same inputs. */
+function pickByContent(local: Entry, remote: Entry): Entry {
+  const localKey = `${local.content}\u0000${local.title}`;
+  const remoteKey = `${remote.content}\u0000${remote.title}`;
+  if (localKey === remoteKey) return local;
+  return remoteKey > localKey ? remote : local;
+}
+
+/**
+ * True when two records are the same version of an entry.
+ *
+ * Compares every user-visible field, not just the stamp. With only `updatedAt` and the
+ * body checked, a difference in mood, tags, favorite, private, location or images went
+ * unnoticed on a tie: the merge kept the local copy, pushed nothing, and the server kept
+ * the other version forever. Only a later content edit healed it.
+ */
 function same(a: Entry, b: Entry): boolean {
-  return a.updatedAt === b.updatedAt && a.deletedAt === b.deletedAt && a.content === b.content && a.title === b.title;
+  return (
+    a.updatedAt === b.updatedAt &&
+    a.deletedAt === b.deletedAt &&
+    a.title === b.title &&
+    a.content === b.content &&
+    a.mood === b.mood &&
+    a.date === b.date &&
+    a.isFavorite === b.isFavorite &&
+    a.isPrivate === b.isPrivate &&
+    a.location === b.location &&
+    a.tags.join('\u0000') === b.tags.join('\u0000') &&
+    (a.images ?? []).join('\u0000') === (b.images ?? []).join('\u0000')
+  );
 }
 
 /**

@@ -15,5 +15,6 @@ export { useMood } from './useMood';
 export { useSaveOnLeave } from './useSaveOnLeave';
 export { useSearch } from './useSearch';
 export { useSyncLifecycle } from './useSyncLifecycle';
+export { useSyncOnReturn } from './useSyncOnReturn';
 export { useTheme } from './useTheme';
 export { useUpdateEntry } from './useUpdateEntry';

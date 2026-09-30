@@ -110,5 +110,58 @@ const entry = (id, overrides = {}) => ({
   check('first device does not delete anything', laptopResult.toPush.length === 0);
 }
 
+// --- An exact tie converges deterministically --------------------------------------
+{
+  // Two devices can stamp the same millisecond. Both sides must pick the same winner from
+  // the same inputs, or each keeps its own copy, both re-push, and the server rejects both.
+  const left = entry('tie', { content: '<p>AAA</p>', updatedAt: '2026-09-10T00:00:00.000Z' });
+  const right = entry('tie', { content: '<p>ZZZ</p>', updatedAt: '2026-09-10T00:00:00.000Z' });
+
+  const fromLeft = mergeEntries([left], [right]);
+  const fromRight = mergeEntries([right], [left]);
+  check(
+    'an exact tie picks the same winner on both devices',
+    fromLeft.merged[0].content === fromRight.merged[0].content,
+    `${fromLeft.merged[0].content} vs ${fromRight.merged[0].content}`,
+  );
+  check('the tie winner is not left undecided', fromLeft.merged.length === 1);
+}
+
+// --- A field-only difference is still a difference ---------------------------------
+{
+  // `updatedAt` matches but the mood does not. With only the body compared, the merge saw
+  // no difference, pushed nothing, and the server kept the other mood forever.
+  const localMood = entry('field', { mood: 'happy' });
+  const remoteMood = entry('field', { mood: 'sad' });
+  const result = mergeEntries([localMood], [remoteMood]);
+  check(
+    'a differing mood on an equal stamp still triggers a push or a write',
+    result.changed || result.toPush.length > 0,
+    `changed=${result.changed} toPush=${result.toPush.length}`,
+  );
+}
+
+// --- Every field is part of the comparison ------------------------------------------
+{
+  const fields = [
+    ['tags', { tags: ['a'] }, { tags: ['b'] }],
+    ['isFavorite', { isFavorite: true }, { isFavorite: false }],
+    ['isPrivate', { isPrivate: true }, { isPrivate: false }],
+    ['location', { location: 'here' }, { location: 'there' }],
+    ['images', { images: ['a.png'] }, { images: ['b.png'] }],
+    ['date', { date: '2026-01-01T00:00:00.000Z' }, { date: '2026-02-02T00:00:00.000Z' }],
+    ['title', { title: 'one' }, { title: 'two' }],
+  ];
+  const missed = fields.filter(([, leftPatch, rightPatch]) => {
+    const result = mergeEntries([entry('f', leftPatch)], [entry('f', rightPatch)]);
+    return !result.changed && result.toPush.length === 0;
+  });
+  check(
+    'no field difference is silently ignored',
+    missed.length === 0,
+    missed.map(([name]) => name).join(', ') || 'all covered',
+  );
+}
+
 console.log(`\n${failures === 0 ? 'ALL PASS' : `${failures} FAILED`}`);
 process.exit(failures === 0 ? 0 : 1);

@@ -3,12 +3,13 @@ import { createId } from '@/lib/id';
 import { sanitizeTitle } from '@/lib/validate';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 import { byNewest, resolveTitle, withDerivedFields } from './entryFields';
+import { nextStamp } from './entryStamp';
 import { listAllRecords, saveEntries } from './entryQuery';
 import { enqueue } from './outbox';
 
 /** Creates and stores a new entry, returning the stored record. */
 export function createEntry(draft: Partial<EntryDraft>): Entry {
-  const now = new Date().toISOString();
+  const now = nextStamp();
   const entry = withDerivedFields({
     id: createId(),
     title: sanitizeTitle(draft.title ?? ''),
@@ -50,7 +51,7 @@ export function updateEntry(id: string, patch: EntryUpdate, expectedUpdatedAt?: 
     ...entries[index],
     ...patch,
     title: resolveTitle(patch, entries[index].title),
-    updatedAt: new Date().toISOString(),
+    updatedAt: nextStamp(),
   });
   entries[index] = merged;
   saveEntries(entries);
@@ -69,7 +70,7 @@ export function deleteEntry(id: string): boolean {
   const entries = listAllRecords();
   const index = entries.findIndex((entry) => entry.id === id);
   if (index === -1 || entries[index].deletedAt !== undefined) return false;
-  const now = new Date().toISOString();
+  const now = nextStamp();
   const tombstone = { ...entries[index], deletedAt: now, updatedAt: now };
   entries[index] = tombstone;
   const saved = saveEntries(entries);
@@ -85,7 +86,7 @@ export function deleteEntry(id: string): boolean {
  * all back from any device that still has them.
  */
 export function deleteAllEntries(): boolean {
-  const now = new Date().toISOString();
+  const now = nextStamp();
   const entries = listAllRecords();
   const stamped = entries.map((entry) =>
     entry.deletedAt === undefined ? { ...entry, deletedAt: now, updatedAt: now } : entry,

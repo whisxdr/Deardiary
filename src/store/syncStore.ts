@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { STORAGE_KEYS } from '@/constants';
 import { readJson, removeKey, writeJson } from '@/lib/storage';
+import { writeOutbox } from '@/services';
 import { httpAdapter } from '@/services/sync/httpAdapter';
 import { syncNow } from '@/services/sync/engine';
 import { useEntryStore } from './entryStore';
@@ -48,6 +49,31 @@ export function createSyncStore(adapter: RemoteAdapter = httpAdapter) {
         set({ message: 'That code is wrong or has expired.' });
         return false;
       }
+
+      /**
+       * Signing in must not hand this account someone else's diary.
+       *
+       * The entries in local storage belong to whoever wrote them, and uploading them to
+       * the account that just signed in would leak one person's diary into another's.
+       *
+       * The guard is "a different account already owned this device", not "there are
+       * entries here". A missing owner key means no account has ever signed in on this
+       * device, and the entries are the ones this person wrote offline — adopting them is
+       * the whole point of signing in. Clearing on a missing key instead destroyed the
+       * diary of every user who wrote first and made an account second.
+       *
+       * Sign-out deliberately keeps the owner key for the same reason: it is what makes
+       * the next sign-in detect that the entries belong to someone else.
+       */
+      const owner = readJson<string | null>(STORAGE_KEYS.owner, null);
+      const isForeignOwner = owner !== null && owner !== account.email;
+      if (isForeignOwner) {
+        useEntryStore.getState().replaceAll([]);
+        // The queue has to go with it: leftover ids would keep reporting "waiting to
+        // upload" for entries that no longer exist and trigger a sync on every write.
+        writeOutbox([]);
+      }
+      writeJson(STORAGE_KEYS.owner, account.email);
       writeJson(STORAGE_KEYS.session, account);
       // `ready` has to be set here too, not only in `restore`: it is what the lifecycle
       // hook gates the focus and online listeners on, so leaving it false would sign the

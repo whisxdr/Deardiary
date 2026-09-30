@@ -1,4 +1,5 @@
 import type { Entry } from '@/types';
+import { coerceEntry, looksLikeEntry } from '../entryFields';
 import type { PullResult, RemoteAdapter } from './types';
 
 /** Raised when the server is unreachable or answers with an error status. */
@@ -74,7 +75,14 @@ export const httpAdapter: RemoteAdapter = {
 
   async pull() {
     const result = await request<PullResult>('/entries');
-    return { entries: Array.isArray(result?.entries) ? result.entries : [], serverTime: result?.serverTime ?? '' };
+    const list = Array.isArray(result?.entries) ? result.entries : [];
+    // Repair at the boundary. The merge and the write-back act on these records before
+    // anything else validates them, and a record with no id would be keyed `undefined`
+    // (two of them collapsing into one) or, if it won, would be written to storage and
+    // then dropped by the next read — losing the local copy while the server kept the
+    // broken one.
+    const entries = list.filter(looksLikeEntry).map(coerceEntry);
+    return { entries, serverTime: result?.serverTime ?? '' };
   },
 
   async signOut() {

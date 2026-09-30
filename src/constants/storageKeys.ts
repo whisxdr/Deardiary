@@ -9,8 +9,13 @@ export const STORAGE_KEYS = {
   view: `${STORAGE_NAMESPACE}:view`,
   /** Entry ids changed locally and not yet uploaded; see `services/outbox.ts`. */
   outbox: `${STORAGE_NAMESPACE}:outbox`,
-  /** Server-side stamp per entry id, so a pull can tell what this device has seen. */
-  synced: `${STORAGE_NAMESPACE}:synced`,
+  /**
+   * Email of the account the local entries belong to.
+   *
+   * Without it, signing out and signing in as someone else adopted the previous
+   * account's diary and uploaded it to the new one.
+   */
+  owner: `${STORAGE_NAMESPACE}:owner`,
   /** Session token and account email for the optional cloud sync. */
   session: `${STORAGE_NAMESPACE}:session`,
 } as const;
