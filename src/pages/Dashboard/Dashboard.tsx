@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout, ComposerModal, FAB } from '@/components/layout';
 import { ROUTES } from '@/constants';
-import { useDebounce, useEntries, useFilter } from '@/hooks';
+import { useEntries, useFilter } from '@/hooks';
 import { useEntryStore, useSettingsStore, useUiStore } from '@/store';
 import { DashboardGrid } from './DashboardGrid';
 import { DashboardHeader } from './DashboardHeader';
@@ -26,8 +26,6 @@ export default function Dashboard() {
   const urlQuery = searchParams.get('q') ?? '';
   const totalEntries = entries.length + hiddenCount;
 
-  const [search, setSearch] = useState(urlQuery);
-  const debouncedSearch = useDebounce(search);
   // Reader and Stats link here with ?tag=, so seed the filter from the URL.
   const { filters, update, reset, filtered } = useFilter(entries, { tag: urlTag, query: urlQuery });
 
@@ -38,30 +36,27 @@ export default function Dashboard() {
   // The header search on other pages routes here, so follow the URL while mounted. React
   // Router keeps this component mounted across a search-param change, so the useState
   // seed in useFilter only ever saw the first URL: re-apply both halves here.
+  //
+  // The search box holds its own text and reports only the settled value, so this runs
+  // once per finished query rather than once per keystroke.
   const updateRef = useRef(update);
   updateRef.current = update;
   useEffect(() => {
-    setSearch(urlQuery);
     updateRef.current({ query: urlQuery, tag: urlTag });
   }, [urlQuery, urlTag]);
-
-  useEffect(() => {
-    if (debouncedSearch !== filters.query) update({ query: debouncedSearch });
-  }, [debouncedSearch, filters.query, update]);
 
   const tagOptions = useMemo(() => tagOptionsFor(entries, urlTag), [entries, urlTag]);
 
   /** Clears every filter, including the ones carried by the URL. */
   const clearAll = () => {
     reset();
-    setSearch('');
     // URLSearchParams.size is Chrome 113+/Firefox 112+/Safari 17+; on older engines it is
     // undefined, the guard was false, and the stale ?q=/?tag= survived a reload.
     if ([...searchParams.keys()].length > 0) setSearchParams({}, { replace: true });
   };
 
   return (
-    <AppLayout searchValue={search} onSearchChange={setSearch}>
+    <AppLayout searchValue={filters.query} onSearchChange={(query) => update({ query })}>
       <div className="flex flex-col gap-5">
         <DashboardHeader total={totalEntries} visible={filtered.length} displayName={displayName} />
         <DashboardToolbar

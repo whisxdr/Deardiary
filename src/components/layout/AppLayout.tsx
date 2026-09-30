@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
@@ -20,21 +20,24 @@ export interface AppLayoutProps {
  * Pages that filter their own content pass `onSearchChange`. On every other page the
  * box would otherwise render but do nothing, so it hands the query to the dashboard,
  * which is the page that can act on it.
+ *
+ * The uncontrolled path keeps the query in a ref rather than state: the header is above
+ * every page, so a state update here would re-render the whole tree on each keystroke.
+ * The box holds its own text until the value settles.
  */
-export function AppLayout({ children, searchValue = '', onSearchChange, className }: AppLayoutProps) {
+export function AppLayout({ children, searchValue, onSearchChange, className }: AppLayoutProps) {
   const navigate = useNavigate();
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
   const setSidebar = useUiStore((state) => state.setSidebar);
-  const [fallbackSearch, setFallbackSearch] = useState('');
+  const fallbackSearch = useRef('');
 
-  const controlled = onSearchChange !== undefined;
   const handleSearchChange = (value: string) => {
     if (onSearchChange) {
       onSearchChange(value);
       return;
     }
-    setFallbackSearch(value);
+    fallbackSearch.current = value;
     // `replace` keeps typing from filling the history with one entry per keystroke.
     navigate(`${ROUTES.dashboard}?q=${encodeURIComponent(value)}`, { replace: true });
   };
@@ -48,7 +51,7 @@ export function AppLayout({ children, searchValue = '', onSearchChange, classNam
         Skip to content
       </a>
       <Header
-        searchValue={controlled ? searchValue : fallbackSearch}
+        searchValue={onSearchChange ? (searchValue ?? '') : fallbackSearch.current}
         onSearchChange={handleSearchChange}
         onOpenSidebar={toggleSidebar}
       />

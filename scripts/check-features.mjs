@@ -128,7 +128,29 @@ try {
   check('Dashboard honours ?tag=work', workOnly.includes('Work note') && !workOnly.includes('Travel note'));
   check('Dashboard honours a changed ?tag=travel', travelOnly.includes('Travel note') && !travelOnly.includes('Work note'));
 
-  // 5. An all-private diary explains the empty grid instead of claiming it is empty.
+  // 5. Typing in the search box must filter on the settled value, not on every keystroke,
+  //    and the box must still show what the user typed.
+  await seed([
+    entry('g1', 'Harbour morning', '<p>the tide came in</p>'),
+    entry('g2', 'Mountain walk', '<p>a long climb</p>'),
+  ]);
+  await page.goto(`${BASE}/dashboard`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(500);
+  const searchBox = page.locator('input[aria-label="Search entries"]');
+  await searchBox.click();
+  await searchBox.type('harbour', { delay: 40 });
+  // The input must show the text immediately, before the debounce fires.
+  const typed = await searchBox.inputValue();
+  check('search box shows the typed text at once', typed === 'harbour', JSON.stringify(typed));
+  await page.waitForTimeout(600);
+  const filtered = await page.evaluate(() => document.body.textContent ?? '');
+  check('search filters to the matching entry', filtered.includes('Harbour morning') && !filtered.includes('Mountain walk'), filtered.includes('Mountain walk') ? 'both shown' : 'ok');
+  await page.getByRole('button', { name: /clear search/i }).click();
+  await page.waitForTimeout(600);
+  const cleared = await page.evaluate(() => document.body.textContent ?? '');
+  check('clearing search restores every entry', cleared.includes('Mountain walk') && cleared.includes('Harbour morning'));
+
+  // 6. An all-private diary explains the empty grid instead of claiming it is empty.
   await seed(
     [entry('e1', 'Secret', '<p>hidden</p>', { isPrivate: true })],
     {
@@ -146,7 +168,7 @@ try {
   check('All-private diary says entries are hidden', /private entr/i.test(hiddenView), JSON.stringify(hiddenView.slice(0, 120)));
   check('All-private diary does not claim to be empty', !/still empty/i.test(hiddenView));
 
-  // 6. A backup with malformed settings must not take the app down.
+  // 7. A backup with malformed settings must not take the app down.
   await seed([entry('f1', 'Safe', '<p>safe</p>')], {
     displayName: 'Probe',
     bio: '',

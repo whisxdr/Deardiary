@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { parseDate, stripHtml } from '@/utils';
+import { parseDate } from '@/utils';
+import { searchText } from '@/lib/searchIndex';
 import type { Entry, EntryFilters, SortOrder } from '@/types';
 
 /** Default filter state shared by the dashboard toolbar and the search hook. */
@@ -58,10 +59,7 @@ export function useFilter(source: Entry[], initial: Partial<EntryFilters> = {}) 
       // filter would silently pass it instead of excluding it.
       if (from !== null && !(time >= from)) return false;
       if (to !== null && !(time <= to + 86_399_000)) return false;
-      if (query) {
-        const haystack = `${entry.title} ${stripHtml(entry.content)} ${entry.tags.join(' ')}`.toLowerCase();
-        if (!haystack.includes(query)) return false;
-      }
+      if (query && !searchText(entry).includes(query)) return false;
       return true;
     });
 

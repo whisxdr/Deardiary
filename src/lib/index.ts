@@ -16,4 +16,5 @@ export {
 } from './format';
 export { escapeHtml, htmlToMarkdown, htmlToText, htmlWordCount, isHtmlEmpty, plainToHtml } from './parse';
 export { looksUnsafe, sanitizeEntryHtml } from './sanitize';
+export { searchText } from './searchIndex';
 export { normalizeTag, normalizeText, parseTagInput, sanitizeDateTime, sanitizeTags, sanitizeTitle } from './validate';
