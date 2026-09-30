@@ -58,11 +58,20 @@ export function createEntry(draft: Partial<EntryDraft>): Entry {
   return entry;
 }
 
-/** Applies a partial update to an entry and returns the updated record. */
-export function updateEntry(id: string, patch: EntryUpdate): Entry | null {
+/**
+ * Applies a partial update to an entry and returns the updated record.
+ *
+ * `expectedUpdatedAt` guards against a second tab: the composer holds the whole form from
+ * the moment it opened, so writing it over a record another tab has since changed would
+ * revert that tab's work. When the stored stamp does not match, nothing is written and
+ * null comes back — the caller treats it the same as a missing entry, which is safe
+ * because both mean "do not write this".
+ */
+export function updateEntry(id: string, patch: EntryUpdate, expectedUpdatedAt?: string): Entry | null {
   const entries = listEntries();
   const index = entries.findIndex((entry) => entry.id === id);
   if (index === -1) return null;
+  if (expectedUpdatedAt !== undefined && entries[index].updatedAt !== expectedUpdatedAt) return null;
   const merged = withDerivedFields({
     ...entries[index],
     ...patch,

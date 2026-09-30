@@ -6,6 +6,7 @@ import { exportBackup, importBackupFile } from '@/services';
 import { estimateUsage, isPersistent, removeKey } from '@/lib/storage';
 import { formatBytes, formatCount } from '@/lib';
 import { useEntryStore, useSettingsStore } from '@/store';
+import { RestoreDefaultsButton } from './RestoreDefaultsButton';
 import type { Entry } from '@/types';
 
 /** Data section: export a backup, import one, or wipe everything. */
@@ -58,6 +59,7 @@ export function DataSection() {
         <Button variant="danger" onClick={() => setConfirmOpen(true)}>
           Clear all entries
         </Button>
+        <RestoreDefaultsButton />
       </div>
       <input
         ref={fileRef}

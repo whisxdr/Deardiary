@@ -10,12 +10,6 @@ export const DEFAULT_SETTINGS: UserSettings = {
   avatarSeed: DEFAULT_AVATAR_SEED,
   theme: 'leather',
   fontSize: 'md',
-  reminderTime: '20:00',
-  notifications: {
-    dailyReminder: true,
-    streakAlerts: true,
-    weeklyDigest: false,
-  },
   privacy: {
     hidePrivateEntries: false,
   },
@@ -29,6 +23,16 @@ function str(value: unknown, fallback: string): string {
   return typeof value === 'string' && value.trim() ? value : fallback;
 }
 
+/**
+ * Keeps a free-text field when it is any string, empty included.
+ *
+ * Empty is a value the user typed: falling back to the default here would make the
+ * display name and the bio impossible to clear, because every write re-coerces.
+ */
+function text(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
 /** Keeps a boolean field only when it is a boolean. */
 function bool(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback;
@@ -39,6 +43,9 @@ function bool(value: unknown, fallback: boolean): boolean {
  *
  * The header renders `displayName` on every page, so a single wrong type in storage
  * used to take the whole app down rather than just the settings page.
+ *
+ * Keys this build no longer has (the old `notifications` group, `reminderTime`) are
+ * ignored on purpose, so a backup written by an older build still restores.
  */
 export function coerceSettings(stored: Partial<UserSettings> | null): UserSettings {
   const raw = stored ?? {};
@@ -48,17 +55,11 @@ export function coerceSettings(stored: Partial<UserSettings> | null): UserSettin
     : DEFAULT_SETTINGS.fontSize;
 
   return {
-    displayName: str(raw.displayName, DEFAULT_SETTINGS.displayName),
-    bio: str(raw.bio, DEFAULT_SETTINGS.bio),
+    displayName: text(raw.displayName, DEFAULT_SETTINGS.displayName),
+    bio: text(raw.bio, DEFAULT_SETTINGS.bio),
     avatarSeed: str(raw.avatarSeed, DEFAULT_SETTINGS.avatarSeed),
     theme,
     fontSize,
-    reminderTime: typeof raw.reminderTime === 'string' ? raw.reminderTime : DEFAULT_SETTINGS.reminderTime,
-    notifications: {
-      dailyReminder: bool(raw.notifications?.dailyReminder, DEFAULT_SETTINGS.notifications.dailyReminder),
-      streakAlerts: bool(raw.notifications?.streakAlerts, DEFAULT_SETTINGS.notifications.streakAlerts),
-      weeklyDigest: bool(raw.notifications?.weeklyDigest, DEFAULT_SETTINGS.notifications.weeklyDigest),
-    },
     privacy: {
       hidePrivateEntries: bool(raw.privacy?.hidePrivateEntries, DEFAULT_SETTINGS.privacy.hidePrivateEntries),
     },

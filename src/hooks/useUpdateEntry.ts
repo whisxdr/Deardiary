@@ -7,7 +7,8 @@ export function useUpdateEntry() {
   const patchEntry = useEntryStore((state) => state.patchEntry);
 
   return useCallback(
-    (id: string, patch: EntryUpdate): Entry | null => patchEntry(id, patch),
+    (id: string, patch: EntryUpdate, expectedUpdatedAt?: string): Entry | null =>
+      patchEntry(id, patch, expectedUpdatedAt),
     [patchEntry],
   );
 }

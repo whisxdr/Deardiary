@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { sanitizeEntryHtml } from '@/lib/sanitize';
-import { formatLongDate, stripHtml } from '@/utils';
+import { formatLongDate, slugify } from '@/utils';
 import type { Entry } from '@/types';
 
 const PAGE_WIDTH_PX = 794;
@@ -47,7 +47,13 @@ function buildPrintPage(entry: Entry): HTMLElement {
   return page;
 }
 
-/** Renders the entry to a canvas and writes it into a PDF page. */
+/**
+ * Renders the entry to a canvas and writes it into the PDF.
+ *
+ * `addImage` does not paginate: a tall entry drawn as one image is silently clipped at
+ * the page box. The capture is therefore cut into page-height slices, each drawn into an
+ * offscreen canvas and placed on its own page.
+ */
 export async function exportEntryAsPdf(entry: Entry): Promise<void> {
   const page = buildPrintPage(entry);
   document.body.appendChild(page);
@@ -56,11 +62,27 @@ export async function exportEntryAsPdf(entry: Entry): Promise<void> {
     const canvas = await html2canvas(page, { scale: 2, backgroundColor: PAGE_BACKGROUND });
     const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
     const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, width, height);
-    // stripHtml for the filename: markup has no place in a download name, and `&`
-    // should stay `&` rather than become an entity.
-    pdf.save(`${stripHtml(entry.title) || 'entry'}.pdf`);
+    const height = pdf.internal.pageSize.getHeight();
+    // How many source pixels make up one printed page at this capture width.
+    const sliceHeight = Math.max(1, Math.floor((height * canvas.width) / width));
+
+    for (let offset = 0; offset < canvas.height; offset += sliceHeight) {
+      const slice = document.createElement('canvas');
+      slice.width = canvas.width;
+      slice.height = Math.min(sliceHeight, canvas.height - offset);
+      const context = slice.getContext('2d');
+      if (!context) throw new Error('Canvas 2D context unavailable');
+      context.drawImage(canvas, 0, offset, slice.width, slice.height, 0, 0, slice.width, slice.height);
+      // The document starts with one page, so only later slices add one.
+      if (offset > 0) pdf.addPage();
+      pdf.addImage(slice.toDataURL('image/png'), 'PNG', 0, 0, width, (slice.height * width) / canvas.width);
+    }
+
+    // Windows forbids \ / : * ? " < > | in a download name. slugify drops those, but also
+    // every non-Latin character, so fall back to the raw title with just those characters
+    // removed before giving up on it.
+    const name = slugify(entry.title) || entry.title.replace(/[\\/:*?"<>|]/g, '').trim();
+    pdf.save(`${name || 'entry'}.pdf`);
   } finally {
     page.remove();
   }

@@ -8,7 +8,7 @@ export type {
   ViewMode,
 } from './entry';
 export type { IconProps } from './icon';
-export type { AvatarSettings, BackupPayload, FontSize, NotificationSettings, PrivacySettings, ThemeName, UserSettings } from './settings';
+export type { AvatarSettings, BackupPayload, FontSize, PrivacySettings, ThemeName, UserSettings } from './settings';
 export type {
   HeatmapCell,
   HourBucket,

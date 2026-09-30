@@ -13,7 +13,7 @@ import { tagOptionsFor } from './dashboardFilters';
 export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { entries } = useEntries();
+  const { entries, hiddenCount } = useEntries();
   const displayName = useSettingsStore((state) => state.settings.displayName);
   const hydrateSettings = useSettingsStore((state) => state.hydrate);
   const favorite = useEntryStore((state) => state.favorite);
@@ -24,6 +24,7 @@ export default function Dashboard() {
 
   const urlTag = searchParams.get('tag') ?? 'all';
   const urlQuery = searchParams.get('q') ?? '';
+  const totalEntries = entries.length + hiddenCount;
 
   const [search, setSearch] = useState(urlQuery);
   const debouncedSearch = useDebounce(search);
@@ -34,13 +35,15 @@ export default function Dashboard() {
     hydrateSettings();
   }, [hydrateSettings]);
 
-  // The header search on other pages routes here, so follow the URL while mounted.
+  // The header search on other pages routes here, so follow the URL while mounted. React
+  // Router keeps this component mounted across a search-param change, so the useState
+  // seed in useFilter only ever saw the first URL: re-apply both halves here.
   const updateRef = useRef(update);
   updateRef.current = update;
   useEffect(() => {
     setSearch(urlQuery);
-    updateRef.current({ query: urlQuery });
-  }, [urlQuery]);
+    updateRef.current({ query: urlQuery, tag: urlTag });
+  }, [urlQuery, urlTag]);
 
   useEffect(() => {
     if (debouncedSearch !== filters.query) update({ query: debouncedSearch });
@@ -52,13 +55,15 @@ export default function Dashboard() {
   const clearAll = () => {
     reset();
     setSearch('');
-    if (searchParams.size > 0) setSearchParams({}, { replace: true });
+    // URLSearchParams.size is Chrome 113+/Firefox 112+/Safari 17+; on older engines it is
+    // undefined, the guard was false, and the stale ?q=/?tag= survived a reload.
+    if ([...searchParams.keys()].length > 0) setSearchParams({}, { replace: true });
   };
 
   return (
     <AppLayout searchValue={search} onSearchChange={setSearch}>
       <div className="flex flex-col gap-5">
-        <DashboardHeader total={entries.length} visible={filtered.length} displayName={displayName} />
+        <DashboardHeader total={totalEntries} visible={filtered.length} displayName={displayName} />
         <DashboardToolbar
           filters={filters}
           tagOptions={tagOptions}
@@ -71,6 +76,7 @@ export default function Dashboard() {
         <DashboardGrid
           entries={filtered}
           totalEntries={entries.length}
+          hiddenCount={hiddenCount}
           viewMode={viewMode}
           onToggleFavorite={favorite}
           onTagClick={(tag) => update({ tag })}

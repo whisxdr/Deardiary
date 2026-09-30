@@ -3,7 +3,7 @@ export {
   AboutSection,
   AppearanceSection,
   DataSection,
-  NotificationSection,
   PrivacySection,
   ProfileSection,
+  RestoreDefaultsButton,
 } from './sections';

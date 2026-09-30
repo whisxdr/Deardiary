@@ -7,6 +7,7 @@ import {
   toggleFavorite,
   updateEntry,
 } from '@/services/entryService';
+import { lastWriteFailed } from '@/lib/storage';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 
 interface EntryState {
@@ -16,7 +17,7 @@ interface EntryState {
   writeFailed: boolean;
   hydrate: () => void;
   addEntry: (draft: Partial<EntryDraft>) => Entry;
-  patchEntry: (id: string, patch: EntryUpdate) => Entry | null;
+  patchEntry: (id: string, patch: EntryUpdate, expectedUpdatedAt?: string) => Entry | null;
   removeEntry: (id: string) => void;
   favorite: (id: string) => void;
   replaceAll: (entries: Entry[]) => void;
@@ -42,24 +43,24 @@ export const useEntryStore = create<EntryState>((set, get) => ({
 
   addEntry: (draft) => {
     const entry = createEntry(draft);
-    set({ entries: listEntries() });
+    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
     return entry;
   },
 
-  patchEntry: (id, patch) => {
-    const updated = updateEntry(id, patch);
-    set({ entries: listEntries() });
+  patchEntry: (id, patch, expectedUpdatedAt) => {
+    const updated = updateEntry(id, patch, expectedUpdatedAt);
+    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
     return updated;
   },
 
   removeEntry: (id) => {
     deleteEntry(id);
-    set({ entries: listEntries() });
+    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
   },
 
   favorite: (id) => {
     toggleFavorite(id);
-    set({ entries: listEntries() });
+    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
   },
 
   replaceAll: (entries) => {

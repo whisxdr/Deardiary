@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/common';
 import { EmptyCalendar } from '@/components/illustrations';
 import { useEntries } from '@/hooks';
 import { useEntryStore } from '@/store';
-import { addMonths, toDateKey } from '@/utils';
+import { addMonths, startOfMonth, toDateKey } from '@/utils';
 import { Button } from '@/components/ui';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants';
@@ -22,14 +22,22 @@ export default function Calendar() {
     return entries.filter((entry) => toDateKey(entry.date) === key);
   }, [entries, selected]);
 
+  // Moving the month also moves the selection into it, so the detail panel never shows a
+  // day that is off-screen and the new grid always has a highlighted cell.
+  const goToMonth = (offset: number) => {
+    const next = addMonths(month, offset);
+    setMonth(next);
+    setSelected(startOfMonth(next));
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-5">
         <h1 className="sr-only">Calendar of entries</h1>
         <CalendarHeader
           month={month}
-          onPrevious={() => setMonth((current) => addMonths(current, -1))}
-          onNext={() => setMonth((current) => addMonths(current, 1))}
+          onPrevious={() => goToMonth(-1)}
+          onNext={() => goToMonth(1)}
           onToday={() => {
             const today = new Date();
             setMonth(today);

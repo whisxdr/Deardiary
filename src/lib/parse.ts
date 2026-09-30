@@ -14,9 +14,27 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => ESCAPES[char] ?? char);
 }
 
-/** Plain text of an HTML body, safe to place in JSON or filenames. */
+/**
+ * Plain text of an HTML body, safe to place in JSON or filenames.
+ *
+ * Block boundaries become newlines before the tags are stripped: {@link stripHtml}
+ * collapses all whitespace, which would flatten a whole entry onto one line.
+ */
 export function htmlToText(html: string): string {
-  return stripHtml(html);
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|li|h[1-3]|blockquote|div)>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    // Decode after tags are gone, so an escaped `&lt;3` exports as `<3` rather than
+    // staying literal while a real tag was already stripped.
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 /** Wraps plain text in paragraphs, escaping markup. */

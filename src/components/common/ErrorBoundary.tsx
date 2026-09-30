@@ -3,6 +3,15 @@ import { Button } from '@/components/ui';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
+  /**
+   * Changing this clears the error state.
+   *
+   * Every route renders its own boundary, but the router reuses the instance when only
+   * the path params change, so a crash used to survive Back and leave reload as the only
+   * way out. Clearing on a key change instead of remounting the children keeps the page's
+   * own state — the reader's flip direction, the dashboard's filters — intact.
+   */
+  resetKey?: string;
 }
 
 interface ErrorBoundaryState {
@@ -16,6 +25,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, message: error.message };
+  }
+
+  override componentDidUpdate(previous: ErrorBoundaryProps): void {
+    if (this.state.hasError && previous.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false, message: '' });
+    }
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {

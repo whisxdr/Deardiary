@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { DEFAULT_SETTINGS, loadSettings, resetSettings, saveSettings } from '@/services/settingsService';
+import {
+  DEFAULT_SETTINGS,
+  coerceSettings,
+  loadSettings,
+  resetSettings,
+  saveSettings,
+} from '@/services/settingsService';
 import type { FontSize, ThemeName, UserSettings } from '@/types';
 
 interface SettingsState {
@@ -35,8 +41,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ settings, hydrated: true });
   },
 
+  // Merge first, then coerce: a partial patch (an imported backup, one field from a
+  // settings control) is completed by the current settings, and only the merged result
+  // is validated. Coercing the patch alone would reset every field it does not carry.
   update: (patch) => {
-    const settings = { ...get().settings, ...patch };
+    const settings = coerceSettings({ ...get().settings, ...patch });
     saveSettings(settings);
     applySettingsToDocument(settings);
     set({ settings, hydrated: true });

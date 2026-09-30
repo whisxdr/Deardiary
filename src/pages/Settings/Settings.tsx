@@ -5,7 +5,6 @@ import {
   AboutSection,
   AppearanceSection,
   DataSection,
-  NotificationSection,
   PrivacySection,
   ProfileSection,
 } from './sections';
@@ -13,13 +12,12 @@ import {
 const SECTION_LINKS = [
   { href: '#profile-heading', label: 'Profile' },
   { href: '#appearance-heading', label: 'Appearance' },
-  { href: '#notification-heading', label: 'Notifications' },
   { href: '#privacy-heading', label: 'Privacy' },
   { href: '#data-heading', label: 'Data' },
   { href: '#about-heading', label: 'About' },
 ] as const;
 
-/** Settings page: profile, appearance, notifications, privacy, data, about. */
+/** Settings page: profile, appearance, privacy, data, about. */
 export default function Settings() {
   const hydrate = useSettingsStore((state) => state.hydrate);
 
@@ -52,7 +50,6 @@ export default function Settings() {
         <div className="grid gap-6 lg:grid-cols-2">
           <ProfileSection />
           <AppearanceSection />
-          <NotificationSection />
           <PrivacySection />
           <DataSection />
           <AboutSection />

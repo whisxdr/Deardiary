@@ -10,13 +10,6 @@ export type ThemeName = 'leather' | 'paper' | 'night';
 /** Editor body text sizes. */
 export type FontSize = 'sm' | 'md' | 'lg';
 
-/** Notification preferences. */
-export interface NotificationSettings {
-  dailyReminder: boolean;
-  streakAlerts: boolean;
-  weeklyDigest: boolean;
-}
-
 /**
  * Privacy preferences.
  *
@@ -28,15 +21,18 @@ export interface PrivacySettings {
   hidePrivateEntries: boolean;
 }
 
-/** Persisted user preferences. */
+/**
+ * Persisted user preferences.
+ *
+ * Reminder and digest toggles were removed together with the Notifications section:
+ * no scheduler ever read them, so they promised behaviour the app did not have.
+ */
 export interface UserSettings {
   displayName: string;
   bio: string;
   avatarSeed: string;
   theme: ThemeName;
   fontSize: FontSize;
-  reminderTime?: string;
-  notifications: NotificationSettings;
   privacy: PrivacySettings;
 }
 

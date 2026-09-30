@@ -6,6 +6,10 @@ export interface ChipProps {
   children: ReactNode;
   onRemove?: () => void;
   onClick?: () => void;
+  /**
+   * Visual selected state. Passing it (even as `false`) also marks the chip as a toggle
+   * for assistive tech; chips that only navigate or show a tag leave it unset.
+   */
   active?: boolean;
   className?: string;
 }
@@ -40,7 +44,12 @@ export function Chip({ children, onRemove, onClick, active, className }: ChipPro
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={classes}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={active}
+        className={classes}
+      >
         {children}
         {removeButton}
       </button>

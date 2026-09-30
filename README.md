@@ -39,7 +39,7 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 | `/entry/:id` | Two-page reader with drop cap and page-flip navigation |
 | `/calendar` | Month grid with mood dots and a per-day detail panel |
 | `/stats` | Totals, streaks, mood split, charts and tag cloud |
-| `/settings` | Profile, appearance, notifications, privacy, data, about |
+| `/settings` | Profile, appearance, privacy, data, about |
 
 ## Keyboard shortcuts
 

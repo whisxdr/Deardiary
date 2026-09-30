@@ -33,6 +33,8 @@ export default function Reader() {
   const hasNext = index >= 0 && index < entries.length - 1;
 
   const goTo = (offset: number) => {
+    // -1 means the entry is missing or hidden; without this, entries[0] gets navigated to.
+    if (index < 0) return;
     const target = entries[index + offset];
     if (!target) return;
     setDirection(offset < 0 ? 'backward' : 'forward');
