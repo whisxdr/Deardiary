@@ -102,6 +102,12 @@ export default {
           '0%': { transform: 'perspective(1400px) rotateY(-8deg)', opacity: '0' },
           '100%': { transform: 'perspective(1400px) rotateY(0deg)', opacity: '1' },
         },
+        // Ribbon bookmark settling into place. Same reason as the cover tilt: the
+        // landing page is the first paint for every visitor.
+        'bookmark-drop': {
+          '0%': { transform: 'translateY(-32px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
       },
       animation: {
         'ink-drop': 'ink-drop 400ms cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -110,6 +116,7 @@ export default {
         dust: 'dust 7s linear infinite',
         'page-turn': 'page-turn 3s ease-in-out infinite',
         'cover-open': 'cover-open 800ms cubic-bezier(0.16, 1, 0.3, 1) both',
+        'bookmark-drop': 'bookmark-drop 700ms cubic-bezier(0.68, -0.55, 0.265, 1.55) both',
       },
     },
   },
