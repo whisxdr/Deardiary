@@ -1,5 +1,5 @@
 import { DEFAULT_MOOD, LIMITS, MOODS } from '@/constants';
-import { createId } from '@/lib/id';
+import { createIdFrom } from '@/lib/id';
 import { countWords, readingTimeMinutes } from '@/lib';
 import { looksUnsafe, sanitizeEntryHtml } from '@/lib/sanitize';
 import { sanitizeTags, sanitizeTitle } from '@/lib/validate';
@@ -54,15 +54,21 @@ function safeMood(value: unknown): Mood {
  * The body is sanitized here, at the boundary where external data enters: the reader
  * sanitizes on render too, but the PDF export builds a live DOM node from the stored
  * value, so cleaning on write keeps every consumer safe rather than one.
+ *
+ * A record with no usable id gets a deterministic one derived from its content. A random
+ * id would be minted separately on each device that repairs the same record, producing
+ * two entries that can never merge and that both upload as new.
  */
 export function coerceEntry(raw: Partial<Entry>): Entry {
   const now = new Date().toISOString();
   const content = sanitizeEntryHtml(typeof raw.content === 'string' ? raw.content : '');
   const words = countWords(content);
   const date = safeIso(raw.date, now);
+  const title = sanitizeTitle(typeof raw.title === 'string' ? raw.title : '');
+  const id = typeof raw.id === 'string' && raw.id ? raw.id : createIdFrom(`${date}|${title}|${content}`);
   return {
-    id: typeof raw.id === 'string' && raw.id ? raw.id : createId(),
-    title: sanitizeTitle(typeof raw.title === 'string' ? raw.title : ''),
+    id,
+    title,
     content,
     mood: safeMood(raw.mood),
     tags: sanitizeTags(Array.isArray(raw.tags) ? raw.tags.filter((tag) => typeof tag === 'string') : []),
@@ -77,6 +83,7 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
       : undefined,
     wordCount: words,
     readingTime: readingTimeMinutes(words),
+    deletedAt: typeof raw.deletedAt === 'string' ? raw.deletedAt : undefined,
   };
 }
 

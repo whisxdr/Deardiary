@@ -8,6 +8,7 @@ import {
   updateEntry,
 } from '@/services/entryService';
 import { lastWriteFailed } from '@/lib/storage';
+import { STORAGE_KEYS } from '@/constants';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 
 interface EntryState {
@@ -21,6 +22,8 @@ interface EntryState {
   removeEntry: (id: string) => void;
   favorite: (id: string) => void;
   replaceAll: (entries: Entry[]) => void;
+  /** Re-reads storage into the store; used after a service call made outside it. */
+  refresh: () => void;
   clearWriteError: () => void;
 }
 
@@ -43,30 +46,32 @@ export const useEntryStore = create<EntryState>((set, get) => ({
 
   addEntry: (draft) => {
     const entry = createEntry(draft);
-    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
+    set({ entries: listEntries(), writeFailed: lastWriteFailed(STORAGE_KEYS.entries) });
     return entry;
   },
 
   patchEntry: (id, patch, expectedUpdatedAt) => {
     const updated = updateEntry(id, patch, expectedUpdatedAt);
-    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
+    set({ entries: listEntries(), writeFailed: lastWriteFailed(STORAGE_KEYS.entries) });
     return updated;
   },
 
   removeEntry: (id) => {
     deleteEntry(id);
-    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
+    set({ entries: listEntries(), writeFailed: lastWriteFailed(STORAGE_KEYS.entries) });
   },
 
   favorite: (id) => {
     toggleFavorite(id);
-    set({ entries: listEntries(), writeFailed: lastWriteFailed() });
+    set({ entries: listEntries(), writeFailed: lastWriteFailed(STORAGE_KEYS.entries) });
   },
 
   replaceAll: (entries) => {
     const ok = replaceEntries(entries);
     set({ entries: listEntries(), writeFailed: !ok });
   },
+
+  refresh: () => set({ entries: listEntries() }),
 
   clearWriteError: () => set({ writeFailed: false }),
 }));

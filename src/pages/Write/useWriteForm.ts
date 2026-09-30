@@ -1,22 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { STORAGE_KEYS } from '@/constants';
-import { readJson } from '@/lib/storage';
 import { useAutosave, useEntry } from '@/hooks';
 import { useEntryStore } from '@/store';
 import type { Entry } from '@/types';
 import { draftDeps, draftFromEntry, emptyDraft, type StoredDraft } from './writeDraft';
-import { initialDraft, resumesDraft } from './draftStart';
+import { readStartDraft, startBaseline, startOptions, type UseWriteFormOptions } from './writeFormStart';
 import { useWriteActions } from './useWriteActions';
 
-export interface UseWriteFormOptions {
-  id?: string;
-  templateId?: string | null;
-  backdated?: boolean;
-  /** ISO date chosen on the calendar, used as the entry's day. */
-  dated?: string | null;
-  /** True only for "Continue Writing", which resumes a stored draft. */
-  resume?: boolean;
-}
+export type { UseWriteFormOptions } from './writeFormStart';
 
 /**
  * Owns the write-page form state, autosave, publish and delete flows.
@@ -24,32 +14,32 @@ export interface UseWriteFormOptions {
  * The composer is remounted for every write request (`WriteRoute`), so this hook never
  * has to reset itself: each mount starts from the params alone.
  */
-export function useWriteForm({ id, templateId, backdated, dated, resume }: UseWriteFormOptions) {
+export function useWriteForm(options: UseWriteFormOptions) {
+  const { id } = options;
   const existing = useEntry(id);
   const hydrated = useEntryStore((state) => state.hydrated);
+  const start = useMemo(() => startOptions(options), [options]);
 
-  const startDraft = useCallback(
-    () =>
-      initialDraft(
-        readJson<StoredDraft | null>(STORAGE_KEYS.draft, null),
-        templateId ?? null,
-        Boolean(backdated),
-        dated,
-        Boolean(resume),
-      ),
-    [backdated, dated, resume, templateId],
-  );
-
-  const [form, setForm] = useState<StoredDraft>(() => (id ? emptyDraft() : startDraft()));
-
+  const [form, setForm] = useState<StoredDraft>(() => (id ? emptyDraft() : readStartDraft(start)));
   const [loadedEntryId, setLoadedEntryId] = useState<string | null>(null);
+  /**
+   * Stamp of the entry as it was loaded into the form.
+   *
+   * Deliberately a snapshot rather than a live read of the store. A background sync
+   * updates the store, and reading the store here would hand the conflict guard the
+   * *new* stamp while the form still holds the old text — so the next autosave would be
+   * accepted and would overwrite the pulled version with stale words. Holding what the
+   * form actually loaded makes that write correctly rejected instead.
+   */
+  const [loadedStamp, setLoadedStamp] = useState<string | undefined>(undefined);
   /** Signature of the values as they came from storage; see `useAutosave.baseline`. */
-  const [baseline, setBaseline] = useState<string | undefined>(() => (id ? undefined : JSON.stringify(draftDeps(form))));
+  const [baseline, setBaseline] = useState<string | undefined>(() => (id ? undefined : startBaseline(form)));
 
   useEffect(() => {
     if (!id || !existing || loadedEntryId === existing.id) return;
     const loaded = draftFromEntry(existing);
     setForm(loaded);
+    setLoadedStamp(existing.updatedAt);
     // Opening an entry is not an edit: treat the stored values as already saved.
     setBaseline(JSON.stringify(draftDeps(loaded)));
     setLoadedEntryId(existing.id);
@@ -59,10 +49,7 @@ export function useWriteForm({ id, templateId, backdated, dated, resume }: UseWr
     setForm((current) => ({ ...current, ...next }));
   }, []);
 
-  // Publishing this composer spends the draft only when it is the one it resumed.
-  const consumeDraft = !id && resumesDraft(templateId ?? null, Boolean(backdated), dated, Boolean(resume));
-
-  const { persist, publish, remove, saveError } = useWriteActions(form, id, consumeDraft, existing?.updatedAt);
+  const { persist, publish, remove, saveError } = useWriteActions(form, id, start, loadedStamp);
 
   const { savedAt, dirty, saveNow } = useAutosave({
     // A saved entry being emptied is a real edit, so only a new entry needs content

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Button, toast } from '@/components/ui';
 import { ConfirmDialog } from '@/components/common';
 import { STORAGE_KEYS } from '@/constants';
-import { exportBackup, importBackupFile } from '@/services';
+import { deleteAllEntries, exportBackup, importBackupFile } from '@/services';
 import { estimateUsage, isPersistent, removeKey } from '@/lib/storage';
 import { formatBytes, formatCount } from '@/lib';
 import { useEntryStore, useSettingsStore } from '@/store';
@@ -13,6 +13,7 @@ import type { Entry } from '@/types';
 export function DataSection() {
   const entries = useEntryStore((state) => state.entries);
   const replaceAll = useEntryStore((state) => state.replaceAll);
+  const refresh = useEntryStore((state) => state.refresh);
   const updateSettings = useSettingsStore((state) => state.update);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -79,7 +80,8 @@ export function DataSection() {
         confirmLabel="Delete everything"
         destructive
         onConfirm={() => {
-          replaceAll([]);
+          deleteAllEntries();
+          refresh();
           removeKey(STORAGE_KEYS.draft);
           setConfirmOpen(false);
           toast.success('All entries removed');

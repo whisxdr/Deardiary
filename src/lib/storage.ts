@@ -22,17 +22,23 @@ const persistent = ((): boolean => {
 /** Values written when localStorage refused the write, newest wins on read. */
 const memory = new Map<string, string>();
 
-/** Whether the most recent `writeJson` reached localStorage. */
-let lastWriteSucceeded = true;
+/**
+ * Whether the most recent write reached localStorage, tracked per key.
+ *
+ * One flag for the whole module reported the wrong key's result once more than one
+ * writer could be in flight, which is exactly what a background sync adds: a push
+ * failing on the entries key would have marked a draft write as failed.
+ */
+const writeStatus = new Map<string, boolean>();
 
 /**
- * True when the last write only reached the in-memory fallback.
+ * True when the last write to `key` only reached the in-memory fallback.
  *
- * Read immediately after a synchronous write, so a caller that reports success can
- * tell the user their change will not survive a reload instead of claiming it saved.
+ * Read immediately after a synchronous write, so a caller that reports success can tell
+ * the user their change will not survive a reload instead of claiming it saved.
  */
-export function lastWriteFailed(): boolean {
-  return !lastWriteSucceeded;
+export function lastWriteFailed(key: string): boolean {
+  return writeStatus.get(key) === false;
 }
 
 /** True when writes reach localStorage rather than the in-memory fallback. */
@@ -62,7 +68,7 @@ export function writeJson(key: string, value: unknown): boolean {
   try {
     raw = JSON.stringify(value);
   } catch {
-    lastWriteSucceeded = false;
+    writeStatus.set(key, false);
     return false;
   }
 
@@ -70,7 +76,7 @@ export function writeJson(key: string, value: unknown): boolean {
     try {
       window.localStorage.setItem(key, raw);
       memory.delete(key);
-      lastWriteSucceeded = true;
+      writeStatus.set(key, true);
       return true;
     } catch {
       // Quota or a mid-session block: keep the value in memory so the page stays
@@ -79,7 +85,7 @@ export function writeJson(key: string, value: unknown): boolean {
   }
 
   memory.set(key, raw);
-  lastWriteSucceeded = false;
+  writeStatus.set(key, false);
   return false;
 }
 

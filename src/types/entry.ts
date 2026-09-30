@@ -37,6 +37,14 @@ export interface Entry {
   images?: string[];
   wordCount: number;
   readingTime: number;
+  /**
+   * Set when the entry was deleted, instead of removing it from storage.
+   *
+   * A removed record cannot be told apart from one that was never uploaded, so a delete
+   * was invisible to any future sync and the entry came back on the next pull. The
+   * tombstone keeps the id so the deletion is a fact that can travel.
+   */
+  deletedAt?: string;
 }
 
 /** Payload used when creating an entry; derived fields are computed by the service. */

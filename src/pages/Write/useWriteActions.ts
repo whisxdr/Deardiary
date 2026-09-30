@@ -5,14 +5,16 @@ import { lastWriteFailed, removeKey, writeJson } from '@/lib/storage';
 import { useCreateEntry, useDeleteEntry, useUpdateEntry } from '@/hooks';
 import { toast } from '@/components/ui';
 import { explainRejectedWrite, type SaveError } from './saveError';
+import { resumesDraft } from './draftStart';
 import { draftPayload, type StoredDraft } from './writeDraft';
+import type { StartOptions } from './writeFormStart';
 
 /** Publish, delete and manual-save behaviour for the write page. */
 export function useWriteActions(
   form: StoredDraft,
   id: string | undefined,
-  consumeDraft: boolean,
-  storedUpdatedAt?: string,
+  start: StartOptions,
+  loadedStamp?: string,
 ) {
   const navigate = useNavigate();
   const createEntry = useCreateEntry();
@@ -23,19 +25,19 @@ export function useWriteActions(
   // draft key it just cleared: that offered "Continue writing" for a finished entry.
   const published = useRef(false);
   /**
-   * Stamp of the record this composer is editing, as storage has it.
+   * Stamp of the entry as the form loaded it.
    *
-   * Follows the loaded entry rather than `form.updatedAt`: an id route starts from an
-   * empty draft, so the form's stamp is the moment the page opened, not the record's.
-   * Refreshed after every successful write so the next one is accepted, and deliberately
-   * left alone after a rejected one so a retry is rejected too rather than silently
-   * overwriting whatever the other tab wrote.
+   * A snapshot, not a live read of the store: a background sync updates the store, and
+   * following it here would hand the conflict guard a fresh stamp while the form still
+   * holds older text, so the next save would overwrite the pulled version. Advanced
+   * after each accepted write, and deliberately left alone after a rejected one so a
+   * retry is rejected too rather than silently clobbering the other writer.
    */
-  const stampRef = useRef(storedUpdatedAt);
+  const stampRef = useRef(loadedStamp);
 
   useEffect(() => {
-    stampRef.current = storedUpdatedAt;
-  }, [storedUpdatedAt]);
+    stampRef.current = loadedStamp;
+  }, [loadedStamp]);
 
   /** Writes the current form values to storage; also used by autosave. */
   const persist = useCallback((): boolean => {
@@ -45,7 +47,7 @@ export function useWriteActions(
       const updated = patchEntry(id, draftPayload(form), stampRef.current);
       if (updated) {
         stampRef.current = updated.updatedAt;
-        setSaveError(lastWriteFailed() ? 'storage' : null);
+        setSaveError(lastWriteFailed(STORAGE_KEYS.entries) ? 'storage' : null);
         return true;
       }
       setSaveError(explainRejectedWrite(id));
@@ -80,10 +82,10 @@ export function useWriteActions(
     // Only a draft this composer resumed is spent. A template or a day picked on the
     // calendar starts a separate entry, and publishing it must leave an unfinished
     // note from another session alone.
-    if (consumeDraft) removeKey(STORAGE_KEYS.draft);
+    if (resumesDraft(start.templateId, start.backdated, start.dated, start.resume)) removeKey(STORAGE_KEYS.draft);
     toast.success('Entry published');
     navigate(ROUTES.reader(created.id));
-  }, [consumeDraft, createEntry, form, id, navigate, patchEntry]);
+  }, [createEntry, form, id, navigate, patchEntry, start]);
 
   const remove = useCallback(() => {
     if (!id) return;

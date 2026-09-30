@@ -12,3 +12,6 @@ dist-ssr
 .mimosa
 .v2c
 .zcode
+
+# Local sync server data: real accounts and entries, never committed
+.sync-data
