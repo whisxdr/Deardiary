@@ -52,7 +52,9 @@ export default function Landing() {
       window.clearTimeout(openTimer.current);
       openTimer.current = null;
     }
-    navigate(ROUTES.write);
+    // `resume` is what tells the composer to load the stored draft. Plain /write opens a
+    // clean page, so every "New entry" button starts empty.
+    navigate(`${ROUTES.write}?resume=true`);
   }, [navigate]);
 
   return (

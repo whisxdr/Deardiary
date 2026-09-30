@@ -22,6 +22,19 @@ const persistent = ((): boolean => {
 /** Values written when localStorage refused the write, newest wins on read. */
 const memory = new Map<string, string>();
 
+/** Whether the most recent `writeJson` reached localStorage. */
+let lastWriteSucceeded = true;
+
+/**
+ * True when the last write only reached the in-memory fallback.
+ *
+ * Read immediately after a synchronous write, so a caller that reports success can
+ * tell the user their change will not survive a reload instead of claiming it saved.
+ */
+export function lastWriteFailed(): boolean {
+  return !lastWriteSucceeded;
+}
+
 /** True when writes reach localStorage rather than the in-memory fallback. */
 export function isPersistent(): boolean {
   return persistent;
@@ -49,6 +62,7 @@ export function writeJson(key: string, value: unknown): boolean {
   try {
     raw = JSON.stringify(value);
   } catch {
+    lastWriteSucceeded = false;
     return false;
   }
 
@@ -56,6 +70,7 @@ export function writeJson(key: string, value: unknown): boolean {
     try {
       window.localStorage.setItem(key, raw);
       memory.delete(key);
+      lastWriteSucceeded = true;
       return true;
     } catch {
       // Quota or a mid-session block: keep the value in memory so the page stays
@@ -64,6 +79,7 @@ export function writeJson(key: string, value: unknown): boolean {
   }
 
   memory.set(key, raw);
+  lastWriteSucceeded = false;
   return false;
 }
 

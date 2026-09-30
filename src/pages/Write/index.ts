@@ -1,11 +1,16 @@
 export { default as Write } from './Write';
+export { default as WriteRoute } from './WriteRoute';
+export { WriteMissing } from './WriteMissing';
 export { useEditorSetup } from './useEditorSetup';
 export type { UseEditorSetupOptions } from './useEditorSetup';
 export { useWriteActions } from './useWriteActions';
+export { SAVE_ERROR_TEXT } from './saveError';
+export type { SaveError } from './saveError';
 export { useWriteForm } from './useWriteForm';
 export type { UseWriteFormOptions } from './useWriteForm';
-export { draftFromEntry, emptyDraft, initialDraft } from './writeDraft';
+export { draftFromEntry, emptyDraft } from './writeDraft';
 export type { StoredDraft } from './writeDraft';
+export { initialDraft, resumesDraft } from './draftStart';
 export { WriteEditor } from './WriteEditor';
 export type { WriteEditorProps } from './WriteEditor';
 export { WriteSidebar } from './WriteSidebar';

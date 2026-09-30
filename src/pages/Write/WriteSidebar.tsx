@@ -2,6 +2,7 @@ import { Toggle } from '@/components/ui';
 import { MoodPicker, TagInput } from '@/components/editor';
 import { SidebarActions } from './SidebarActions';
 import { SidebarDetails } from './SidebarDetails';
+import type { SaveError } from './saveError';
 import type { Mood } from '@/types';
 
 export interface WriteSidebarProps {
@@ -13,6 +14,7 @@ export interface WriteSidebarProps {
   isPrivate: boolean;
   savedLabel: string;
   isSaving: boolean;
+  saveError: SaveError;
   onDateChange: (value: string) => void;
   onLocationChange: (value: string) => void;
   onMoodChange: (mood: Mood) => void;
@@ -41,6 +43,7 @@ export function WriteSidebar(props: WriteSidebarProps) {
     isPrivate,
     savedLabel,
     isSaving,
+    saveError,
     onDateChange,
     onLocationChange,
     onMoodChange,
@@ -65,6 +68,7 @@ export function WriteSidebar(props: WriteSidebarProps) {
           location={location}
           savedLabel={savedLabel}
           isSaving={isSaving}
+          saveError={saveError}
           onDateChange={onDateChange}
           onLocationChange={onLocationChange}
         />

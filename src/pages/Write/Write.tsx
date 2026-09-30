@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/common';
 import { useKeyboard } from '@/hooks';
 import { ROUTES } from '@/constants';
 import { WriteEditor } from './WriteEditor';
+import { WriteMissing } from './WriteMissing';
 import { WriteSidebar } from './WriteSidebar';
 import { useEditorSetup } from './useEditorSetup';
 import { useWriteForm } from './useWriteForm';
@@ -16,12 +17,14 @@ export default function Write() {
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const { form, patch, publish, remove, saveNow, savedLabel, isSaving, isEditing, entry } = useWriteForm({
-    id,
-    templateId: searchParams.get('template'),
-    backdated: searchParams.get('backdated') === 'true',
-    dated: searchParams.get('date'),
-  });
+  const { form, patch, publish, remove, saveNow, savedLabel, saveError, isSaving, isEditing, isMissing, entry } =
+    useWriteForm({
+      id,
+      templateId: searchParams.get('template'),
+      backdated: searchParams.get('backdated') === 'true',
+      dated: searchParams.get('date'),
+      resume: searchParams.get('resume') === 'true',
+    });
 
   const { editor, words, characters, insertImage } = useEditorSetup({
     initialContent: form.content,
@@ -37,6 +40,14 @@ export default function Write() {
     { key: 's', ctrl: true, handler: saveNow },
     { key: 'Escape', handler: () => navigate(isEditing && id ? ROUTES.reader(id) : ROUTES.dashboard) },
   ]);
+
+  if (isMissing) {
+    return (
+      <AppLayout>
+        <WriteMissing onBack={() => navigate(ROUTES.dashboard)} />
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -58,6 +69,7 @@ export default function Write() {
           isPrivate={form.isPrivate}
           savedLabel={savedLabel}
           isSaving={isSaving}
+          saveError={saveError}
           onDateChange={(date) => patch({ date })}
           onLocationChange={(location) => patch({ location })}
           onMoodChange={(mood) => patch({ mood })}

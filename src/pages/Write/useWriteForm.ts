@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { STORAGE_KEYS } from '@/constants';
 import { readJson } from '@/lib/storage';
 import { useAutosave, useEntry } from '@/hooks';
+import { useEntryStore } from '@/store';
 import type { Entry } from '@/types';
-import { draftDeps, draftFromEntry, emptyDraft, initialDraft, type StoredDraft } from './writeDraft';
+import { draftDeps, draftFromEntry, emptyDraft, type StoredDraft } from './writeDraft';
+import { initialDraft, resumesDraft } from './draftStart';
 import { useWriteActions } from './useWriteActions';
 
 export interface UseWriteFormOptions {
@@ -12,17 +14,19 @@ export interface UseWriteFormOptions {
   backdated?: boolean;
   /** ISO date chosen on the calendar, used as the entry's day. */
   dated?: string | null;
+  /** True only for "Continue Writing", which resumes a stored draft. */
+  resume?: boolean;
 }
 
 /**
  * Owns the write-page form state, autosave, publish and delete flows.
  *
- * The route for a new entry and the route for an existing one render the same
- * component, so the form resets whenever `id` changes; otherwise "New entry" opened
- * from the editor would keep the previous entry's text and publish a duplicate.
+ * The composer is remounted for every write request (`WriteRoute`), so this hook never
+ * has to reset itself: each mount starts from the params alone.
  */
-export function useWriteForm({ id, templateId, backdated, dated }: UseWriteFormOptions) {
+export function useWriteForm({ id, templateId, backdated, dated, resume }: UseWriteFormOptions) {
   const existing = useEntry(id);
+  const hydrated = useEntryStore((state) => state.hydrated);
 
   const startDraft = useCallback(
     () =>
@@ -31,8 +35,9 @@ export function useWriteForm({ id, templateId, backdated, dated }: UseWriteFormO
         templateId ?? null,
         Boolean(backdated),
         dated,
+        Boolean(resume),
       ),
-    [backdated, dated, templateId],
+    [backdated, dated, resume, templateId],
   );
 
   const [form, setForm] = useState<StoredDraft>(() => (id ? emptyDraft() : startDraft()));
@@ -40,22 +45,6 @@ export function useWriteForm({ id, templateId, backdated, dated }: UseWriteFormO
   const [loadedEntryId, setLoadedEntryId] = useState<string | null>(null);
   /** Signature of the values as they came from storage; see `useAutosave.baseline`. */
   const [baseline, setBaseline] = useState<string | undefined>(() => (id ? undefined : JSON.stringify(draftDeps(form))));
-
-  // Reset when the route switches between composing and editing, or between entries.
-  const previousId = useRef(id);
-  useEffect(() => {
-    if (previousId.current === id) return;
-    previousId.current = id;
-    setLoadedEntryId(null);
-    if (id) {
-      setForm(emptyDraft());
-      setBaseline(undefined);
-      return;
-    }
-    const next = startDraft();
-    setForm(next);
-    setBaseline(JSON.stringify(draftDeps(next)));
-  }, [id, startDraft]);
 
   useEffect(() => {
     if (!id || !existing || loadedEntryId === existing.id) return;
@@ -70,7 +59,10 @@ export function useWriteForm({ id, templateId, backdated, dated }: UseWriteFormO
     setForm((current) => ({ ...current, ...next }));
   }, []);
 
-  const { persist, publish, remove } = useWriteActions(form, id);
+  // Publishing this composer spends the draft only when it is the one it resumed.
+  const consumeDraft = !id && resumesDraft(templateId ?? null, Boolean(backdated), dated, Boolean(resume));
+
+  const { persist, publish, remove, saveError } = useWriteActions(form, id, consumeDraft, existing?.updatedAt);
 
   const { savedAt, dirty, saveNow } = useAutosave({
     // A saved entry being emptied is a real edit, so only a new entry needs content
@@ -93,8 +85,12 @@ export function useWriteForm({ id, templateId, backdated, dated }: UseWriteFormO
     remove,
     saveNow,
     savedLabel,
+    saveError,
     isSaving: dirty,
     isEditing: Boolean(id),
+    // A deep link to an entry that is gone must not render an empty composer that
+    // reports saves it cannot make; the page shows a not-found state instead.
+    isMissing: Boolean(id) && hydrated && existing === null,
     entry: existing as Entry | null,
   } as const;
 }

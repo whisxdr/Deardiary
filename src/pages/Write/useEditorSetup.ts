@@ -1,12 +1,7 @@
-import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import Underline from '@tiptap/extension-underline';
 import { useEditor, type Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useRef, useState } from 'react';
-import { EDITOR_PLACEHOLDER } from '@/constants';
 import { countCharacters, countWords } from '@/lib';
+import { EDITOR_ATTRIBUTES, EDITOR_EXTENSIONS } from './editorConfig';
 
 export interface UseEditorSetupOptions {
   /** HTML the editor starts with; used for new entries and templates. */
@@ -36,19 +31,25 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     submitRef.current = onSubmit;
   }, [onSubmit]);
 
+  /** Ctrl/Cmd+Enter is handled by `handleKeyDown` below, not by a DOM listener. */
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-      Underline,
-      Link.configure({ openOnClick: false, autolink: true }),
-      Image.configure({ inline: false }),
-      Placeholder.configure({ placeholder: EDITOR_PLACEHOLDER }),
-    ],
+    extensions: EDITOR_EXTENSIONS,
     content: initialContent,
     editorProps: {
-      attributes: {
-        'aria-label': 'Entry body',
-        class: 'focus:outline-none min-h-[22rem]',
+      attributes: EDITOR_ATTRIBUTES,
+      /**
+       * Ctrl/Cmd+Enter publishes; Shift+Enter keeps inserting a hard break.
+       *
+       * Returning true consumes the event before ProseMirror's own keymap runs. A DOM
+       * listener cannot do this: ProseMirror registers its handler first, so by the time
+       * the listener fired the hard break was already inserted.
+       */
+      handleKeyDown: (_view, event) => {
+        if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
+          submitRef.current?.();
+          return true;
+        }
+        return false;
       },
     },
     onUpdate: ({ editor: instance }) => {
@@ -59,27 +60,12 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     },
   });
 
-  /** Ctrl/Cmd+Enter publishes; Shift+Enter keeps inserting a hard break. */
-  useEffect(() => {
-    if (!editor) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
-        event.preventDefault();
-        submitRef.current?.();
-      }
-    };
-    const dom = editor.view.dom;
-    dom.addEventListener('keydown', onKeyDown);
-    return () => dom.removeEventListener('keydown', onKeyDown);
-  }, [editor]);
-
   /**
-   * Loads the stored body once per editor instance. StrictMode destroys and recreates
-   * the editor, so the guard tracks the instance rather than a plain boolean.
+   * Loads the stored body once per editor instance. StrictMode destroys and recreates the
+   * editor, so the guard tracks the instance rather than a plain boolean.
    *
-   * `addToHistory: false` matters: the editor starts empty, so without it this load is
-   * the first undo step and pressing Undo empties the page, which the autosave then
-   * stores. Loading a page is not an edit and must not be undoable.
+   * `addToHistory: false` matters: the editor starts empty, so without it this load is the
+   * first undo step and pressing Undo empties the page, which the autosave then stores.
    */
   useEffect(() => {
     if (!editor || !entryId || storedContent === undefined) return;
@@ -99,11 +85,17 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     setCharacters(countCharacters(html));
   }, [editor]);
 
-  /** Inserts an image by URL, the simplest path that needs no upload backend. */
+  /**
+   * Inserts an image by URL, the simplest path that needs no upload backend.
+   *
+   * Only `http(s)` is accepted. A `data:` URL would render and save, but the Image
+   * extension's parse rule drops `data:` sources, so the next reload lost the image and
+   * the following keystroke wrote the body back without it.
+   */
   const insertImage = () => {
     if (!editor) return;
     const url = window.prompt('Image URL');
-    if (url) editor.chain().focus().setImage({ src: url }).run();
+    if (url && /^https?:\/\//i.test(url)) editor.chain().focus().setImage({ src: url }).run();
   };
 
   return { editor, words, characters, insertImage } as const;
