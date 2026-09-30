@@ -7,12 +7,14 @@ import {
   DataSection,
   PrivacySection,
   ProfileSection,
+  SyncSection,
 } from './sections';
 
 const SECTION_LINKS = [
   { href: '#profile-heading', label: 'Profile' },
   { href: '#appearance-heading', label: 'Appearance' },
   { href: '#privacy-heading', label: 'Privacy' },
+  { href: '#sync-heading', label: 'Account' },
   { href: '#data-heading', label: 'Data' },
   { href: '#about-heading', label: 'About' },
 ] as const;
@@ -51,6 +53,7 @@ export default function Settings() {
           <ProfileSection />
           <AppearanceSection />
           <PrivacySection />
+          <SyncSection />
           <DataSection />
           <AboutSection />
         </div>

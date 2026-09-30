@@ -14,5 +14,6 @@ export { useIsMobile, useMediaQuery, usePrefersReducedMotion } from './useMediaQ
 export { useMood } from './useMood';
 export { useSaveOnLeave } from './useSaveOnLeave';
 export { useSearch } from './useSearch';
+export { useSyncLifecycle } from './useSyncLifecycle';
 export { useTheme } from './useTheme';
 export { useUpdateEntry } from './useUpdateEntry';

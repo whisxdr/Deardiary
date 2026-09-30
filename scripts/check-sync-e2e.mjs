@@ -1,0 +1,284 @@
+/**
+ * End-to-end sync test with two real browser contexts.
+ *
+ * Two isolated browser profiles stand in for the phone and the laptop. They share nothing
+ * but the server, which is exactly the situation the owner asked about: type on one,
+ * open the other, see the same entries.
+ *
+ * Run the API first: `node scripts/serve-sync.mjs`, then this script.
+ */
+import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
+
+const globalRoot = execSync('npm root -g', { encoding: 'utf8' }).trim();
+const require = createRequire(import.meta.url);
+const { chromium } = require(`${globalRoot}/playwright`);
+
+const BASE = process.env.BASE_URL ?? 'http://localhost:5213';
+
+if (!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?/.test(BASE)) {
+  console.error(`Refusing to run: ${BASE} is not a local origin, and this script clears storage.`);
+  process.exit(1);
+}
+
+const results = [];
+let failed = 0;
+function check(name, pass, detail) {
+  results.push(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
+  if (!pass) failed += 1;
+}
+
+const browser = await chromium.launch();
+
+/** A device is an isolated browser profile: its own localStorage, its own cookie jar. */
+async function device(label) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(`${label}: ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(`${label}: ${message.text()}`);
+  });
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+  return { context, page, errors };
+}
+
+/** Reads the visible entries straight from storage, as the app would. */
+async function localEntries(page) {
+  return page.evaluate(() => {
+    const raw = window.localStorage.getItem('deardiary:entries');
+    if (!raw) return [];
+    return JSON.parse(raw).filter((entry) => entry.deletedAt === undefined);
+  });
+}
+
+/**
+ * Waits until this device has nothing left to upload.
+ *
+ * A local write is pushed after a short quiet period, so a fixed sleep here is a race:
+ * too short and the other device pulls before the push happened, which looks like a sync
+ * bug when it is only a slow test. Waiting on the outbox is the real condition.
+ */
+async function waitForUpload(page, timeoutMs = 15000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const pending = await page.evaluate(() => {
+      const raw = window.localStorage.getItem('deardiary:outbox');
+      return raw ? JSON.parse(raw).length : 0;
+    });
+    if (pending === 0) return true;
+    await page.waitForTimeout(250);
+  }
+  return false;
+}
+
+/** Makes the other device pull, the way picking it up would. */
+async function pullOn(page) {
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await page.waitForTimeout(2500);
+}
+
+/**
+ * Signs in through the real UI.
+ *
+ * The code is fetched with the same address the form was given: a code is bound to one
+ * email, so asking for a different one produces a code the verify step will reject.
+ */
+async function signIn(page, email) {
+  await page.goto(`${BASE}/settings`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(500);
+  await page.getByLabel('Email').fill(email);
+  await page.getByRole('button', { name: /send me a code/i }).click();
+  await page.waitForTimeout(800);
+
+  // The dev server echoes the code so the flow is testable; a real backend emails it.
+  const code = await page.evaluate(async (mail) => {
+    const response = await fetch('/api/auth/request-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: mail }),
+    });
+    const data = await response.json();
+    return data.devCode;
+  }, email);
+
+  await page.getByLabel('Six-digit code').fill(code);
+  await page.getByRole('button', { name: /^sign in$/i }).click();
+  await page.waitForTimeout(2000);
+}
+
+/** Writes an entry through the composer. */
+async function writeEntry(page, title, body) {
+  await page.goto(`${BASE}/write`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(600);
+  await page.fill('#entry-title', title);
+  await page.click('.ProseMirror');
+  await page.keyboard.type(body);
+  await page.getByRole('button', { name: /^publish$/i }).click();
+  await page.waitForTimeout(1200);
+}
+
+try {
+  const phone = await device('phone');
+  const laptop = await device('laptop');
+  const email = `probe-${Date.now()}@example.com`;
+
+  // --- 1. Phone writes two entries, then signs in -----------------------------------
+  await writeEntry(phone.page, 'Harbour morning', 'The tide came in early.');
+  await writeEntry(phone.page, 'Evening walk', 'Long shadows on the road.');
+  const phoneBefore = await localEntries(phone.page);
+  check('phone has two local entries before sign-in', phoneBefore.length === 2, `count=${phoneBefore.length}`);
+
+  await signIn(phone.page, email);
+  const signedIn = await phone.page.evaluate(() => window.localStorage.getItem('deardiary:session') !== null);
+  check('phone is signed in', signedIn);
+  await phone.page.waitForTimeout(1500);
+
+  // --- 2. Laptop signs in with an empty diary, and receives them --------------------
+  const laptopBefore = await localEntries(laptop.page);
+  check('laptop starts empty', laptopBefore.length === 0, `count=${laptopBefore.length}`);
+
+  await signIn(laptop.page, email);
+  await laptop.page.waitForTimeout(2000);
+  const laptopAfter = await localEntries(laptop.page);
+  const titles = laptopAfter.map((entry) => entry.title).sort();
+  check(
+    'laptop downloads both entries after signing in',
+    laptopAfter.length === 2 && titles[0] === 'Evening walk' && titles[1] === 'Harbour morning',
+    titles.join(' | '),
+  );
+  check(
+    'downloaded entries keep their body',
+    laptopAfter.some((entry) => entry.content.includes('The tide came in early')),
+  );
+
+  // --- 3. Laptop writes a new entry; phone receives it ------------------------------
+  await writeEntry(laptop.page, 'Written on the laptop', 'A note from the other device.');
+  const uploaded = await waitForUpload(laptop.page);
+  check('the laptop uploads its new entry', uploaded, uploaded ? 'queue drained' : 'outbox did not drain');
+
+  await pullOn(phone.page);
+  const phoneAfter = await localEntries(phone.page);
+  check(
+    'phone receives the entry written on the laptop',
+    phoneAfter.some((entry) => entry.title === 'Written on the laptop'),
+    phoneAfter.map((entry) => entry.title).join(' | '),
+  );
+  check('phone did not lose its own entries', phoneAfter.length === 3, `count=${phoneAfter.length}`);
+
+  // --- 4. An edit on the laptop wins over the phone's older copy --------------------
+  const laptopTarget = laptopAfter.find((entry) => entry.title === 'Harbour morning');
+  await laptop.page.goto(`${BASE}/write/${laptopTarget.id}`, { waitUntil: 'networkidle' });
+  await laptop.page.waitForTimeout(700);
+  await laptop.page.click('.ProseMirror');
+  await laptop.page.keyboard.press('End');
+  await laptop.page.keyboard.type(' Edited on the laptop.');
+  await laptop.page.keyboard.press('Control+s');
+  await waitForUpload(laptop.page);
+
+  await pullOn(phone.page);
+  const phoneEdited = await localEntries(phone.page);
+  const editedOnPhone = phoneEdited.find((entry) => entry.id === laptopTarget.id);
+  check(
+    'edit made on the laptop reaches the phone',
+    editedOnPhone?.content.includes('Edited on the laptop'),
+    JSON.stringify(editedOnPhone?.content?.slice(-40)),
+  );
+
+  // --- 5. Deleting on the phone removes it on the laptop ---------------------------
+  await phone.page.goto(`${BASE}/entry/${laptopTarget.id}`, { waitUntil: 'networkidle' });
+  await phone.page.waitForTimeout(700);
+  await phone.page.getByRole('button', { name: /delete entry/i }).first().click();
+  await phone.page.waitForTimeout(400);
+  await phone.page.getByRole('button', { name: /^delete entry$/i }).last().click();
+  await waitForUpload(phone.page);
+
+  await pullOn(laptop.page);
+  const laptopFinal = await localEntries(laptop.page);
+  check(
+    'deletion on the phone removes the entry on the laptop',
+    !laptopFinal.some((entry) => entry.id === laptopTarget.id),
+    laptopFinal.map((entry) => entry.title).join(' | '),
+  );
+  check(
+    'the delete does not resurrect the entry',
+    laptopFinal.length === 2,
+    `count=${laptopFinal.length}`,
+  );
+
+  // --- 6. The tombstone is what made that work --------------------------------------
+  const tombstones = await laptop.page.evaluate((id) => {
+    const raw = window.localStorage.getItem('deardiary:entries');
+    return JSON.parse(raw ?? '[]').filter((entry) => entry.deletedAt !== undefined).map((entry) => entry.id);
+  }, laptopTarget.id);
+  check('the deletion is stored as a tombstone, not a missing record', tombstones.includes(laptopTarget.id));
+
+  // --- 7. Offline: writing still works and uploads later ---------------------------
+  // Load the composer while still online: going offline and then navigating would need
+  // the server for the document, which is not what "offline writing" means. The app is
+  // already loaded, so typing and publishing are entirely client-side.
+  await phone.page.goto(`${BASE}/write`, { waitUntil: 'networkidle' });
+  await phone.page.waitForTimeout(600);
+  await phone.context.setOffline(true);
+
+  await phone.page.fill('#entry-title', 'Written offline');
+  await phone.page.click('.ProseMirror');
+  await phone.page.keyboard.type('No connection here.');
+  await phone.page.getByRole('button', { name: /^publish$/i }).click();
+  await phone.page.waitForTimeout(1500);
+
+  const offlineLocal = await localEntries(phone.page);
+  check(
+    'an entry written offline is kept locally',
+    offlineLocal.some((entry) => entry.title === 'Written offline'),
+    `count=${offlineLocal.length}`,
+  );
+  const pending = await phone.page.evaluate(() => {
+    const raw = window.localStorage.getItem('deardiary:outbox');
+    return raw ? JSON.parse(raw).length : 0;
+  });
+  check('the offline write is queued for upload', pending > 0, `pending=${pending}`);
+
+  await phone.context.setOffline(false);
+  await phone.page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await phone.page.waitForTimeout(2500);
+  const drained = await waitForUpload(phone.page);
+  check('the queue drains once the connection returns', drained, drained ? 'queue drained' : 'outbox did not drain');
+
+  await pullOn(laptop.page);
+  const laptopSynced = await localEntries(laptop.page);
+  check(
+    'the entry written offline reaches the other device',
+    laptopSynced.some((entry) => entry.title === 'Written offline'),
+    laptopSynced.map((entry) => entry.title).join(' | '),
+  );
+
+  // --- 8. Nothing was lost anywhere -------------------------------------------------
+  const finalCounts = {
+    phone: (await localEntries(phone.page)).length,
+    laptop: laptopSynced.length,
+  };
+  check(
+    'both devices agree on the entry count',
+    finalCounts.phone === finalCounts.laptop,
+    JSON.stringify(finalCounts),
+  );
+
+  // The offline window deliberately produced network errors; they are the harness going
+  // offline, not the app failing. Anything else is a real error.
+  const allErrors = [...phone.errors, ...laptop.errors].filter(
+    (text) => !/ERR_INTERNET_DISCONNECTED|Failed to fetch|net::ERR/.test(text),
+  );
+  check('no page errors on either device', allErrors.length === 0, allErrors.slice(0, 3).join(' | '));
+
+  await phone.context.close();
+  await laptop.context.close();
+} catch (error) {
+  check('script completed', false, error.message);
+} finally {
+  await browser.close();
+}
+
+console.log(results.join('\n'));
+console.log(`\n${failed === 0 ? 'ALL PASS' : `${failed} FAILED`}`);
+process.exit(failed === 0 ? 0 : 1);
