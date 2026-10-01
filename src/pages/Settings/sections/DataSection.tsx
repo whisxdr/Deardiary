@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Button, toast } from '@/components/ui';
 import { ConfirmDialog } from '@/components/common';
 import { STORAGE_KEYS } from '@/constants';
@@ -17,6 +17,12 @@ export function DataSection() {
   const updateSettings = useSettingsStore((state) => state.update);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Scans every stored key, so run once per entry-count change rather than per render.
+  const usageLabel = useMemo(
+    () => `Using about ${formatBytes(estimateUsage())} of browser storage for ${formatCount(entries.length, 'entry', 'entries')}.`,
+    [entries.length],
+  );
 
   const handleImport = async (file: File | undefined) => {
     if (!file) return;
@@ -42,7 +48,7 @@ export function DataSection() {
         Data
       </h2>
       <p className="font-body text-xs text-primary-500 dark:text-primary-300">
-        {`Using about ${formatBytes(estimateUsage())} of browser storage for ${formatCount(entries.length, 'entry', 'entries')}.`}
+        {usageLabel}
       </p>
       {isPersistent() ? null : (
         <p role="alert" className="font-body text-xs text-error">

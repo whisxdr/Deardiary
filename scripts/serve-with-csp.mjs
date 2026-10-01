@@ -15,11 +15,13 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: https:",
-  "connect-src 'self'",
+  // The Supabase project origin, plus its Realtime websocket, for the optional cloud sync.
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'none'",
   "frame-ancestors 'none'",
+  "upgrade-insecure-requests",
 ].join('; ');
 
 const TYPES = {

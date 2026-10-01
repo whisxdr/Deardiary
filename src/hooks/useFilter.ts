@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { parseDate } from '@/utils';
 import { searchText } from '@/lib/searchIndex';
 import type { Entry, EntryFilters, SortOrder } from '@/types';
@@ -17,10 +17,14 @@ export const DEFAULT_FILTERS: EntryFilters = {
 /** Sorts entries according to the selected order. */
 function sortEntries(entries: Entry[], sort: string): Entry[] {
   const order = sort as SortOrder;
+  // Parse each date once: `new Date` in the comparator ran twice per comparison.
+  if (order === 'oldest' || order === 'newest') {
+    const timed = entries.map((entry) => ({ entry, time: parseDate(entry.date).getTime() }));
+    timed.sort((a, b) => (order === 'oldest' ? a.time - b.time : b.time - a.time));
+    return timed.map((item) => item.entry);
+  }
   const list = [...entries];
   switch (order) {
-    case 'oldest':
-      return list.sort((a, b) => parseDate(a.date).getTime() - parseDate(b.date).getTime());
     case 'title':
       return list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     case 'mood':
@@ -34,7 +38,7 @@ function sortEntries(entries: Entry[], sort: string): Entry[] {
 export function useFilter(source: Entry[], initial: Partial<EntryFilters> = {}) {
   const [filters, setFilters] = useState<EntryFilters>({ ...DEFAULT_FILTERS, ...initial });
 
-  const update = (patch: Partial<EntryFilters>) => setFilters((current) => ({ ...current, ...patch }));
+  const update = useCallback((patch: Partial<EntryFilters>) => setFilters((current) => ({ ...current, ...patch })), []);
 
   /**
    * Clears every filter, including any that arrived from the URL.
@@ -43,7 +47,7 @@ export function useFilter(source: Entry[], initial: Partial<EntryFilters> = {}) 
    * grid filtered, which reads as a broken button: the toolbar showed "All tags" while
    * one tag was still applied.
    */
-  const reset = () => setFilters(DEFAULT_FILTERS);
+  const reset = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
   const filtered = useMemo(() => {
     const query = filters.query.trim().toLowerCase();

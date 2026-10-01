@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { sanitizeEntryHtml } from '@/lib';
 import { cn } from '@/utils';
 
@@ -16,7 +16,7 @@ export interface ReaderContentProps {
  */
 export function ReaderContent({ content, className }: ReaderContentProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const safe = sanitizeEntryHtml(content);
+  const safe = useMemo(() => sanitizeEntryHtml(content), [content]);
 
   useEffect(() => {
     const first = ref.current?.querySelector('p');

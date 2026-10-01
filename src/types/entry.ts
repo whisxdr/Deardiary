@@ -37,13 +37,14 @@ export interface Entry {
   images?: string[];
   wordCount: number;
   readingTime: number;
+  deletedAt?: string;
 }
 
 /** Payload used when creating an entry; derived fields are computed by the service. */
-export type EntryDraft = Omit<Entry, 'id' | 'createdAt' | 'updatedAt' | 'wordCount' | 'readingTime'>;
+export type EntryDraft = Omit<Entry, 'id' | 'createdAt' | 'updatedAt' | 'wordCount' | 'readingTime' | 'deletedAt'>;
 
 /** Fields that may be patched on an existing entry. */
-export type EntryUpdate = Partial<Omit<Entry, 'id' | 'createdAt'>>;
+export type EntryUpdate = Partial<Omit<Entry, 'id' | 'createdAt' | 'deletedAt'>>;
 
 /** Sort orders offered by the dashboard toolbar. */
 export type SortOrder = 'newest' | 'oldest' | 'title' | 'mood';

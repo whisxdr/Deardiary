@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout, ComposerModal, FAB } from '@/components/layout';
 import { ROUTES } from '@/constants';
@@ -48,15 +48,18 @@ export default function Dashboard() {
   const tagOptions = useMemo(() => tagOptionsFor(entries, urlTag), [entries, urlTag]);
 
   /** Clears every filter, including the ones carried by the URL. */
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     reset();
     // URLSearchParams.size is Chrome 113+/Firefox 112+/Safari 17+; on older engines it is
     // undefined, the guard was false, and the stale ?q=/?tag= survived a reload.
     if ([...searchParams.keys()].length > 0) setSearchParams({}, { replace: true });
-  };
+  }, [reset, searchParams, setSearchParams]);
+
+  const handleTagClick = useCallback((tag: string) => update({ tag }), [update]);
+  const handleSearchChange = useCallback((query: string) => update({ query }), [update]);
 
   return (
-    <AppLayout searchValue={filters.query} onSearchChange={(query) => update({ query })}>
+      <AppLayout searchValue={filters.query} onSearchChange={handleSearchChange}>
       <div className="flex flex-col gap-5">
         <DashboardHeader total={totalEntries} visible={filtered.length} displayName={displayName} />
         <DashboardToolbar
@@ -74,7 +77,7 @@ export default function Dashboard() {
           hiddenCount={hiddenCount}
           viewMode={viewMode}
           onToggleFavorite={favorite}
-          onTagClick={(tag) => update({ tag })}
+          onTagClick={handleTagClick}
           onClearFilters={clearAll}
         />
       </div>
