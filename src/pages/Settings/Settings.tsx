@@ -1,18 +1,24 @@
 import { useEffect } from 'react';
 import { AppLayout } from '@/components/layout';
 import { useSettingsStore } from '@/store';
+import { syncEnabled } from '@/services/supabase/config';
 import {
   AboutSection,
   AppearanceSection,
   DataSection,
   PrivacySection,
   ProfileSection,
+  SyncSection,
 } from './sections';
+
+/** Only offered when both Supabase env vars are set; see `services/sync/config.ts`. */
+const SYNC_LINKS = syncEnabled() ? [{ href: '#sync-heading', label: 'Account' }] : [];
 
 const SECTION_LINKS = [
   { href: '#profile-heading', label: 'Profile' },
   { href: '#appearance-heading', label: 'Appearance' },
   { href: '#privacy-heading', label: 'Privacy' },
+  ...SYNC_LINKS,
   { href: '#data-heading', label: 'Data' },
   { href: '#about-heading', label: 'About' },
 ] as const;
@@ -51,6 +57,7 @@ export default function Settings() {
           <ProfileSection />
           <AppearanceSection />
           <PrivacySection />
+          {syncEnabled() ? <SyncSection /> : null}
           <DataSection />
           <AboutSection />
         </div>

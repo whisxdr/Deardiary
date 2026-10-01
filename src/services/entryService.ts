@@ -5,7 +5,7 @@
  * existing imports keep working; the split is what keeps each file inside the project's
  * service line limit.
  */
-export { findEntry, listEntries, listTags, saveEntries } from './entryQuery';
+export { findEntry, listAllRecords, listEntries, listTags, saveEntries } from './entryQuery';
 export {
   createEntry,
   deleteAllEntries,

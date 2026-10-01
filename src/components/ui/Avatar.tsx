@@ -43,6 +43,7 @@ export function Avatar({ name, seed, size = 'md', className }: AvatarProps) {
           alt=""
           aria-hidden="true"
           loading="lazy"
+          decoding="async"
           onError={() => setFailed(true)}
           className="h-full w-full object-cover"
         />

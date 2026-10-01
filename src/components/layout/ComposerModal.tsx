@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { CalendarBlank, FileText, Sparkle } from '@phosphor-icons/react';
-import { Button, Modal } from '@/components/ui';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { ENTRY_TEMPLATES } from '@/constants/editor';
 
 export interface EntryTypeOption {

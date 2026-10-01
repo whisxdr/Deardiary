@@ -3,11 +3,13 @@ import { createId } from '@/lib/id';
 import { sanitizeTitle } from '@/lib/validate';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 import { byNewest, resolveTitle, withDerivedFields } from './entryFields';
-import { listEntries, saveEntries } from './entryQuery';
+import { listAllRecords, saveEntries } from './entryQuery';
+import { nextStamp } from './sync/clock';
+import { enqueue } from './sync/outbox';
 
 /** Creates and stores a new entry, returning the stored record. */
 export function createEntry(draft: Partial<EntryDraft>): Entry {
-  const now = new Date().toISOString();
+  const now = nextStamp();
   const entry = withDerivedFields({
     id: createId(),
     title: sanitizeTitle(draft.title ?? ''),
@@ -24,57 +26,95 @@ export function createEntry(draft: Partial<EntryDraft>): Entry {
     wordCount: 0,
     readingTime: 0,
   });
-  saveEntries([entry, ...listEntries()]);
+  saveEntries([entry, ...listAllRecords()]);
+  enqueue(entry.id, entry.updatedAt);
   return entry;
 }
-
 /**
- * Applies a partial update to an entry and returns the updated record.
- *
- * `expectedUpdatedAt` guards against a second writer: the composer holds the whole form
- * from the moment it opened, so writing it over a record another tab has since changed
- * would revert that work. When the stored stamp does not match, nothing is written and
- * null comes back, which the caller treats the same as a missing entry because both mean
- * "do not write this".
+ * Applies a partial update and returns the updated record. `expectedUpdatedAt` guards a
+ * second writer: the composer holds the whole form from the moment it opened, so writing it
+ * over a record another tab or device has since changed would revert that work.
  */
 export function updateEntry(id: string, patch: EntryUpdate, expectedUpdatedAt?: string): Entry | null {
-  const entries = listEntries();
+  const entries = listAllRecords();
   const index = entries.findIndex((entry) => entry.id === id);
   if (index === -1) return null;
+  // A deleted entry stays deleted: editing it would resurrect a page the user removed.
+  if (entries[index].deletedAt !== undefined) return null;
   if (expectedUpdatedAt !== undefined && entries[index].updatedAt !== expectedUpdatedAt) return null;
   const merged = withDerivedFields({
     ...entries[index],
     ...patch,
     title: resolveTitle(patch, entries[index].title),
-    updatedAt: new Date().toISOString(),
+    updatedAt: nextStamp(),
   });
   entries[index] = merged;
   saveEntries(entries);
+  enqueue(merged.id, merged.updatedAt);
   return merged;
 }
 
-/** Removes an entry by id. */
+/**
+ * Blanks the user-written fields so a deletion leaves no plaintext behind. The row keeps its
+ * id and stamps so the tombstone can still merge and travel; only the words — body, title,
+ * tags, location, images — are dropped.
+ */
+function scrub(entry: Entry): Entry {
+  return { ...entry, title: '', content: '', tags: [], images: undefined, location: undefined };
+}
+
+/** Marks an entry deleted, keeping it as a scrubbed tombstone so the removal can travel. */
 export function deleteEntry(id: string): boolean {
-  const entries = listEntries();
-  const next = entries.filter((entry) => entry.id !== id);
-  if (next.length === entries.length) return false;
-  return saveEntries(next);
+  const entries = listAllRecords();
+  const index = entries.findIndex((entry) => entry.id === id);
+  if (index === -1 || entries[index].deletedAt !== undefined) return false;
+  const now = nextStamp();
+  const tombstone = scrub({ ...entries[index], deletedAt: now, updatedAt: now });
+  entries[index] = tombstone;
+  const saved = saveEntries(entries);
+  if (saved) enqueue(tombstone.id, tombstone.updatedAt);
+  return saved;
 }
-
-/** Removes every entry. */
+/**
+ * Marks every live entry deleted ("Clear all entries"), writing tombstones rather than an
+ * empty array: an empty array erases the fact the entries existed, so the next sync would
+ * download them all back from any device that still has them.
+ */
 export function deleteAllEntries(): boolean {
-  return saveEntries([]);
+  const entries = listAllRecords();
+  const now = nextStamp();
+  const stamped = entries.map((entry) =>
+    entry.deletedAt === undefined ? scrub({ ...entry, deletedAt: now, updatedAt: now }) : entry,
+  );
+  if (stamped.every((entry, index) => entry === entries[index])) return true;
+  const saved = saveEntries(stamped);
+  if (saved) stamped.filter((entry) => entry.deletedAt === now).forEach((entry) => enqueue(entry.id, entry.updatedAt));
+  return saved;
 }
 
-/** Replaces the whole collection, used by backup import. */
+/**
+ * Replaces the whole collection, used by backup import and the sync apply step. A stored
+ * tombstone is sync metadata, not user content, so an import must not erase it: a deletion
+ * that lost its tombstone would be re-downloaded from another device. The tombstone is
+ * dropped only when the import carries a record for the same id whose stamp is strictly
+ * newer — an explicit restore of a deleted entry.
+ */
 export function replaceEntries(entries: Entry[]): boolean {
-  return saveEntries(byNewest(entries.map(withDerivedFields)));
+  const incoming = new Map(entries.map((entry) => [entry.id, entry]));
+  listAllRecords().forEach((stored) => {
+    if (stored.deletedAt === undefined) return;
+    const fromImport = incoming.get(stored.id);
+    const restored =
+      fromImport !== undefined && new Date(fromImport.updatedAt).getTime() > new Date(stored.updatedAt).getTime();
+    if (!restored) incoming.set(stored.id, stored);
+  });
+  return saveEntries(byNewest([...incoming.values()].map(withDerivedFields)));
 }
 
-/** Toggles the favorite flag on an entry. */
+/** Toggles the favorite flag on a live entry. */
 export function toggleFavorite(id: string): Entry | null {
-  const entries = listEntries();
-  const entry = entries.find((item) => item.id === id);
-  if (!entry) return null;
+  const records = listAllRecords();
+  const entry = records.find((item) => item.id === id);
+  if (!entry || entry.deletedAt !== undefined) return null;
   return updateEntry(id, { isFavorite: !entry.isFavorite }, entry.updatedAt);
 }

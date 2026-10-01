@@ -2,7 +2,7 @@
 
 An offline-first digital diary that feels like opening a leather-bound book. Write entries, pick a mood, tag the day, then read it back as a two-page spread with a real page-flip.
 
-Everything is stored in the browser. No account, no server, no tracking.
+Everything is stored in the browser by default. No account, no server, no tracking — unless you turn on optional sync (see below), which uploads your entries to your own Supabase project.
 
 ## Requirements
 
@@ -28,6 +28,8 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 | `npm run build` | Type-check with `tsc` then build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` | Run the TypeScript compiler in check-only mode |
+| `npm run sync:on -- <url> <anon-key>` | Write `.env.local` to enable Supabase sync |
+| `npm run sync:off` | Remove the local sync override |
 
 ## Pages
 
@@ -39,7 +41,7 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 | `/entry/:id` | Two-page reader with drop cap and page-flip navigation |
 | `/calendar` | Month grid with mood dots and a per-day detail panel |
 | `/stats` | Totals, streaks, mood split, charts and tag cloud |
-| `/settings` | Profile, appearance, privacy, data, about |
+| `/settings` | Profile, appearance, privacy, data, about (plus Account when sync is configured) |
 
 ## Keyboard shortcuts
 
@@ -59,7 +61,8 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 - Tiptap for the rich text editor
 - Framer Motion for page flips, ink drops and the cover parallax
 - Recharts for the statistics charts
-- date-fns, lucide-react, sonner, uuid
+- @supabase/supabase-js for optional sync (loaded lazily, only when configured)
+- sonner for toasts, uuid for ids
 - jsPDF and html2canvas for PDF export
 
 ## Architecture
@@ -112,6 +115,23 @@ grep -rnP "[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]" src --include=*.ts --include=
 - Export a JSON backup from Settings → Data, and import it back on another device.
 - Single entries export as PDF, Markdown or plain text from the reader.
 - Clearing browser storage deletes the diary, so keep backups.
+
+## Optional sync (Supabase)
+
+Cross-device sync is off until you configure it. With no configuration the app is local-only: the Account section is not rendered and nothing reaches the network.
+
+1. Create a Supabase project, then run `supabase/migrations/20261001000000_entries.sql` in its SQL editor. It creates the `entries` table, row-level security scoped to each account, and the atomic `upsert_entries` function.
+2. In **Authentication → Email Templates**, add `{{ .Token }}` to both **Confirm signup** and **Magic Link**. Sign-in uses a six-digit code, not a link.
+3. Copy `Project Settings → API` values and enable sync:
+
+```bash
+npm run sync:on -- https://<ref>.supabase.co <anon-key>
+npm run build
+```
+
+`npm run sync:off` removes the local override. Vite inlines the values at build time, so a change needs a rebuild; on Vercel or Netlify set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the host and redeploy.
+
+The anon key is public by design; row-level security is the access boundary. Entries are stored on the server as plain text, not encrypted. Local development against a full local stack needs Docker: `npx supabase start` prints an API URL and anon key to paste into `npm run sync:on`.
 
 ## Accessibility
 

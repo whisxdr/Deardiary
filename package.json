@@ -4,16 +4,24 @@
   "version": "1.0.0",
   "type": "module",
   "description": "DearDiary - an immersive digital diary that feels like an old leather-bound book.",
+  "sideEffects": [
+    "**/*.css",
+    "**/styles/**"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit --pretty false",
-    "lint:emoji": "eslint src --ext .ts,.tsx"
+    "lint:emoji": "eslint src --ext .ts,.tsx",
+    "sync:on": "node scripts/activate-supabase.mjs",
+    "sync:off": "node scripts/activate-supabase.mjs --off",
+    "test": "node scripts/check-sync-harness.mjs && node scripts/check-sync-merge.mjs && node scripts/check-sync-race.mjs && node scripts/check-sync-storage.mjs && node scripts/check-csp-parity.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@phosphor-icons/react": "^2.1.10",
+    "@supabase/supabase-js": "^2.117.2",
     "@tiptap/extension-character-count": "^2.6.6",
     "@tiptap/extension-image": "^2.6.6",
     "@tiptap/extension-link": "^2.6.6",

@@ -20,7 +20,11 @@ export function withDerivedFields(entry: Entry): Entry {
 
 /** Sorts newest first so stored order matches the default dashboard order. */
 export function byNewest(entries: Entry[]): Entry[] {
-  return [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Parse once per entry: `new Date` in the comparator ran twice per comparison.
+  return entries
+    .map((entry) => ({ entry, time: new Date(entry.date).getTime() }))
+    .sort((a, b) => b.time - a.time)
+    .map((item) => item.entry);
 }
 
 /** Applies a title patch only when one was supplied. */
@@ -33,11 +37,13 @@ export function looksLikeEntry(value: unknown): value is Partial<Entry> {
   return typeof value === 'object' && value !== null && 'content' in (value as Record<string, unknown>);
 }
 
-/** Returns the ISO string when it parses, otherwise the fallback. */
+/** Canonical ISO when the value parses, else the fallback. The instant is the identity, not
+ * the spelling: the client writes `toISOString()` (`Z`) while PostgREST answers `+00:00` with
+ * trailing zeros trimmed, so comparing raw strings made equal instants look like a change. */
 function safeIso(value: unknown, fallback: string): string {
   if (typeof value !== 'string') return fallback;
   const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? fallback : value;
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed.toISOString();
 }
 
 /** Keeps the mood only when it is one the app knows. */
@@ -70,6 +76,8 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
   const date = safeIso(raw.date, now);
   const title = sanitizeTitle(typeof raw.title === 'string' ? raw.title : '');
   const id = typeof raw.id === 'string' && raw.id ? raw.id : createIdFrom(`${date}|${title}|${content}`);
+  // Normalized like the other stamps, but absent/unparsable must leave the key off entirely.
+  const deletedAt = typeof raw.deletedAt === 'string' ? safeIso(raw.deletedAt, '') : '';
   return {
     id,
     title,
@@ -87,6 +95,7 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
       : undefined,
     wordCount: words,
     readingTime: readingTimeMinutes(words),
+    ...(deletedAt ? { deletedAt } : {}),
   };
 }
 

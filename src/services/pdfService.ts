@@ -1,5 +1,3 @@
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 import { sanitizeEntryHtml } from '@/lib/sanitize';
 import { formatLongDate, slugify } from '@/utils';
 import type { Entry } from '@/types';
@@ -53,8 +51,20 @@ function buildPrintPage(entry: Entry): HTMLElement {
  * `addImage` does not paginate: a tall entry drawn as one image is silently clipped at
  * the page box. The capture is therefore cut into page-height slices, each drawn into an
  * offscreen canvas and placed on its own page.
+ *
+ * jsPDF and html2canvas are imported here rather than at the top of the file. Neither
+ * package declares `sideEffects: false`, so Rollup keeps a static import of them as a
+ * side-effect dependency of every module that reaches this file — including the
+ * `@/services` barrel, which the Stats and Settings pages import for unrelated helpers.
+ * That put ~228 KB (gzip) of PDF libraries on two pages that never export a PDF. The
+ * dynamic import keeps them in a chunk that only loads when this function is called.
  */
 export async function exportEntryAsPdf(entry: Entry): Promise<void> {
+  const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+    import('jspdf'),
+    import('html2canvas'),
+  ]);
+
   const page = buildPrintPage(entry);
   document.body.appendChild(page);
 

@@ -63,7 +63,7 @@ export function exportBackup(entries: Entry[]): void {
     entries,
     settings: loadSettings(),
   };
-  download(`${APP_CONFIG.name.toLowerCase()}-backup.json`, JSON.stringify(payload, null, 2), 'application/json');
+  download(`${APP_CONFIG.name.toLowerCase()}-backup.json`, JSON.stringify(payload), 'application/json');
 }
 
 /** Opens the browser print dialog for the current page. */
