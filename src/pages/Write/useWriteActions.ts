@@ -27,11 +27,12 @@ export function useWriteActions(
   /**
    * Stamp of the entry as the form loaded it.
    *
-   * A snapshot, not a live read of the store: a background sync updates the store, and
-   * following it here would hand the conflict guard a fresh stamp while the form still
-   * holds older text, so the next save would overwrite the pulled version. Advanced
-   * after each accepted write, and deliberately left alone after a rejected one so a
-   * retry is rejected too rather than silently clobbering the other writer.
+   * A snapshot, not a live read of the store: another tab can change the entry while this
+   * composer is open, and following the store here would hand the conflict guard a fresh
+   * stamp while the form still holds older text, so the next save would overwrite that
+   * tab's work. Advanced after each accepted write, and deliberately left alone after a
+   * rejected one so a retry is rejected too rather than silently clobbering the other
+   * writer.
    */
   const stampRef = useRef(loadedStamp);
 

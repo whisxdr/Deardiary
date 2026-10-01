@@ -4,41 +4,52 @@ import type { Entry } from '@/types';
 import { byNewest, coerceEntry, looksLikeEntry, needsRepair } from './entryFields';
 
 /**
- * Reads every stored record, tombstones included, repairing old shapes on the way.
+ * A stored record that may still carry a `deletedAt` stamp.
  *
- * The repair is written back, so a payload from an older build heals on first read
- * instead of crashing a page that assumes every field is present. Repair keeps the id
- * deterministic, so two devices healing the same record produce the same entry.
+ * The stamp belongs to the removed sync feature, so it is not part of `Entry` any more.
+ * Reading it as an unknown field is what lets a leftover tombstone be recognised and
+ * dropped instead of being treated as a live entry.
  */
-export function listAllRecords(): Entry[] {
-  const stored = readJson<unknown>(STORAGE_KEYS.entries, []);
-  if (!Array.isArray(stored)) return [];
+type StoredRecord = Partial<Entry> & { deletedAt?: unknown };
 
-  const records = stored.filter(looksLikeEntry);
-  if (records.length !== stored.length || records.some(needsRepair)) {
-    const repaired = byNewest(records.map(coerceEntry));
-    writeJson(STORAGE_KEYS.entries, repaired);
-    return repaired;
-  }
-  return byNewest(records as Entry[]);
+/** True when the record is a leftover tombstone from the removed sync feature. */
+function isTombstone(record: StoredRecord): boolean {
+  return typeof record.deletedAt === 'string';
 }
 
 /**
- * Reads the entries a user should see.
+ * Reads the stored entries, repairing old shapes on the way.
  *
- * Deleted entries are kept as tombstones so a deletion can travel to other devices, and
- * filtered out here so no page has to know they exist.
+ * Tombstones are dropped here rather than carried. A record with `deletedAt` is a
+ * leftover from the removed sync feature, where a deletion had to be recorded so it could
+ * travel to another device. Without sync there is nothing to tell, and keeping the record
+ * would leave a deleted entry sitting in storage forever.
+ *
+ * The repair is written back, so a payload from an older build heals on first read
+ * instead of crashing a page that assumes every field is present.
  */
 export function listEntries(): Entry[] {
-  return listAllRecords().filter((entry) => entry.deletedAt === undefined);
+  const stored = readJson<unknown>(STORAGE_KEYS.entries, []);
+  if (!Array.isArray(stored)) return [];
+
+  const records = stored.filter(looksLikeEntry) as StoredRecord[];
+  const live = records.filter((record) => !isTombstone(record));
+  const dropped = live.length !== stored.length;
+
+  if (dropped || live.some(needsRepair)) {
+    const repaired = byNewest(live.map(coerceEntry));
+    writeJson(STORAGE_KEYS.entries, repaired);
+    return repaired;
+  }
+  return byNewest(live as Entry[]);
 }
 
-/** Persists the full record collection, tombstones included. */
+/** Persists the entry collection. */
 export function saveEntries(entries: Entry[]): boolean {
   return writeJson(STORAGE_KEYS.entries, entries);
 }
 
-/** Finds one live entry by id. */
+/** Finds one entry by id. */
 export function findEntry(id: string): Entry | null {
   return listEntries().find((entry) => entry.id === id) ?? null;
 }

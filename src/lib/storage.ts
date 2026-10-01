@@ -25,9 +25,8 @@ const memory = new Map<string, string>();
 /**
  * Whether the most recent write reached localStorage, tracked per key.
  *
- * One flag for the whole module reported the wrong key's result once more than one
- * writer could be in flight, which is exactly what a background sync adds: a push
- * failing on the entries key would have marked a draft write as failed.
+ * Tracked per key rather than as one module-level flag: more than one writer can be in
+ * flight, and a single flag reported the wrong key's result.
  */
 const writeStatus = new Map<string, boolean>();
 

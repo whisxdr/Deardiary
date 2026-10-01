@@ -35,11 +35,10 @@ const ALLOWED_URI_REGEXP = /^(?:https?|mailto|tel|data:image\/)/i;
 /**
  * Sanitizes entry HTML.
  *
- * The editor only ever writes safe markup, but an imported backup is arbitrary text
- * from a file the user chose, and a synced record comes from a server. Stripping to the
- * editor's own tag set keeps a crafted record from running script wherever the value is
- * later rendered as HTML — the reader injects it, and the PDF export builds a live DOM
- * node from it.
+ * The editor only ever writes safe markup, but an imported backup is arbitrary text from
+ * a file the user chose. Stripping to the editor's own tag set keeps a crafted record
+ * from running script wherever the value is later rendered as HTML — the reader injects
+ * it, and the PDF export builds a live DOM node from it.
  *
  * Links get `rel="noopener noreferrer"` forced on. A record with
  * `<a href="https://evil" target="_blank">` would otherwise hand the opened page a

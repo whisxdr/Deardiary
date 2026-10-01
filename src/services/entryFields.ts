@@ -87,7 +87,6 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
       : undefined,
     wordCount: words,
     readingTime: readingTimeMinutes(words),
-    deletedAt: typeof raw.deletedAt === 'string' ? raw.deletedAt : undefined,
   };
 }
 
