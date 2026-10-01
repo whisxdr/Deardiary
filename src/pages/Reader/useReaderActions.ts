@@ -1,6 +1,9 @@
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui';
 import { exportEntryAsPdf } from '@/services';
+import { useEntryStore } from '@/store';
+import { ROUTES } from '@/constants';
 import { stripHtml } from '@/utils';
 import type { Entry } from '@/types';
 
@@ -37,8 +40,11 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-/** Share and export handlers for the reader page. */
+/** Share, export and delete handlers for the reader page. */
 export function useReaderActions(entry: Entry | null) {
+  const navigate = useNavigate();
+  const removeEntry = useEntryStore((state) => state.removeEntry);
+
   const share = useCallback(async () => {
     if (!entry) return;
     const text = `${entry.title}\n\n${stripHtml(entry.content)}`;
@@ -52,5 +58,22 @@ export function useReaderActions(entry: Entry | null) {
     exportEntryAsPdf(entry).catch(() => toast.error('PDF export failed'));
   }, [entry]);
 
-  return { share, exportPdf } as const;
+  /**
+   * Deletes the open entry and leaves the reader.
+   *
+   * Reports the failure instead of assuming success: a refused write used to toast
+   * "Entry deleted" and navigate away, and the entry came back on the next load.
+   */
+  const remove = useCallback((): boolean => {
+    if (!entry) return false;
+    if (!removeEntry(entry.id)) {
+      toast.error('That entry could not be deleted. Storage may be full.');
+      return false;
+    }
+    toast.success('Entry deleted');
+    navigate(ROUTES.dashboard);
+    return true;
+  }, [entry, navigate, removeEntry]);
+
+  return { share, exportPdf, remove } as const;
 }

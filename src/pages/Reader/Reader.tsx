@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout';
 import { BookFlip, BookSpread } from '@/components/book';
-import { toast } from '@/components/ui';
 import { EntryActions } from '@/components/entry';
 import { ROUTES } from '@/constants';
 import { printEntry } from '@/services';
@@ -23,10 +22,9 @@ export default function Reader() {
   const { entries, hydrated } = useEntries();
   const entry = useEntry(id);
   const favorite = useEntryStore((state) => state.favorite);
-  const removeEntry = useEntryStore((state) => state.removeEntry);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
-  const { share, exportPdf } = useReaderActions(entry);
+  const { share, exportPdf, remove } = useReaderActions(entry);
 
   const index = useMemo(() => entries.findIndex((item) => item.id === id), [entries, id]);
   const hasPrevious = index > 0;
@@ -89,9 +87,8 @@ export default function Reader() {
       <ReaderDeleteDialog
         open={confirmOpen}
         onConfirm={() => {
-          removeEntry(entry.id);
-          toast.success('Entry deleted');
-          navigate(ROUTES.dashboard);
+          remove();
+          setConfirmOpen(false);
         }}
         onCancel={() => setConfirmOpen(false)}
       />

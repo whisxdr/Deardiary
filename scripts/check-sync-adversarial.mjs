@@ -62,18 +62,16 @@ async function pullOn(page) {
 async function signIn(page, email) {
   await page.goto(`${BASE}/settings`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(500);
-  await page.getByLabel('Email').fill(email);
+  await page.locator('input[type="email"]').fill(email);
+  // Read the code from the form's own request: a second request would overwrite it and
+  // trip the server's per-address rate limit.
+  const codePromise = page.waitForResponse(
+    (response) => response.url().includes('/api/auth/request-code') && response.status() === 200,
+  );
   await page.getByRole('button', { name: /send me a code/i }).click();
-  await page.waitForTimeout(800);
-  const code = await page.evaluate(async (mail) => {
-    const response = await fetch('/api/auth/request-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: mail }),
-    });
-    return (await response.json()).devCode;
-  }, email);
-  await page.getByLabel('Six-digit code').fill(code);
+  const code = (await (await codePromise).json()).devCode;
+  await page.waitForTimeout(300);
+  await page.locator('input[inputmode="numeric"]').fill(code);
   await page.getByRole('button', { name: /^sign in$/i }).click();
   await page.waitForTimeout(2000);
 }

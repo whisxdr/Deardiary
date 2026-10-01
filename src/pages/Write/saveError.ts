@@ -1,3 +1,4 @@
+import { toast } from '@/components/ui';
 import { useEntryStore } from '@/store';
 
 /** Why a write did not land, or null when it did. */
@@ -21,3 +22,17 @@ export const SAVE_ERROR_TEXT: Record<Exclude<SaveError, null>, string> = {
   conflict: 'This entry was changed in another tab. Reload before editing further.',
   storage: 'Storage is full, so changes will be lost when you reload.',
 };
+
+/**
+ * Reports the outcome of a write that already happened.
+ *
+ * Storage can refuse a write — a full quota, a blocked origin — and the entry then exists
+ * only in memory. Toasting success in that case sends the user away believing their words
+ * are safe, so the message follows the write's actual result.
+ */
+export function reportWrite(saved: boolean, ok: string, failed: string): void {
+  toast[saved ? 'success' : 'error'](saved ? ok : failed);
+}
+
+/** The message shown when storage refused a write. */
+export const STORAGE_FULL = 'Storage is full, so this was not saved. Export a backup.';

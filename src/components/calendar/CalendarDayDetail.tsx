@@ -32,22 +32,34 @@ export function CalendarDayDetail({ date, entries, onToggleFavorite }: CalendarD
           title="Nothing written yet"
           description="This day is still a blank page. Start writing and it will appear here."
           illustration={<EmptyDiary size={240} />}
-          action={
-            // Carries the selected day so the composer opens dated to it rather than today.
-            <Link to={`${ROUTES.write}?date=${toDateKey(date)}`}>
-              <Button size="sm" variant="gold">
-                Write this day
-              </Button>
-            </Link>
-          }
+          action={<WriteThisDay date={date} variant="gold" />}
         />
       ) : (
         <div className="flex flex-col gap-3">
           {entries.map((entry) => (
             <EntryCard key={entry.id} entry={entry} layout="list" onToggleFavorite={onToggleFavorite} />
           ))}
+          {/* This link used to render only in the empty branch, so a day that already had
+              an entry could not receive a second one from the calendar. */}
+          <WriteThisDay date={date} variant="outline" />
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Opens the composer dated to the selected day rather than today.
+ *
+ * The day travels in the URL, which the composer reads as an explicit start; that is what
+ * keeps the stored draft from being loaded over a deliberate date choice.
+ */
+function WriteThisDay({ date, variant }: { date: Date; variant: 'gold' | 'outline' }) {
+  return (
+    <Link to={`${ROUTES.write}?date=${toDateKey(date)}`} className="self-start">
+      <Button size="sm" variant={variant}>
+        Write this day
+      </Button>
+    </Link>
   );
 }

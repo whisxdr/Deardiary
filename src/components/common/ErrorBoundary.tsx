@@ -41,6 +41,24 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     window.location.reload();
   };
 
+  /**
+   * Turns a thrown message into something a user can act on.
+   *
+   * A failed lazy-chunk import surfaces as "Failed to fetch dynamically imported module:
+   * http://host/assets/Stats-BQ-q5zTw.js", which is a stack trace, not an explanation. It
+   * almost always means the deploy changed while the tab was open, so the file the page
+   * wants no longer exists.
+   */
+  private readonly explain = (message: string): string => {
+    if (/dynamically imported module|Loading chunk|Importing a module script failed/i.test(message)) {
+      return 'The app was updated while this page was open, so part of it could not be loaded. Reloading will fix it.';
+    }
+    if (/QuotaExceeded|storage/i.test(message)) {
+      return 'This browser refused to store more data. Export a backup, then remove entries you no longer need.';
+    }
+    return 'Something went wrong while rendering this page.';
+  };
+
   override render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
     return (
@@ -49,7 +67,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <p className="max-w-md font-body text-sm text-muted">
           Something went wrong while rendering. Your entries are still safe in local storage.
         </p>
-        <p className="font-mono text-xs text-muted">{this.state.message}</p>
+        <p className="max-w-md font-body text-sm text-primary-600 dark:text-primary-200">{this.explain(this.state.message)}</p>
         <Button onClick={this.handleReload}>Reload the diary</Button>
       </div>
     );

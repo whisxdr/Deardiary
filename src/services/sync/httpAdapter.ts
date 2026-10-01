@@ -1,5 +1,6 @@
 import type { Entry } from '@/types';
 import { coerceEntry, looksLikeEntry } from '../entryFields';
+import { syncBase } from './config';
 import type { PullResult, RemoteAdapter } from './types';
 
 /** Raised when the server is unreachable or answers with an error status. */
@@ -13,7 +14,7 @@ export class RemoteError extends Error {
   }
 }
 
-const BASE = '/api';
+const BASE = syncBase();
 
 /**
  * Reference adapter: a small JSON API reached over HTTP.
@@ -21,6 +22,10 @@ const BASE = '/api';
  * Requests carry `credentials: 'include'` so the session cookie travels with them. The
  * cookie is httpOnly and set by the server, so the session is not readable from the page
  * and cannot be exfiltrated by injected script.
+ *
+ * A non-JSON answer is reported as "the server did not answer like a server" rather than
+ * as a parse error. A deployment with no backend behind `/api` returns `index.html` with
+ * status 200, and the raw `Unexpected token '<'` told the user nothing.
  */
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   let response: Response;
@@ -39,8 +44,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!response.ok) {
     throw new RemoteError(`The server rejected the request (${response.status}).`, response.status);
   }
-  if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+
+  const text = await response.text();
+  try {
+    return text ? (JSON.parse(text) as T) : (undefined as T);
+  } catch {
+    // A 200 that is not JSON means something answered that is not the API — an HTML
+    // fallback page, a proxy, a captive portal.
+    throw new RemoteError('The sync server did not answer with data. Check that it is running.', response.status);
+  }
 }
 
 export const httpAdapter: RemoteAdapter = {

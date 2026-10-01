@@ -24,10 +24,11 @@ function columnsFor(width: number, layout: 'grid' | 'list'): number {
   return 1;
 }
 
-/** Tracks the container width so the virtualized grid matches the responsive grid. */
+/** Tracks the container width and the viewport height the scroller may use. */
 function useContainerWidth<T extends HTMLElement>() {
   const [element, setElement] = useState<T | null>(null);
   const [width, setWidth] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
 
   useEffect(() => {
     if (!element) return;
@@ -39,12 +40,20 @@ function useContainerWidth<T extends HTMLElement>() {
     return () => observer.disconnect();
   }, [element]);
 
-  return { ref: setElement, width } as const;
+  // A fixed scroller height is wrong on a phone: 640px inside a 700px viewport leaves the
+  // grid as a scroll box inside the page scroll box, which is hard to use with a thumb.
+  useEffect(() => {
+    const onResize = () => setViewportHeight(window.innerHeight);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  return { ref: setElement, width, viewportHeight } as const;
 }
 
 /** Virtualized grid for large collections, plain grid below the threshold. */
 export function EntryList({ entries, layout = 'grid', onToggleFavorite, onTagClick, className }: EntryListProps) {
-  const { ref, width } = useContainerWidth<HTMLDivElement>();
+  const { ref, width, viewportHeight } = useContainerWidth<HTMLDivElement>();
 
   if (entries.length <= LIMITS.virtualizeThreshold) {
     return (
@@ -69,14 +78,19 @@ export function EntryList({ entries, layout = 'grid', onToggleFavorite, onTagCli
   const columns = columnsFor(width, layout);
   const columnWidth = columns > 0 ? (width - COLUMN_GAP * (columns - 1)) / columns : width;
   const rowCount = Math.ceil(entries.length / columns);
+  // Never taller than the viewport, so the grid is the only thing that scrolls.
+  const height = Math.max(320, Math.min(SCROLLER_HEIGHT, viewportHeight - 220));
 
   return (
     <div ref={ref} className={className}>
       {width > 0 ? (
         <FixedSizeGrid
-          height={SCROLLER_HEIGHT}
+          height={height}
           width={width}
           columnCount={columns}
+          // The grid allocates this per column, and the cell inside is exactly this wide,
+          // so the total is `width`. Making the cell `columnWidth` while the grid allocated
+          // `columnWidth + gap` overflowed the container by one gap.
           columnWidth={columnWidth + COLUMN_GAP}
           rowCount={rowCount}
           rowHeight={ROW_HEIGHT}
@@ -109,7 +123,9 @@ function renderCell({ columnIndex, rowIndex, style, data }: GridChildComponentPr
   if (!entry) return null;
 
   return (
-    <div style={{ ...style, width: data.columnWidth, paddingBottom: 16, paddingRight: COLUMN_GAP }}>
+    // `style.width` already includes the column gap the grid allocated; the padding sits
+    // inside it so the visible card is exactly one column wide.
+    <div style={{ ...style, paddingBottom: 16, paddingRight: COLUMN_GAP }}>
       <EntryCard
         entry={entry}
         layout={data.layout}

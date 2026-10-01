@@ -1,10 +1,13 @@
 import { Toggle } from '@/components/ui';
-import { useSettingsStore } from '@/store';
+import { useSettingsStore, useSyncStore } from '@/store';
+import { syncEnabled } from '@/services/sync/config';
 
 /** Privacy section: local-only flags for private entries. */
 export function PrivacySection() {
   const settings = useSettingsStore((state) => state.settings);
   const update = useSettingsStore((state) => state.update);
+  const signedIn = useSyncStore((state) => state.account) !== null;
+  const syncing = syncEnabled() && signedIn;
 
   const setPrivacy = (patch: Partial<typeof settings.privacy>) =>
     update({ privacy: { ...settings.privacy, ...patch } });
@@ -15,7 +18,9 @@ export function PrivacySection() {
         Privacy
       </h2>
       <p className="font-body text-xs text-primary-500 dark:text-primary-300">
-        Entries never leave this browser unless you export them yourself.
+        {syncing
+          ? 'Entries are copied to your account on the sync server while you are signed in.'
+          : 'Entries never leave this browser unless you export them yourself.'}
       </p>
       <Toggle
         label="Hide private entries by default"
@@ -24,8 +29,9 @@ export function PrivacySection() {
         onChange={(hidePrivateEntries) => setPrivacy({ hidePrivateEntries })}
       />
       <p className="font-body text-xs text-primary-500 dark:text-primary-300">
-        This hides private entries from the app's own screens. It does not encrypt them: anything in this browser's
-        storage can still be read by someone with access to this device.
+        {syncing
+          ? 'This hides private entries from the app\u2019s own screens. It does not encrypt them: they are stored in plain text both here and on the sync server, so it is not a way to keep them secret from anyone with access to either.'
+          : 'This hides private entries from the app\u2019s own screens. It does not encrypt them: anything in this browser\u2019s storage can still be read by someone with access to this device.'}
       </p>
     </section>
   );

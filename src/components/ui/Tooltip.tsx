@@ -8,10 +8,18 @@ export interface TooltipProps {
   className?: string;
 }
 
-/** CSS-only tooltip wrapper for icon buttons. */
+/**
+ * CSS-only tooltip wrapper for icon buttons.
+ *
+ * `relative` is applied only when the caller does not position the wrapper itself.
+ * Tailwind emits `.fixed` before `.relative`, so a caller passing `fixed` had its
+ * positioning silently overridden and the floating write button scrolled with the page
+ * instead of staying on screen.
+ */
 export function Tooltip({ label, children, side = 'top', className }: TooltipProps) {
+  const positioned = /(^|\s)(fixed|absolute|sticky|static)(\s|$)/.test(className ?? '');
   return (
-    <span className={cn('group relative inline-flex', className)}>
+    <span className={cn('group inline-flex', !positioned && 'relative', className)}>
       {children}
       <span
         role="tooltip"

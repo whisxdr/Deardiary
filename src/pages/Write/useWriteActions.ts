@@ -4,7 +4,7 @@ import { ROUTES, STORAGE_KEYS } from '@/constants';
 import { lastWriteFailed, removeKey, writeJson } from '@/lib/storage';
 import { useCreateEntry, useDeleteEntry, useUpdateEntry } from '@/hooks';
 import { toast } from '@/components/ui';
-import { explainRejectedWrite, type SaveError } from './saveError';
+import { explainRejectedWrite, reportWrite, STORAGE_FULL, type SaveError } from './saveError';
 import { resumesDraft } from './draftStart';
 import { draftPayload, type StoredDraft } from './writeDraft';
 import type { StartOptions } from './writeFormStart';
@@ -72,7 +72,7 @@ export function useWriteActions(
         return;
       }
       published.current = true;
-      toast.success('Entry updated');
+      reportWrite(!lastWriteFailed(STORAGE_KEYS.entries), 'Entry updated', STORAGE_FULL);
       navigate(ROUTES.reader(id));
       return;
     }
@@ -83,16 +83,16 @@ export function useWriteActions(
     // calendar starts a separate entry, and publishing it must leave an unfinished
     // note from another session alone.
     if (resumesDraft(start.templateId, start.backdated, start.dated, start.resume)) removeKey(STORAGE_KEYS.draft);
-    toast.success('Entry published');
+    reportWrite(!lastWriteFailed(STORAGE_KEYS.entries), 'Entry published', STORAGE_FULL);
     navigate(ROUTES.reader(created.id));
   }, [createEntry, form, id, navigate, patchEntry, start]);
 
   const remove = useCallback(() => {
     if (!id) return;
     published.current = true;
-    removeEntry(id);
-    toast.success('Entry deleted');
-    navigate(ROUTES.dashboard);
+    const removed = removeEntry(id);
+    reportWrite(removed, 'Entry deleted', 'That entry could not be deleted. Storage may be full.');
+    if (removed) navigate(ROUTES.dashboard);
   }, [id, navigate, removeEntry]);
 
   return { persist, publish, remove, saveError } as const;

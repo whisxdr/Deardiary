@@ -36,13 +36,21 @@ const ALLOWED_URI_REGEXP = /^(?:https?|mailto|tel|data:image\/)/i;
  * Sanitizes entry HTML.
  *
  * The editor only ever writes safe markup, but an imported backup is arbitrary text
- * from a file the user chose. Stripping to the editor's own tag set keeps a crafted
- * backup from running script wherever the value is later rendered as HTML — the
- * reader injects it, and the PDF export builds a live DOM node from it.
+ * from a file the user chose, and a synced record comes from a server. Stripping to the
+ * editor's own tag set keeps a crafted record from running script wherever the value is
+ * later rendered as HTML — the reader injects it, and the PDF export builds a live DOM
+ * node from it.
+ *
+ * Links get `rel="noopener noreferrer"` forced on. A record with
+ * `<a href="https://evil" target="_blank">` would otherwise hand the opened page a
+ * `window.opener` handle back into the diary.
  */
 export function sanitizeEntryHtml(html: string): string {
   if (!html) return '';
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOWED_URI_REGEXP });
+  const clean = DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOWED_URI_REGEXP });
+  return clean.replace(/<a\s([^>]*target\s*=\s*["']?_blank["']?[^>]*)>/gi, (tag) =>
+    /rel\s*=/.test(tag) ? tag.replace(/rel\s*=\s*["'][^"']*["']/i, 'rel="noopener noreferrer"') : tag.replace(/>$/, ' rel="noopener noreferrer">'),
+  );
 }
 
 /**

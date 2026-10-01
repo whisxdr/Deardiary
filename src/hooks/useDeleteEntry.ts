@@ -5,5 +5,5 @@ import { useEntryStore } from '@/store';
 export function useDeleteEntry() {
   const removeEntry = useEntryStore((state) => state.removeEntry);
 
-  return useCallback((id: string): void => removeEntry(id), [removeEntry]);
+  return useCallback((id: string): boolean => removeEntry(id), [removeEntry]);
 }

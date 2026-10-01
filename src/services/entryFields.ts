@@ -61,7 +61,11 @@ function safeMood(value: unknown): Mood {
  */
 export function coerceEntry(raw: Partial<Entry>): Entry {
   const now = new Date().toISOString();
-  const content = sanitizeEntryHtml(typeof raw.content === 'string' ? raw.content : '');
+  // Bounded before sanitizing: a backup or a pulled record can carry a multi-megabyte
+  // body, and an unbounded value reaches localStorage (quota) and DOMPurify (a full parse
+  // on every render). `contentMaxLength` existed as a constant and was enforced nowhere.
+  const rawContent = typeof raw.content === 'string' ? raw.content.slice(0, LIMITS.contentMaxLength) : '';
+  const content = sanitizeEntryHtml(rawContent);
   const words = countWords(content);
   const date = safeIso(raw.date, now);
   const title = sanitizeTitle(typeof raw.title === 'string' ? raw.title : '');
@@ -77,7 +81,7 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
     updatedAt: safeIso(raw.updatedAt, date),
     isFavorite: Boolean(raw.isFavorite),
     isPrivate: Boolean(raw.isPrivate),
-    location: typeof raw.location === 'string' ? raw.location : undefined,
+    location: typeof raw.location === 'string' ? raw.location.slice(0, LIMITS.locationMaxLength) : undefined,
     images: Array.isArray(raw.images)
       ? raw.images.filter((src) => typeof src === 'string').slice(0, LIMITS.maxImages)
       : undefined,

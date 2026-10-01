@@ -45,9 +45,24 @@ export function draftFromEntry(entry: Entry): StoredDraft {
   };
 }
 
-/** The draft fields autosave watches, shared with the load path's baseline. */
+/**
+ * The draft fields autosave watches, shared with the load path's baseline.
+ *
+ * Favorite and private belong here. Leaving them out meant toggling either one never
+ * marked the form dirty, so the idle timer never fired and the leave-flush early-returned:
+ * the change was silently dropped unless the user happened to press Publish.
+ */
 export function draftDeps(draft: StoredDraft): unknown[] {
-  return [draft.title, draft.content, draft.mood, draft.tags, draft.date, draft.location];
+  return [
+    draft.title,
+    draft.content,
+    draft.mood,
+    draft.tags,
+    draft.date,
+    draft.location,
+    draft.isFavorite,
+    draft.isPrivate,
+  ];
 }
 
 /** The fields a write sends to storage, shared by autosave and publish. */

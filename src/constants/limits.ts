@@ -4,6 +4,7 @@ export const LIMITS = {
   tagMaxLength: 24,
   titleMaxLength: 120,
   contentMaxLength: 20_000,
+  locationMaxLength: 120,
   maxImages: 6,
   virtualizeThreshold: 100,
 } as const;

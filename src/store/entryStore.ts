@@ -19,7 +19,7 @@ interface EntryState {
   hydrate: () => void;
   addEntry: (draft: Partial<EntryDraft>) => Entry;
   patchEntry: (id: string, patch: EntryUpdate, expectedUpdatedAt?: string) => Entry | null;
-  removeEntry: (id: string) => void;
+  removeEntry: (id: string) => boolean;
   favorite: (id: string) => void;
   replaceAll: (entries: Entry[]) => void;
   /** Re-reads storage into the store; used after a service call made outside it. */
@@ -57,8 +57,9 @@ export const useEntryStore = create<EntryState>((set, get) => ({
   },
 
   removeEntry: (id) => {
-    deleteEntry(id);
+    const removed = deleteEntry(id);
     set({ entries: listEntries(), writeFailed: lastWriteFailed(STORAGE_KEYS.entries) });
+    return removed;
   },
 
   favorite: (id) => {

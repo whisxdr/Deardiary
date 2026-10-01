@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { ToastHost } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/common';
 import { useEntryStore, useSettingsStore } from '@/store';
+import { useStorageWarning } from '@/hooks/useStorageWarning';
 import { useSyncLifecycle } from '@/hooks/useSyncLifecycle';
 
 export interface ProvidersProps {
@@ -29,6 +30,8 @@ export function Providers({ children }: ProvidersProps) {
   // Mounted here rather than on a page so the session survives navigation: a sync that
   // only ran on the dashboard would leave the reader showing stale pages.
   useSyncLifecycle();
+  // A refused write has to be visible from every page, not just the composer.
+  useStorageWarning();
 
   return (
     <ErrorBoundary>

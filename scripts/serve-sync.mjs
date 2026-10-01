@@ -23,15 +23,22 @@ const DATA_FILE = join(DATA_DIR, 'store.json');
 /**
  * Whether the sign-in code is echoed in the response.
  *
- * On by default because this file exists to be run locally, where there is no mail
- * server and the flow would otherwise be untestable. `DEV_ECHO_CODE=0` turns it off, and
- * anything deployed anywhere real must set that: returning the code in the response
- * would let anyone who knows an address sign in as its owner.
+ * Opt-IN, not opt-out: `DEV_ECHO_CODE=1` turns it on. The first version defaulted to on,
+ * so any deployment that forgot to set the variable returned the code to whoever asked —
+ * and a code returned in the response is full account takeover for any address, with no
+ * mailbox needed. A default that is safe when forgotten is the only acceptable default.
  */
-const ECHO_CODE = process.env.DEV_ECHO_CODE !== '0';
+const ECHO_CODE = process.env.DEV_ECHO_CODE === '1';
 /** Codes live in memory only: a restart invalidating them is the correct behaviour. */
 const CODES = new Map();
 const SESSIONS = new Map();
+/** Failed verify attempts per address, so a six-digit code cannot be brute-forced. */
+const ATTEMPTS = new Map();
+const MAX_ATTEMPTS = 5;
+/** Requests per address in the last window, so the endpoint cannot be used to spam. */
+const REQUESTS = new Map();
+const REQUEST_WINDOW_MS = 15 * 60 * 1000;
+const MAX_REQUESTS = 5;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -116,8 +123,17 @@ async function handleApi(req, res, url) {
     const email = normalizeEmail(body.email);
     if (!looksLikeEmail(email)) return json(res, 422, { error: 'That does not look like an email address.' });
 
+    // Rate limit per address. Without it this endpoint sends mail to strangers on demand,
+    // and it is the first half of a brute-force attempt against a live code.
+    const recent = (REQUESTS.get(email) ?? []).filter((at) => Date.now() - at < REQUEST_WINDOW_MS);
+    if (recent.length >= MAX_REQUESTS) {
+      return json(res, 429, { error: 'Too many codes requested for this address. Try again later.' });
+    }
+    REQUESTS.set(email, [...recent, Date.now()]);
+
     const code = String(randomInt(100000, 999999));
     CODES.set(email, { code, expiresAt: Date.now() + 10 * 60 * 1000 });
+    ATTEMPTS.set(email, 0);
     // A real backend emails this. Printing it is what makes the local flow testable.
     console.log(`[sync] code for ${email}: ${code}`);
     return json(res, 200, ECHO_CODE ? { ok: true, devCode: code } : { ok: true });
@@ -127,10 +143,21 @@ async function handleApi(req, res, url) {
     const body = await readBody(req);
     const email = normalizeEmail(body.email);
     const record = CODES.get(email);
+
+    // Count failures. Six digits is a million possibilities, which a script exhausts well
+    // inside the ten-minute window when failed attempts are free.
+    const failed = ATTEMPTS.get(email) ?? 0;
+    if (failed >= MAX_ATTEMPTS) {
+      CODES.delete(email);
+      return json(res, 429, { error: 'Too many attempts. Request a new code.' });
+    }
+
     if (!record || record.code !== String(body.code) || record.expiresAt < Date.now()) {
+      ATTEMPTS.set(email, failed + 1);
       return json(res, 401, { error: 'That code is wrong or has expired.' });
     }
     CODES.delete(email);
+    ATTEMPTS.delete(email);
 
     const store = await loadStore();
     if (!store.accounts[email]) {
