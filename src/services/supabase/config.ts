@@ -5,6 +5,13 @@
  * variables. Without them every call would fail and the user would be told their
  * connection is at fault, so sync is simply off: the Account section is not rendered and
  * the app stays local-only, which is the honest default for a build with no backend.
+ *
+ * The values are inlined by Vite at build time, which makes a stale bundle easy to mistake
+ * for a working one: setting the variables on the host changes nothing until a build
+ * actually runs, and a host that reuses a cached build for a commit that touched no build
+ * input can keep serving a bundle compiled without them. The check that settles it is to
+ * build locally with no `.env.local` and compare the entry chunk against the served one —
+ * identical means the variables never reached the build.
  */
 export function syncEnabled(): boolean {
   return Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
