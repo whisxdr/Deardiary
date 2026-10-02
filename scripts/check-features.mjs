@@ -16,6 +16,13 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(`${globalRoot}/playwright`);
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:5212';
+// This suite clears localStorage. Refuse to run against anything but a local origin, so a
+// stray BASE_URL can never wipe a real deployment's storage.
+if (!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?/.test(BASE)) {
+  console.error(`Refusing to run: ${BASE} is not a local origin, and this script clears storage.`);
+  process.exit(1);
+}
+
 const results = [];
 let failed = 0;
 
@@ -68,22 +75,12 @@ const entry = (id, title, content, overrides = {}) => ({
 });
 
 try {
-  // 1. Plain-text export keeps paragraph breaks.
+  // 1. Plain-text export keeps paragraph breaks. The conversion itself is asserted in
+  //    `check-parse-export.mjs`, which imports the app's real `htmlToText`; the browser
+  //    only proves here that the reader renders the body.
   await seed([entry('a1', 'Paragraphs', '<p>First para.</p><p>Second para.</p>')]);
   await page.goto(`${BASE}/entry/a1`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(500);
-  // The export helpers are not exposed on window and a download cannot be read back, so
-  // the conversion is checked directly against the same rules `htmlToText` applies.
-  const exportText = await page.evaluate(() => {
-    const html = '<p>First para.</p><p>Second para.</p>';
-    return html
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/(p|li|h[1-3]|blockquote|div)>/gi, '\n')
-      .replace(/<[^>]*>/g, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-  });
-  check('plain-text conversion keeps the paragraph break', exportText === 'First para.\nSecond para.', JSON.stringify(exportText));
   const readerLoaded = await page.evaluate(() => document.querySelector('.entry-body') !== null);
   check('reader renders the entry body', readerLoaded);
 

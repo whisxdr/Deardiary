@@ -26,7 +26,7 @@ export default function Write() {
       resume: searchParams.get('resume') === 'true',
     });
 
-  const { editor, words, characters, insertImage } = useEditorSetup({
+  const { editor, words, characters, contentLength, insertImage } = useEditorSetup({
     initialContent: form.content,
     entryId: id,
     storedContent: entry?.content,
@@ -56,6 +56,7 @@ export default function Write() {
           editor={editor}
           words={words}
           characters={characters}
+          contentLength={contentLength}
           title={form.title}
           onTitleChange={(title) => patch({ title })}
           onInsertImage={insertImage}

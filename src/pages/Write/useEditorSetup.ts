@@ -1,7 +1,8 @@
-import { useEditor, type Editor } from '@tiptap/react';
+import { useEditor } from '@tiptap/react';
 import { useEffect, useRef, useState } from 'react';
 import { countCharacters, countWords } from '@/lib';
 import { EDITOR_ATTRIBUTES, EDITOR_EXTENSIONS } from './editorConfig';
+import { useStoredContent } from './useStoredContent';
 
 export interface UseEditorSetupOptions {
   /** HTML the editor starts with; used for new entries and templates. */
@@ -15,23 +16,30 @@ export interface UseEditorSetupOptions {
   onSubmit?: () => void;
 }
 
-interface AppliedContent {
-  editor: Editor;
-  entryId: string;
-}
-
 /** Builds the Tiptap instance with the diary extensions and exposes live counters. */
 export function useEditorSetup({ initialContent, entryId, storedContent, onUpdate, onSubmit }: UseEditorSetupOptions) {
   const [words, setWords] = useState(0);
   const [characters, setCharacters] = useState(0);
-  const appliedRef = useRef<AppliedContent | null>(null);
+  const [contentLength, setContentLength] = useState(0);
   const submitRef = useRef(onSubmit);
 
   useEffect(() => {
     submitRef.current = onSubmit;
   }, [onSubmit]);
 
-  /** Ctrl/Cmd+Enter is handled by `handleKeyDown` below, not by a DOM listener. */
+  /**
+   * Refreshes the counters from a body's HTML.
+   *
+   * `contentLength` measures the raw HTML because that is the string the write path
+   * clamps to `LIMITS.contentMaxLength`; the text-only `characters` counter would
+   * under-report what the limit actually applies to.
+   */
+  const measure = (html: string) => {
+    setWords(countWords(html));
+    setCharacters(countCharacters(html));
+    setContentLength(html.length);
+  };
+
   const editor = useEditor({
     extensions: EDITOR_EXTENSIONS,
     content: initialContent,
@@ -55,34 +63,16 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     onUpdate: ({ editor: instance }) => {
       const html = instance.getHTML();
       onUpdate(html);
-      setWords(countWords(html));
-      setCharacters(countCharacters(html));
+      measure(html);
     },
   });
 
-  /**
-   * Loads the stored body once per editor instance. StrictMode destroys and recreates the
-   * editor, so the guard tracks the instance rather than a plain boolean.
-   *
-   * `addToHistory: false` matters: the editor starts empty, so without it this load is the
-   * first undo step and pressing Undo empties the page, which the autosave then stores.
-   */
-  useEffect(() => {
-    if (!editor || !entryId || storedContent === undefined) return;
-    const applied = appliedRef.current;
-    if (applied && applied.editor === editor && applied.entryId === entryId) return;
-    appliedRef.current = { editor, entryId };
-    if (storedContent === editor.getHTML()) return;
-    editor.chain().setContent(storedContent, false).setMeta('addToHistory', false).run();
-    setWords(countWords(storedContent));
-    setCharacters(countCharacters(storedContent));
-  }, [editor, entryId, storedContent]);
+  // Applies the stored body once per editor instance and refreshes the counters.
+  useStoredContent({ editor, entryId, storedContent, onApplied: measure });
 
   useEffect(() => {
     if (!editor) return;
-    const html = editor.getHTML();
-    setWords(countWords(html));
-    setCharacters(countCharacters(html));
+    measure(editor.getHTML());
   }, [editor]);
 
   /**
@@ -98,5 +88,5 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     if (url && /^https?:\/\//i.test(url)) editor.chain().focus().setImage({ src: url }).run();
   };
 
-  return { editor, words, characters, insertImage } as const;
+  return { editor, words, characters, contentLength, insertImage } as const;
 }

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES, STORAGE_KEYS } from '@/constants';
-import { lastWriteFailed, removeKey, writeJson } from '@/lib/storage';
+import { lastWriteFailed, writeJson } from '@/lib/storage';
 import { useCreateEntry, useDeleteEntry, useUpdateEntry } from '@/hooks';
 import { toast } from '@/components/ui';
 import { explainRejectedWrite, reportWrite, STORAGE_FULL, type SaveError } from './saveError';
-import { resumesDraft } from './draftStart';
+import { clearSpentDraft } from './draftOwnership';
 import { draftPayload, type StoredDraft } from './writeDraft';
 import type { StartOptions } from './writeFormStart';
 
@@ -21,18 +21,15 @@ export function useWriteActions(
   const patchEntry = useUpdateEntry();
   const removeEntry = useDeleteEntry();
   const [saveError, setSaveError] = useState<SaveError>(null);
-  // Set by publish so the leave-flush cannot write the published text back into the
-  // draft key it just cleared: that offered "Continue writing" for a finished entry.
+  // Set by publish so the leave-flush cannot write the published text back into the draft
+  // key it just cleared; wroteDraft marks a draft this composer itself stored.
   const published = useRef(false);
+  const wroteDraft = useRef(false);
   /**
-   * Stamp of the entry as the form loaded it.
-   *
-   * A snapshot, not a live read of the store: another tab can change the entry while this
-   * composer is open, and following the store here would hand the conflict guard a fresh
-   * stamp while the form still holds older text, so the next save would overwrite that
-   * tab's work. Advanced after each accepted write, and deliberately left alone after a
-   * rejected one so a retry is rejected too rather than silently clobbering the other
-   * writer.
+   * Stamp of the entry as the form loaded it; a snapshot, not a live read of the store.
+   * Following the store would hand the conflict guard a fresh stamp while the form still
+   * holds older text, so the next save would overwrite another tab's work. Advanced after
+   * each accepted write, and left alone after a rejected one so a retry is rejected too.
    */
   const stampRef = useRef(loadedStamp);
 
@@ -57,6 +54,9 @@ export function useWriteActions(
     // A brand-new entry is kept as a local draft until it is published.
     if (published.current) return true;
     const written = writeJson(STORAGE_KEYS.draft, { ...form, updatedAt: new Date().toISOString() });
+    // Marked even when only the in-memory fallback took it: the draft is readable from
+    // there too, so publishing must still spend it.
+    wroteDraft.current = true;
     setSaveError(written ? null : 'storage');
     return written;
   }, [form, id, patchEntry]);
@@ -80,11 +80,11 @@ export function useWriteActions(
 
     const created = createEntry(draftPayload(form));
     published.current = true;
-    // Only a draft this composer resumed is spent. A template or a day picked on the
-    // calendar starts a separate entry, and publishing it must leave an unfinished
-    // note from another session alone.
-    if (resumesDraft(start.templateId, start.backdated, start.dated, start.resume)) removeKey(STORAGE_KEYS.draft);
-    reportWrite(!lastWriteFailed(STORAGE_KEYS.entries), 'Entry published', STORAGE_FULL);
+    // The draft is spent only once the entry reached storage: clearing it after a fallback
+    // write would leave the note nowhere but memory.
+    const stored = !lastWriteFailed(STORAGE_KEYS.entries);
+    if (stored) clearSpentDraft(start, wroteDraft.current);
+    reportWrite(stored, 'Entry published', STORAGE_FULL);
     navigate(ROUTES.reader(created.id));
   }, [createEntry, form, id, navigate, patchEntry, start]);
 

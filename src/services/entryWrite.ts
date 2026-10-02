@@ -7,13 +7,13 @@ import { listAllRecords, saveEntries } from './entryQuery';
 import { nextStamp } from './sync/clock';
 import { enqueue } from './sync/outbox';
 
-/** Creates and stores a new entry, returning the stored record. */
+/** Creates and stores a new entry, returning the stored record. Text is bounded to LIMITS like the read path. */
 export function createEntry(draft: Partial<EntryDraft>): Entry {
   const now = nextStamp();
   const entry = withDerivedFields({
     id: createId(),
     title: sanitizeTitle(draft.title ?? ''),
-    content: draft.content ?? '',
+    content: (draft.content ?? '').slice(0, LIMITS.contentMaxLength),
     mood: draft.mood ?? DEFAULT_MOOD,
     tags: draft.tags ?? [],
     date: draft.date ?? now,
@@ -21,7 +21,7 @@ export function createEntry(draft: Partial<EntryDraft>): Entry {
     updatedAt: now,
     isFavorite: draft.isFavorite ?? false,
     isPrivate: draft.isPrivate ?? false,
-    location: draft.location,
+    location: draft.location?.slice(0, LIMITS.locationMaxLength),
     images: draft.images?.slice(0, LIMITS.maxImages),
     wordCount: 0,
     readingTime: 0,
@@ -30,11 +30,9 @@ export function createEntry(draft: Partial<EntryDraft>): Entry {
   enqueue(entry.id, entry.updatedAt);
   return entry;
 }
-/**
- * Applies a partial update and returns the updated record. `expectedUpdatedAt` guards a
- * second writer: the composer holds the whole form from the moment it opened, so writing it
- * over a record another tab or device has since changed would revert that work.
- */
+/** Applies a partial update. `expectedUpdatedAt` guards a second writer: the composer holds
+ * the whole form from the moment it opened, so writing it over a record another tab or device
+ * has since changed would revert that work. Text fields are bounded to LIMITS like createEntry. */
 export function updateEntry(id: string, patch: EntryUpdate, expectedUpdatedAt?: string): Entry | null {
   const entries = listAllRecords();
   const index = entries.findIndex((entry) => entry.id === id);
@@ -46,6 +44,8 @@ export function updateEntry(id: string, patch: EntryUpdate, expectedUpdatedAt?: 
     ...entries[index],
     ...patch,
     title: resolveTitle(patch, entries[index].title),
+    content: (patch.content ?? entries[index].content).slice(0, LIMITS.contentMaxLength),
+    location: (patch.location ?? entries[index].location)?.slice(0, LIMITS.locationMaxLength),
     updatedAt: nextStamp(),
   });
   entries[index] = merged;

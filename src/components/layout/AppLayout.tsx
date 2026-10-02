@@ -58,7 +58,11 @@ export function AppLayout({ children, searchValue, onSearchChange, className }: 
       <Sidebar open={sidebarOpen} onClose={() => setSidebar(false)} />
       <main
         id="main-content"
-        className={cn('mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8', className)}
+        tabIndex={-1}
+        className={cn(
+          'mx-auto w-full max-w-7xl flex-1 px-4 py-6 focus:outline-none sm:px-6 sm:py-8',
+          className,
+        )}
       >
         {children}
       </main>

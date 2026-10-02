@@ -3,7 +3,7 @@
 Repo: `D:\.1Kuliah\Coding\Dear dia`
 Branch policy: kerja di `apply/supabase-sync`, merge ke `main` hanya setelah verifier PASS.
 Live: `https://dearmydiary-eight.vercel.app` (belum punya sync).
-Supabase project: `rhedtvrpcfqucrxnduxs` (tabel `entries`, RLS, RPC `upsert_entries` sudah ada).
+Supabase project: `<project-ref>` (tabel `entries`, RLS, RPC `upsert_entries` sudah ada).
 
 ---
 
@@ -13,7 +13,7 @@ Supabase project: `rhedtvrpcfqucrxnduxs` (tabel `entries`, RLS, RPC `upsert_entr
 KONTEKS
 - Repo: D:\.1Kuliah\Coding\Dear dia (Vite 5 / React 18 / TS 5 / zustand / tiptap)
 - Live: https://dearmydiary-eight.vercel.app (Vercel) + netlify.toml (Netlify)
-- Supabase project: rhedtvrpcfqucrxnduxs. Tabel public.entries + RLS + RPC upsert_entries SUDAH ada.
+- Supabase project: <project-ref>. Tabel public.entries + RLS + RPC upsert_entries SUDAH ada.
 - Fitur sync OTP + cross-device ADA di working tree, BELUM di-commit/push/deploy.
 - Env app: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY di .env.local (gitignored).
 
@@ -170,7 +170,7 @@ npx supabase start
 npx supabase db push
 
 # Aktifkan / matikan sync di build lokal
-npm run sync:on -- https://rhedtvrpcfqucrxnduxs.supabase.co <anon-key>
+npm run sync:on -- https://<project-ref>.supabase.co <anon-key>
 npm run sync:off
 ```
 

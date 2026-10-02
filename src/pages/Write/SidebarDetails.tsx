@@ -1,6 +1,7 @@
 import { CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { Input } from '@/components/ui';
 import { DatePicker } from '@/components/editor';
+import { LIMITS } from '@/constants';
 import { SAVE_ERROR_TEXT, type SaveError } from './saveError';
 
 export interface SidebarDetailsProps {
@@ -32,6 +33,7 @@ export function SidebarDetails({
         value={location}
         onChange={(event) => onLocationChange(event.target.value)}
         placeholder="Where were you?"
+        maxLength={LIMITS.locationMaxLength}
       />
       {saveError ? (
         <p role="alert" className="flex items-start gap-1 font-body text-xs text-error">

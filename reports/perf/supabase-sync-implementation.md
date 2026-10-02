@@ -50,8 +50,11 @@ outbox, clock, owner, the write path — and drive the engine with a stub adapte
   and never touches a real browser origin, so there is no localhost guard to make in the
   pure suites.
 - DOMPurify needs a DOM, so the loader aliases it to a pass-through stub. Sanitizing is not
-  what these suites test; the real sanitizer is exercised by the browser suite and
-  `check-features.mjs`.
+  what these suites test, and the stub cannot test it: nothing in this suite exercises
+  `src/lib/sanitize.ts`. The sanitizer is covered by `scripts/check-sanitize.mjs`, a browser
+  suite added after the audit (see `reports/audit/fix-3-tests.md`); `check-features.mjs` does
+  not touch it. When this report was first written the claim was that the browser suite and
+  `check-features.mjs` covered it — that was wrong, and no suite tested the sanitizer at all.
 - Node 24 strips TypeScript types natively, confirmed here: `node -p "process.features.typescript"`
   prints `strip` on this machine's v24.19.0. The loader adds a resolver for the `@/` alias and
   extensionless relative imports.
@@ -116,7 +119,7 @@ node scripts/check-sync-removed.mjs
 | `npm run build` | pass, no Rollup circular-chunk warning |
 | `npm run lint:emoji` | pass |
 | `scripts/smoke-routes.mjs` | six routes render, no console errors |
-| `scripts/check-features.mjs` | ALL PASS (15) |
+| `scripts/check-features.mjs` | ALL PASS (14; was 15 before the copied-regex assertion moved to `check-parse-export.mjs`) |
 | `scripts/check-composer.mjs` | ALL PASS (16) |
 | `scripts/check-pdf-export.mjs` | PASS; PDF chunks loaded only after export action |
 | Modularity sweep | pages, hooks, services, utils, components within hard limits |
