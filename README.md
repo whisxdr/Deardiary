@@ -131,6 +131,8 @@ npm run build
 
 `npm run sync:off` removes the local override. Vite inlines the values at build time, so a change needs a rebuild; on Vercel or Netlify set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the host and redeploy.
 
+A redeploy has to be a real build. Vercel reuses the previous build when a commit changes nothing the build depends on, so a documentation-only commit can come back with the older bundle still being served. Changing a source file, or redeploying with the build cache cleared, is what picks new environment variables up. To confirm the values landed, check that the served entry chunk contains the project URL: if the deployed bundle is byte-identical to a local build made with no `.env.local`, the variables did not reach the build.
+
 The anon key is public by design; row-level security is the access boundary. Entries are stored on the server as plain text, not encrypted. Local development against a full local stack needs Docker: `npx supabase start` prints an API URL and anon key to paste into `npm run sync:on`.
 
 ## Accessibility
