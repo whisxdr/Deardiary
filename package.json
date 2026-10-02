@@ -16,7 +16,7 @@
     "lint:emoji": "eslint src --ext .ts,.tsx",
     "sync:on": "node scripts/activate-supabase.mjs",
     "sync:off": "node scripts/activate-supabase.mjs --off",
-    "test": "node scripts/check-sync-harness.mjs && node scripts/check-sync-merge.mjs && node scripts/check-sync-race.mjs && node scripts/check-sync-storage.mjs && node scripts/check-csp-parity.mjs"
+    "test": "node scripts/check-sync-harness.mjs && node scripts/check-sync-merge.mjs && node scripts/check-sync-race.mjs && node scripts/check-sync-storage.mjs && node scripts/check-csp-parity.mjs && node scripts/check-sync-stamps.mjs && node scripts/check-sync-push-deny.mjs && node scripts/check-week-bucket.mjs && node scripts/check-parse-export.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

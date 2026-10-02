@@ -1,4 +1,5 @@
-import { ENTRY_TEMPLATES } from '@/constants';
+import { ENTRY_TEMPLATES, MOODS } from '@/constants';
+import { sanitizeTags } from '@/lib/validate';
 import { emptyDraft, type StoredDraft } from './writeDraft';
 
 /**
@@ -29,6 +30,43 @@ export function resumesDraft(
   return resumeDraft && templateId === null && !backdated && !dated;
 }
 
+/** Keeps a stored field only when it carries the type the form expects. */
+function asString(value: unknown, fallback: string): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+/**
+ * Repairs a draft read from storage into the shape the composer relies on.
+ *
+ * Storage is a trust boundary: a draft written by an older build, hand-edited or left by a
+ * failed write can carry any shape, and a single wrong type takes the whole composer down —
+ * a `tags` string reached `TagInput`'s `.map`, and the ErrorBoundary replaced the page with
+ * "This page lost its bookmark". Every field falls back on its own, so one damaged value
+ * never discards the rest of the note. Tags go through the same sanitizer the write path
+ * uses, so the chip list shows exactly what an entry would store.
+ *
+ * Content is deliberately not truncated here. A legacy body longer than the limit stays
+ * visible in the editor, where the character counter warns before the write path clamps it;
+ * cutting it at load would drop the tail with nothing on screen to say so.
+ */
+export function coerceDraft(stored: Partial<StoredDraft>): StoredDraft {
+  const base = emptyDraft();
+  const rawDate = asString(stored.date, base.date);
+  return {
+    title: asString(stored.title, base.title),
+    content: asString(stored.content, base.content),
+    mood: MOODS.find((item) => item.id === stored.mood)?.id ?? base.mood,
+    tags: Array.isArray(stored.tags)
+      ? sanitizeTags(stored.tags.filter((tag): tag is string => typeof tag === 'string'))
+      : base.tags,
+    date: Number.isNaN(new Date(rawDate).getTime()) ? base.date : rawDate,
+    location: asString(stored.location, base.location),
+    isFavorite: typeof stored.isFavorite === 'boolean' ? stored.isFavorite : base.isFavorite,
+    isPrivate: typeof stored.isPrivate === 'boolean' ? stored.isPrivate : base.isPrivate,
+    updatedAt: asString(stored.updatedAt, base.updatedAt),
+  };
+}
+
 /**
  * Starting state for a new entry.
  *
@@ -45,7 +83,7 @@ export function initialDraft(
   resumeDraft = false,
 ): StoredDraft {
   if (stored && resumesDraft(templateId, backdated, dated, resumeDraft)) {
-    return { ...emptyDraft(), ...stored };
+    return coerceDraft(stored);
   }
 
   const draft = emptyDraft();

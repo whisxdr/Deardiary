@@ -1,4 +1,4 @@
-import { DEFAULT_MOOD } from '@/constants';
+import { DEFAULT_MOOD, LIMITS } from '@/constants';
 import type { Entry, EntryDraft, Mood } from '@/types';
 
 /** Shape stored under the draft key while a new entry is still being written. */
@@ -65,15 +65,22 @@ export function draftDeps(draft: StoredDraft): unknown[] {
   ];
 }
 
-/** The fields a write sends to storage, shared by autosave and publish. */
+/**
+ * The fields a write sends to storage, shared by autosave and publish.
+ *
+ * Content and location are bounded to `LIMITS` here, at the one point every composer write
+ * passes through. The read path already clamped them, so an unbounded write was stored in
+ * full and only appeared cut on the next read — the tail of a long note was on disk but not
+ * on screen, and the save after that wrote the shortened text back.
+ */
 export function draftPayload(draft: StoredDraft): EntryDraft {
   return {
     title: draft.title,
-    content: draft.content,
+    content: draft.content.slice(0, LIMITS.contentMaxLength),
     mood: draft.mood,
     tags: draft.tags,
     date: draft.date,
-    location: draft.location,
+    location: draft.location.slice(0, LIMITS.locationMaxLength),
     isFavorite: draft.isFavorite,
     isPrivate: draft.isPrivate,
   };

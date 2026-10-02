@@ -16,6 +16,12 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(`${globalRoot}/playwright`);
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:5212';
+// This suite clears localStorage. Refuse to run against anything but a local origin, so a
+// stray BASE_URL can never wipe a real deployment's storage.
+if (!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?/.test(BASE)) {
+  console.error(`Refusing to run: ${BASE} is not a local origin, and this script clears storage.`);
+  process.exit(1);
+}
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
