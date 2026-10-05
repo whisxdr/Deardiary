@@ -8,8 +8,3 @@
 export function tagFilterUrl(path: string, tag: string): string {
   return `${path}?tag=${encodeURIComponent(tag)}`;
 }
-
-/** Same as {@link tagFilterUrl} for a free-text search query. */
-export function searchFilterUrl(path: string, query: string): string {
-  return `${path}?q=${encodeURIComponent(query)}`;
-}

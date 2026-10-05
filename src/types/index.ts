@@ -8,7 +8,7 @@ export type {
   ViewMode,
 } from './entry';
 export type { IconProps } from './icon';
-export type { AvatarSettings, BackupPayload, FontSize, PrivacySettings, ThemeName, UserSettings } from './settings';
+export type { BackupPayload, FontSize, PrivacySettings, ThemeName, UserSettings } from './settings';
 export type {
   HeatmapCell,
   HourBucket,
@@ -17,4 +17,4 @@ export type {
   TagCount,
   WeeklyPoint,
 } from './stats';
-export type { EntryFilters, RequestStatus, SelectOption, ShareResult } from './common';
+export type { EntryFilters, SelectOption } from './common';

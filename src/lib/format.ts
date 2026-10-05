@@ -1,4 +1,4 @@
-import { formatLongDate, formatRelativeDay, formatShortDate, formatTime, stripHtml, truncate } from '@/utils';
+import { formatShortDate, stripHtml, truncate } from '@/utils';
 
 export { countCharacters, countWords, formatWordCount } from './wordCount';
 export { formatReadingTime, readingTimeMinutes } from './readingTime';
@@ -12,16 +12,6 @@ export function entryPreview(content: string, max = 160): string {
 /** Fallback title for untitled entries, based on the entry date. */
 export function entryTitle(title: string, date: string): string {
   return title.trim() || `Entry for ${formatShortDate(date)}`;
-}
-
-/** Full date plus time, used in metadata rows. */
-export function formatDateTime(value: string): string {
-  return `${formatLongDate(value)} at ${formatTime(value)}`;
-}
-
-/** Compact date label for cards, e.g. "Today". */
-export function formatCardDate(value: string): string {
-  return formatRelativeDay(value);
 }
 
 /** Human-readable byte size for the Data settings section. */

@@ -35,12 +35,6 @@ export function sanitizeTitle(value: string): string {
   return normalizeText(value).slice(0, LIMITS.titleMaxLength);
 }
 
-/** Trims an ISO date-time string, returning an empty string for invalid input. */
-export function sanitizeDateTime(value: string): string {
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
-}
-
 /** Splits raw input into a tag list, accepting commas, semicolons and newlines. */
 export function parseTagInput(value: string): string[] {
   return value

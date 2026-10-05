@@ -11,7 +11,7 @@ import {
   SyncSection,
 } from './sections';
 
-/** Only offered when both Supabase env vars are set; see `services/sync/config.ts`. */
+/** Only offered when both Supabase env vars are set; see `services/supabase/config.ts`. */
 const SYNC_LINKS = syncEnabled() ? [{ href: '#sync-heading', label: 'Account' }] : [];
 
 const SECTION_LINKS = [

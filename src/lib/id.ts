@@ -12,8 +12,3 @@ export function createId(): string {
 export function createIdFrom(seed: string): string {
   return uuidv5(seed, NAMESPACE);
 }
-
-/** Short id used for DOM element ids (labels, aria targets). */
-export function shortId(prefix: string): string {
-  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
-}

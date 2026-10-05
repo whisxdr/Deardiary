@@ -3,7 +3,7 @@ import { parseDate } from '@/utils';
 import { searchText } from '@/lib/searchIndex';
 import type { Entry, EntryFilters, SortOrder } from '@/types';
 
-/** Default filter state shared by the dashboard toolbar and the search hook. */
+/** Default filter state shared by the dashboard toolbar and the URL query string. */
 export const DEFAULT_FILTERS: EntryFilters = {
   query: '',
   mood: 'all',

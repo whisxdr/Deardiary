@@ -1,12 +1,10 @@
-export { createId, createIdFrom, shortId } from './id';
+export { createId, createIdFrom } from './id';
 export { estimateUsage, hasKey, isPersistent, readJson, removeKey, writeJson } from './storage';
 export {
   entryPreview,
   entryTitle,
   formatBytes,
-  formatCardDate,
   formatCount,
-  formatDateTime,
   formatPercent,
   countCharacters,
   countWords,
@@ -14,7 +12,7 @@ export {
   formatReadingTime,
   readingTimeMinutes,
 } from './format';
-export { escapeHtml, htmlToMarkdown, htmlToText, htmlWordCount, isHtmlEmpty, plainToHtml } from './parse';
+export { htmlToMarkdown, htmlToText } from './parse';
 export { looksUnsafe, sanitizeEntryHtml } from './sanitize';
 export { searchText } from './searchIndex';
-export { normalizeTag, normalizeText, parseTagInput, sanitizeDateTime, sanitizeTags, sanitizeTitle } from './validate';
+export { normalizeTag, normalizeText, parseTagInput, sanitizeTags, sanitizeTitle } from './validate';
