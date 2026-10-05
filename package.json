@@ -19,10 +19,8 @@
     "test": "node scripts/check-sync-harness.mjs && node scripts/check-sync-merge.mjs && node scripts/check-sync-race.mjs && node scripts/check-sync-storage.mjs && node scripts/check-csp-parity.mjs && node scripts/check-sync-stamps.mjs && node scripts/check-sync-push-deny.mjs && node scripts/check-week-bucket.mjs && node scripts/check-parse-export.mjs"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.9.0",
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/supabase-js": "^2.117.2",
-    "@tiptap/extension-character-count": "^2.6.6",
     "@tiptap/extension-image": "^2.6.6",
     "@tiptap/extension-link": "^2.6.6",
     "@tiptap/extension-placeholder": "^2.6.6",
@@ -37,14 +35,12 @@
     "jspdf": "^4.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-hook-form": "^7.53.0",
     "react-router-dom": "^6.26.2",
     "react-window": "^1.8.10",
     "recharts": "^2.12.7",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "uuid": "^9.0.1",
-    "zod": "^3.23.8",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
