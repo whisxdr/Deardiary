@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { CalendarBlank, FileText, Sparkle } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -51,6 +51,9 @@ export interface ComposerModalProps {
 
 /** Modal that picks which kind of entry to start before routing to the editor. */
 export function ComposerModal({ open, onClose, onSelect }: ComposerModalProps) {
+  // The staggered entrance is decorative; a visitor who asked for reduced motion gets the
+  // list already in place instead of items fading and sliding in.
+  const reduceMotion = useReducedMotion();
   return (
     <Modal
       open={open}
@@ -65,9 +68,9 @@ export function ComposerModal({ open, onClose, onSelect }: ComposerModalProps) {
             <motion.button
               key={option.id}
               type="button"
-              initial={{ opacity: 0, y: 8 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.25 }}
+              transition={reduceMotion ? { duration: 0 } : { delay: index * 0.05, duration: 0.25 }}
               onClick={() => onSelect(option.templateId, option.id === 'dated')}
               className="flex items-start gap-3 rounded-md border border-primary-200 bg-primary-50/70 p-3 text-left transition-colors duration-fast hover:border-accent-gold dark:border-primary-700 dark:bg-primary-800/60"
             >

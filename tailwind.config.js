@@ -27,6 +27,10 @@ export default {
         success: '#4CAF50',
         warning: '#FF9800',
         error: '#E53935',
+        // Theme-aware error text. The base `error` red is only ~3.7:1 on cream and ~4:1 on
+        // night, which fails AA for the small text it is used on. The values swap per theme
+        // via CSS variables so both land above 4.5:1; `error` stays for icons and fills.
+        'error-text': 'var(--color-error-text)',
         info: '#2196F3',
         // Theme-aware muted text; the values swap in night mode via CSS variables.
         muted: 'var(--text-muted)',

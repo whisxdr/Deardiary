@@ -34,7 +34,7 @@ export function DataSection() {
         A backup contains your saved entries and settings. A draft that has not been published yet is not included.
       </p>
       {isPersistent() ? null : (
-        <p role="alert" className="font-body text-xs text-error">
+        <p role="alert" className="font-body text-xs text-error-text">
           This browser is blocking local storage, so changes are kept in memory only and are lost when the page closes.
           Export a backup to keep them.
         </p>

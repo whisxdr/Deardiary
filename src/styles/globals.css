@@ -8,6 +8,8 @@
     --color-ink: 42 26 20;
     --color-leather: 62 39 35;
     --color-gold: 201 169 97;
+    /* Error text on the light themes: 4.95:1 on cream, 5.22:1 on paper. */
+    --color-error-text: #c62828;
     color-scheme: light;
   }
 
@@ -15,6 +17,8 @@
     --color-paper: 42 26 20;
     --color-ink: 240 230 210;
     --color-leather: 26 15 10;
+    /* A lighter red is needed on the dark ground: 4.79:1 on night. */
+    --color-error-text: #ef5350;
     color-scheme: dark;
   }
 

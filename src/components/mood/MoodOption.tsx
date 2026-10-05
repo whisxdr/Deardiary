@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { MoodIcon } from './MoodIcon';
 import { MOOD_STAMP_INK } from '@/constants';
 import { moodColor, moodLabel } from '@/utils';
@@ -13,12 +13,15 @@ export interface MoodOptionProps {
 /** One ink-stamp tile in the mood grid, with spring hover and gold glow when active. */
 export function MoodOption({ mood, selected, onSelect }: MoodOptionProps) {
   const color = selected ? moodColor(mood) : MOOD_STAMP_INK;
+  // Hover/tap motion is decorative; a visitor who asked for reduced motion gets the
+  // static tile. The gold-glow style below still shows the selected state without it.
+  const reduceMotion = useReducedMotion();
 
   return (
     <motion.button
       type="button"
-      whileHover={{ scale: 1.1, rotate: 5 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={reduceMotion ? undefined : { scale: 1.1, rotate: 5 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       onClick={() => onSelect(mood)}
       aria-pressed={selected}

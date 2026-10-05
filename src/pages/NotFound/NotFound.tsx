@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
-import { Button } from '@/components/ui';
+import { buttonVariants } from '@/components/ui';
 import { NotFound } from '@/components/illustrations';
 import { ROUTES } from '@/constants';
 
@@ -14,14 +14,12 @@ export default function NotFoundPage() {
         The link you followed does not lead anywhere in this diary. Your entries are safe.
       </p>
       <div className="flex flex-wrap justify-center gap-2">
-        <Link to={ROUTES.dashboard}>
-          <Button variant="gold">
-            <ArrowLeft size={16} weight="regular" aria-hidden="true" />
-            Back to entries
-          </Button>
+        <Link to={ROUTES.dashboard} className={buttonVariants({ variant: 'gold' })}>
+          <ArrowLeft size={16} weight="regular" aria-hidden="true" />
+          Back to entries
         </Link>
-        <Link to={ROUTES.landing}>
-          <Button variant="outline">Return to the cover</Button>
+        <Link to={ROUTES.landing} className={buttonVariants({ variant: 'outline' })}>
+          Return to the cover
         </Link>
       </div>
     </main>

@@ -36,7 +36,7 @@ export function SidebarDetails({
         maxLength={LIMITS.locationMaxLength}
       />
       {saveError ? (
-        <p role="alert" className="flex items-start gap-1 font-body text-xs text-error">
+        <p role="alert" className="flex items-start gap-1 font-body text-xs text-error-text">
           <WarningCircle size={14} weight="fill" aria-hidden="true" className="mt-0.5 shrink-0" />
           {SAVE_ERROR_TEXT[saveError]}
         </p>

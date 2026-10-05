@@ -37,7 +37,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error || hint ? (
-          <p className={cn('font-body text-xs', error ? 'text-error' : 'text-muted')}>{error ?? hint}</p>
+          <p className={cn('font-body text-xs', error ? 'text-error-text' : 'text-muted')}>{error ?? hint}</p>
         ) : null}
       </div>
     );
