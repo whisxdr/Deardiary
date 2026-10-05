@@ -16,6 +16,11 @@
     -->
     <link rel="preload" href="/fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+    <!--
+      Applies the stored theme before first paint. External rather than inline so the
+      `script-src 'self'` policy still holds; see public/theme-init.js for why it exists.
+    -->
+    <script src="/theme-init.js"></script>
     <title>DearDiary — Every page is your story</title>
   </head>
   <body>
