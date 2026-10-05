@@ -1,7 +1,7 @@
 import { useEditor } from '@tiptap/react';
-import { useEffect, useRef, useState } from 'react';
-import { countCharacters, countWords } from '@/lib';
+import { useEffect, useRef } from 'react';
 import { EDITOR_ATTRIBUTES, EDITOR_EXTENSIONS } from './editorConfig';
+import { useEditorCounts } from './useEditorCounts';
 import { useStoredContent } from './useStoredContent';
 
 export interface UseEditorSetupOptions {
@@ -18,27 +18,12 @@ export interface UseEditorSetupOptions {
 
 /** Builds the Tiptap instance with the diary extensions and exposes live counters. */
 export function useEditorSetup({ initialContent, entryId, storedContent, onUpdate, onSubmit }: UseEditorSetupOptions) {
-  const [words, setWords] = useState(0);
-  const [characters, setCharacters] = useState(0);
-  const [contentLength, setContentLength] = useState(0);
+  const { words, characters, contentLength, measureNow, scheduleMeasure } = useEditorCounts();
   const submitRef = useRef(onSubmit);
 
   useEffect(() => {
     submitRef.current = onSubmit;
   }, [onSubmit]);
-
-  /**
-   * Refreshes the counters from a body's HTML.
-   *
-   * `contentLength` measures the raw HTML because that is the string the write path
-   * clamps to `LIMITS.contentMaxLength`; the text-only `characters` counter would
-   * under-report what the limit actually applies to.
-   */
-  const measure = (html: string) => {
-    setWords(countWords(html));
-    setCharacters(countCharacters(html));
-    setContentLength(html.length);
-  };
 
   const editor = useEditor({
     extensions: EDITOR_EXTENSIONS,
@@ -63,16 +48,19 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     onUpdate: ({ editor: instance }) => {
       const html = instance.getHTML();
       onUpdate(html);
-      measure(html);
+      // Only the raw length is recorded on the keystroke path; the word/character regex
+      // passes are deferred, so typing does not run a full-body scan per key.
+      scheduleMeasure(html);
     },
   });
 
-  // Applies the stored body once per editor instance and refreshes the counters.
-  useStoredContent({ editor, entryId, storedContent, onApplied: measure });
+  // Applies the stored body once per editor instance and refreshes the counters at once:
+  // a load is not a keystroke, so there is no reason to defer it.
+  useStoredContent({ editor, entryId, storedContent, onApplied: measureNow });
 
   useEffect(() => {
     if (!editor) return;
-    measure(editor.getHTML());
+    measureNow(editor.getHTML());
   }, [editor]);
 
   /**

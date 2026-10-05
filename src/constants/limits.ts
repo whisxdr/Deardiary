@@ -15,4 +15,6 @@ export const TIMING = {
   searchDebounceMs: 300,
   savedIndicatorMs: 2_000,
   toastDurationMs: 3_000,
+  /** Idle window before the editor recounts words/characters after a keystroke. */
+  counterDebounceMs: 250,
 } as const;
