@@ -4,9 +4,12 @@ dist-ssr
 *.local
 .env
 .env.local
+.env.local.bak
 .DS_Store
 *.log
 .vite
+.tmp-*
+tmp-*
 
 # Local tool artifacts, not part of the app
 .mimosa
