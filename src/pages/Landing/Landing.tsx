@@ -42,6 +42,23 @@ export default function Landing() {
     [],
   );
 
+  // Warms the dashboard route while the visitor reads the cover. Opening the book is the
+  // next action almost every visitor takes, and that route is lazy, so without this its
+  // ~20-request cascade starts only after the click. Loading a module has no side effects
+  // here: it fetches the code and defines the components without rendering or touching
+  // the stores.
+  useEffect(() => {
+    const warm = () => {
+      void import('@/pages/Dashboard/Dashboard');
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(warm);
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = window.setTimeout(warm, 800);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const openBook = useCallback(() => {
     setIsOpening(true);
     openTimer.current = window.setTimeout(() => navigate(ROUTES.dashboard), 800);
