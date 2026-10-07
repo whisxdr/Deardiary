@@ -11,11 +11,16 @@
     <meta name="theme-color" content="#3E2723" />
     <!--
       Fonts are self-hosted (see src/styles/fonts.css), so no third-party origin sits in
-      the render-blocking path. These two preloads cover the first screen: the cover
-      title uses Playfair Display and the body text uses Inter.
+      the render-blocking path. All five cover the first screen: the cover title uses
+      Playfair Display, the body text Inter, the date JetBrains Mono, the title accent
+      Cormorant Garamond and the quote Caveat. Preloading the hand/mono/serif faces keeps
+      the cover from swapping fonts in after it has painted.
     -->
     <link rel="preload" href="/fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/jetbrains-mono-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/cormorant-400-italic.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/caveat-400.woff2" as="font" type="font/woff2" crossorigin />
     <!--
       Applies the stored theme before first paint. External rather than inline so the
       `script-src 'self'` policy still holds; see public/theme-init.js for why it exists.
