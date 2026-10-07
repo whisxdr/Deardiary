@@ -31,6 +31,8 @@ Semua gate hijau. Tujuh perbaikan P2 diterapkan (C-5, C-3, C-8, B-04/B-05/B-12, 
 | `13f6a4e` | D-01/D-02/D-03/D-06/D-07 | ~25 ekspor mati + 8 barrel halaman + duplikasi `pendingCount` + 3 komentar basi dihapus/disinkronkan; tsc (noUnusedLocals) bersih |
 | `84b79d1` | F-06/F-07/F-08/F-09/F-11/F-14 | README dikoreksi (Node 24/22.18+, klaim jaringan, barrel, tabel scripts); `.gitignore` + `.env.local.bak`/`tmp-*` |
 | `0985942` | E-05/E-06/E-08 | nested `<a><button>` = 0; reduced-motion hover `none`->`none`; error text `#C62828` (4.95:1 cream) / `#EF5350` (4.79:1 night) |
+| `749cb8e` | C-6 font preload | 5 preload di `index.html`; semua 5 font diambil pada load `/` pertama |
+| `72e7b3a` | C-7 route warm | Dashboard + motion chunk masuk kawat saat cover idle (21 script pada `/` vs 6 sebelumnya) |
 
 ## Output mentah (Wave C)
 
@@ -66,7 +68,7 @@ largest: syncStore.ts 197, Modal.tsx 147, Sidebar.tsx 145, EntryList.tsx 137
 ## Catatan jujur (batas cakupan)
 
 - **C-3 tidak menurunkan angka long-task total.** Profil CPU 20 ketikan ke body 20k karakter menunjukkan biaya tersebar di update ProseMirror + re-render React, bukan di counter (kedua regex pass bersama hanya ~1 ms per panggilan pada body 20k). Perbaikan menghapus satu pass per ketikan yang benar-benar mubazir, tetapi tidak diklaim sebagai penurunan angka besar.
-- **C-4/C-6/C-7/C-9 tidak dikerjakan.** C-4 dominan render recharts (butuh ganti chart lib, mahal); C-6/C-7/C-9 kosmetik/low. Tercatat di `next-A-perf.md` sebagai rekomendasi.
+- **C-4/C-9 tidak dikerjakan.** C-4 dominan render recharts (butuh ganti chart lib, mahal); C-9 butuh keputusan produk (bundel avatar vs terima CDN). Tercatat di `next-A-perf.md` sebagai rekomendasi.
 - **B-07 tidak diubah** (invariant draft = catatan belum selesai). Ditambahkan satu baris di Data section yang menyatakan draft belum-publish tidak termasuk backup.
 - **check-sanitize.mjs tidak ditambahkan ke `npm test`**: butuh Playwright + server CSP, tidak cocok untuk CI murni. Dijalankan manual di Wave C terhadap build segar (ALL PASS).
 - **F-10/F-12/F-13/F-15/F-16** dibiarkan (keterbatasan jujur / butuh keputusan); tercatat di `next-C-quality-a11y-tests.md`.
