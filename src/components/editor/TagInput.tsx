@@ -58,7 +58,7 @@ export function TagInput({ tags, onChange, label = 'Tags', hint }: TagInputProps
         </ul>
       ) : null}
       {draft && !isValidTag(draft) ? (
-        <p className="font-body text-xs text-error">Tags cannot be empty or longer than {LIMITS.tagMaxLength} characters.</p>
+        <p className="font-body text-xs text-error-text">Tags cannot be empty or longer than {LIMITS.tagMaxLength} characters.</p>
       ) : null}
     </div>
   );

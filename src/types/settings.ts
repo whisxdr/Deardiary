@@ -1,9 +1,3 @@
-/** Avatar rendering preferences. */
-export interface AvatarSettings {
-  /** Seed string handed to DiceBear; changing it changes the portrait. */
-  avatarSeed: string;
-}
-
 /** Visual themes available in Appearance settings. */
 export type ThemeName = 'leather' | 'paper' | 'night';
 

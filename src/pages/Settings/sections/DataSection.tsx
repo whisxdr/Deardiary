@@ -1,57 +1,40 @@
-import { useMemo, useRef, useState } from 'react';
-import { Button, toast } from '@/components/ui';
+import { useMemo } from 'react';
+import { Button } from '@/components/ui';
 import { ConfirmDialog } from '@/components/common';
-import { STORAGE_KEYS } from '@/constants';
-import { deleteAllEntries, exportBackup, importBackupFile } from '@/services';
-import { estimateUsage, isPersistent, removeKey } from '@/lib/storage';
+import { exportBackup } from '@/services';
+import { estimateUsage, isPersistent } from '@/lib/storage';
 import { formatBytes, formatCount } from '@/lib';
 import { useEntryStore, useSettingsStore } from '@/store';
 import { RestoreDefaultsButton } from './RestoreDefaultsButton';
-import type { Entry } from '@/types';
+import { useDataActions } from './useDataActions';
 
 /** Data section: export a backup, import one, or wipe everything. */
 export function DataSection() {
   const entries = useEntryStore((state) => state.entries);
-  const replaceAll = useEntryStore((state) => state.replaceAll);
-  const refresh = useEntryStore((state) => state.refresh);
-  const updateSettings = useSettingsStore((state) => state.update);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  // Subscribed rather than read once: restoring a backup writes settings, which grows
+  // storage without changing the entry count, so the figure below must recompute.
+  const settings = useSettingsStore((state) => state.settings);
+  const { fileRef, confirmClear, setConfirmClear, pending, cancelPending, confirmPending, handleImport, handleClear } =
+    useDataActions();
 
-  // Scans every stored key, so run once per entry-count change rather than per render.
+  // estimateUsage scans the stored keys; recompute when the entries or the settings change
+  // rather than on the entry count alone, which missed a settings-only restore.
   const usageLabel = useMemo(
     () => `Using about ${formatBytes(estimateUsage())} of browser storage for ${formatCount(entries.length, 'entry', 'entries')}.`,
-    [entries.length],
+    [entries.length, settings],
   );
-
-  const handleImport = async (file: File | undefined) => {
-    if (!file) return;
-    const result = await importBackupFile(file);
-    if (!result.ok) {
-      toast.error(result.message);
-      return;
-    }
-    // Merge against storage at write time: the file read is async, so a list captured
-    // from an earlier render can drop entries added while the read was in flight.
-    const current = useEntryStore.getState().entries;
-    const importedIds = new Set(result.entries.map((entry) => entry.id));
-    const merged: Entry[] = [...current.filter((entry) => !importedIds.has(entry.id)), ...result.entries];
-    replaceAll(merged);
-    // A backup carries settings too; restoring them is what makes it a full restore.
-    if (result.settings) updateSettings(result.settings);
-    toast.success(result.message);
-  };
 
   return (
     <section aria-labelledby="data-heading" className="flex flex-col gap-3">
       <h2 id="data-heading" className="font-display text-lg text-primary-800 dark:text-primary-100">
         Data
       </h2>
+      <p className="font-body text-xs text-primary-500 dark:text-primary-300">{usageLabel}</p>
       <p className="font-body text-xs text-primary-500 dark:text-primary-300">
-        {usageLabel}
+        A backup contains your saved entries and settings. A draft that has not been published yet is not included.
       </p>
       {isPersistent() ? null : (
-        <p role="alert" className="font-body text-xs text-error">
+        <p role="alert" className="font-body text-xs text-error-text">
           This browser is blocking local storage, so changes are kept in memory only and are lost when the page closes.
           Export a backup to keep them.
         </p>
@@ -63,7 +46,7 @@ export function DataSection() {
         <Button variant="outline" onClick={() => fileRef.current?.click()}>
           Import backup
         </Button>
-        <Button variant="danger" onClick={() => setConfirmOpen(true)}>
+        <Button variant="danger" onClick={() => setConfirmClear(true)}>
           Clear all entries
         </Button>
         <RestoreDefaultsButton />
@@ -80,19 +63,23 @@ export function DataSection() {
         }}
       />
       <ConfirmDialog
-        open={confirmOpen}
+        open={confirmClear}
         title="Clear every entry?"
         description="All entries will be deleted from this browser. Export a backup first if you might want them back."
         confirmLabel="Delete everything"
         destructive
-        onConfirm={() => {
-          deleteAllEntries();
-          refresh();
-          removeKey(STORAGE_KEYS.draft);
-          setConfirmOpen(false);
-          toast.success('All entries removed');
-        }}
-        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleClear}
+        onCancel={() => setConfirmClear(false)}
+      />
+      <ConfirmDialog
+        open={pending !== null}
+        title="Overwrite newer entries?"
+        description={`${formatCount(pending?.newerCount ?? 0, 'entry', 'entries')} in this browser ${pending?.newerCount === 1 ? 'is' : 'are'} newer than the backup. Importing replaces ${pending?.newerCount === 1 ? 'it' : 'them'} with the older copy from the file.`}
+        body="The backup is from an earlier point in time. Continue only if you mean to roll those entries back."
+        confirmLabel="Import anyway"
+        destructive
+        onConfirm={confirmPending}
+        onCancel={cancelPending}
       />
     </section>
   );

@@ -1,8 +1,6 @@
 export { APP_CONFIG, MOOD_FILTER_OPTIONS, SORT_OPTIONS, WEEKDAYS, WORDS_PER_MINUTE } from './config';
 export { AVATAR_API_BASE, AVATAR_SEED_CHOICES, AVATAR_STYLE, DEFAULT_AVATAR_SEED, avatarUrl } from './avatar';
 export { EDITOR_PLACEHOLDER, ENTRY_TEMPLATES } from './editor';
-export { ICON_SIZES } from './icons';
-export type { IconSize } from './icons';
 export { DEFAULT_MOOD, MOODS, MOOD_STAMP_INK } from './moods';
 export { QUOTES, quoteForDate } from './quotes';
 export { LIMITS, TIMING } from './limits';

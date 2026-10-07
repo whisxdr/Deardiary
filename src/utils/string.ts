@@ -15,15 +15,6 @@ export function slugify(value: string): string {
     .replace(/-+/g, '-');
 }
 
-/** Title-cases a slug or a spaced string. */
-export function titleCase(value: string): string {
-  return value
-    .split(/[\s-_]+/)
-    .filter(Boolean)
-    .map((word) => word[0].toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
 /** Prefixes a number with + or - for stat deltas. */
 export function signed(value: number): string {
   return value > 0 ? `+${value}` : `${value}`;

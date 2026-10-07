@@ -1,4 +1,4 @@
-export { chunk, countBy, groupBy, sortBy, unique } from './array';
+export { countBy } from './array';
 export { cn } from './cn';
 export {
   calendarDaysBetween,
@@ -12,6 +12,6 @@ export { daysBetweenKeys, formatRelativeDay, isSameCalendarDay, parseDate } from
 export { addMonths, eachDayOfInterval, endOfMonth, startOfMonth, subDays } from './month';
 export { endOfWeek, startOfWeek } from './week';
 export { stripHtml, textToHtml } from './html';
-export { dominantMood, moodColor, moodLabel, moodMeta } from './mood';
-export { initials, signed, slugify, titleCase, truncate } from './string';
-export { searchFilterUrl, tagFilterUrl } from './url';
+export { moodColor, moodLabel, moodMeta } from './mood';
+export { initials, signed, slugify, truncate } from './string';
+export { tagFilterUrl } from './url';

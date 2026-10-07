@@ -23,9 +23,3 @@ export function moodLabel(mood: Mood | string | undefined): string {
 export function moodColor(mood: Mood | string | undefined): string {
   return moodMeta(mood).color;
 }
-
-/** The mood with the highest count in a tally, or null when empty. */
-export function dominantMood(counts: Record<string, number>): Mood | null {
-  const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  return (ranked[0]?.[0] as Mood | undefined) ?? null;
-}

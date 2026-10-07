@@ -6,7 +6,8 @@ Everything is stored in the browser by default. No account, no server, no tracki
 
 ## Requirements
 
-- Node.js 18 or newer
+- Node.js 24, or Node 22.18+ (the `npm test` suites import TypeScript directly, which needs
+  Node's type-stripping support)
 - npm 9 or newer
 
 ## Setup
@@ -28,6 +29,8 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 | `npm run build` | Type-check with `tsc` then build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` | Run the TypeScript compiler in check-only mode |
+| `npm run lint:emoji` | ESLint, including the rules that keep Unicode emoji out of the UI |
+| `npm test` | Run the pure-Node suites (sync merge/race/storage/stamps, CSP parity, week buckets, export parsing) |
 | `npm run sync:on -- <url> <anon-key>` | Write `.env.local` to enable Supabase sync |
 | `npm run sync:off` | Remove the local sync override |
 
@@ -79,7 +82,7 @@ The codebase is split by responsibility so no file grows into a "fat file":
 - `src/constants/` — moods, quotes, routes, storage keys, limits, editor config
 - `src/types/` — shared TypeScript interfaces
 
-Every folder has an `index.ts` barrel export, and imports use the `@/` alias.
+Folders that expose a public surface (`components/*`, `hooks`, `lib`, `utils`, `constants`, `store`, `types`) have an `index.ts` barrel; page folders do not, because each page is imported by its own path. Imports use the `@/` alias.
 
 ## Icon System
 
@@ -97,7 +100,7 @@ import { MoodIcon, MoodBadge, MoodPickerGrid } from '@/components/mood';
 
 Mood colors live only in `src/constants/moods.ts`. The picker reads them from there, so adding a mood means adding one entry plus one icon file.
 
-**UI icons** use [Phosphor Icons](https://phosphoricons.com) via `@phosphor-icons/react`. Sizes come from `ICON_SIZES` in `src/constants/icons.ts` (14 / 16 / 20 / 24 / 32) rather than raw numbers, and weight signals state: `regular` by default, `fill` when active.
+**UI icons** use [Phosphor Icons](https://phosphoricons.com) via `@phosphor-icons/react`. Sizes are set per call site in pixels, and weight signals state: `regular` by default, `fill` when active.
 
 **Avatars** come from [DiceBear](https://dicebear.com) in the `lorelei` style, seeded by a string the user picks in Settings. Because that is a network request, `Avatar` falls back to local initials when the request fails, so the diary still works offline.
 
@@ -118,7 +121,7 @@ grep -rnP "[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]" src --include=*.ts --include=
 
 ## Optional sync (Supabase)
 
-Cross-device sync is off until you configure it. With no configuration the app is local-only: the Account section is not rendered and nothing reaches the network.
+Cross-device sync is off until you configure it. With no configuration the app is local-only: the Account section is not rendered, and no entry or sync data leaves the browser. (The only outbound request is the optional DiceBear avatar fetch described above.)
 
 1. Create a Supabase project, then run `supabase/migrations/20261001000000_entries.sql` in its SQL editor. It creates the `entries` table, row-level security scoped to each account, and the atomic `upsert_entries` function.
 2. In **Authentication → Email Templates**, add `{{ .Token }}` to both **Confirm signup** and **Magic Link**. Sign-in uses a six-digit code, not a link.

@@ -1,6 +1,6 @@
 import { ArrowLeft, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui';
+import { buttonVariants } from '@/components/ui';
 import { IconButton } from '@/components/common';
 import { ROUTES } from '@/constants';
 
@@ -17,11 +17,9 @@ export interface ReaderNavProps {
 export function ReaderNav({ position, total, hasPrevious, hasNext, onPrevious, onNext }: ReaderNavProps) {
   return (
     <nav aria-label="Entry navigation" className="flex items-center justify-between gap-3">
-      <Link to={ROUTES.dashboard}>
-        <Button variant="ghost" size="sm">
-          <ArrowLeft size={16} weight="regular" aria-hidden="true" />
-          All entries
-        </Button>
+      <Link to={ROUTES.dashboard} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+        <ArrowLeft size={16} weight="regular" aria-hidden="true" />
+        All entries
       </Link>
       <div className="flex items-center gap-2">
         <IconButton

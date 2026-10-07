@@ -2,7 +2,7 @@ import { EntryList } from '@/components/entry';
 import { EmptyState } from '@/components/common';
 import { EmptyDiary, EmptySearch } from '@/components/illustrations';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui';
+import { Button, buttonVariants } from '@/components/ui';
 import { ROUTES } from '@/constants';
 import { formatCount } from '@/lib';
 import type { Entry, ViewMode } from '@/types';
@@ -39,8 +39,8 @@ export function DashboardGrid({
           description='Turn off "Hide private entries by default" in Settings to see them here.'
           illustration={<EmptyDiary size={320} />}
           action={
-            <Link to={ROUTES.settings}>
-              <Button variant="outline">Open Settings</Button>
+            <Link to={ROUTES.settings} className={buttonVariants({ variant: 'outline' })}>
+              Open Settings
             </Link>
           }
         />
@@ -52,8 +52,8 @@ export function DashboardGrid({
         description="Start writing your first entry and begin your journey. The first page is always the hardest."
         illustration={<EmptyDiary size={320} />}
         action={
-          <Link to={ROUTES.write}>
-            <Button variant="gold">Write your first entry</Button>
+          <Link to={ROUTES.write} className={buttonVariants({ variant: 'gold' })}>
+            Write your first entry
           </Link>
         }
       />

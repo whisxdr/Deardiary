@@ -52,3 +52,20 @@ export async function importBackupFile(file: File): Promise<ImportResult> {
     return { ok: false, entries: [], message: 'That file could not be read.' };
   }
 }
+
+/**
+ * Counts imported entries that would move a live local entry backwards.
+ *
+ * Import is the only path that can silently revert local data, because it replaces the
+ * collection outright. A stored tombstone is not counted: `replaceEntries` already refuses
+ * to resurrect it, so the import cannot overwrite anything there. Only a live entry whose
+ * local stamp is strictly newer than the incoming one is a real overwrite worth asking about.
+ */
+export function countNewerLocalEntries(current: Entry[], imported: Entry[]): number {
+  const localById = new Map(current.map((entry) => [entry.id, entry]));
+  return imported.filter((incoming) => {
+    const local = localById.get(incoming.id);
+    if (!local || local.deletedAt !== undefined) return false;
+    return new Date(local.updatedAt).getTime() > new Date(incoming.updatedAt).getTime();
+  }).length;
+}

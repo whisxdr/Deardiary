@@ -4,7 +4,5 @@ export { EntryCard, EntryCardBody, EntryCardFooter, EntryCardHeader } from './En
 export type { EntryCardProps } from './EntryCard';
 export { EntryList } from './EntryList';
 export type { EntryListProps } from './EntryList';
-export { EntryMeta } from './EntryMeta';
-export type { EntryMetaProps } from './EntryMeta';
 export { EntryTags } from './EntryTags';
 export type { EntryTagsProps } from './EntryTags';

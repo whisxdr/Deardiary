@@ -6,7 +6,7 @@ import { EmptyCalendar } from '@/components/illustrations';
 import { useEntries } from '@/hooks';
 import { useEntryStore } from '@/store';
 import { addMonths, startOfMonth, toDateKey } from '@/utils';
-import { Button } from '@/components/ui';
+import { buttonVariants } from '@/components/ui';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants';
 
@@ -51,8 +51,8 @@ export default function Calendar() {
             description="Once you write your first entry, its day will be highlighted here."
             illustration={<EmptyCalendar size={320} />}
             action={
-              <Link to={ROUTES.write}>
-                <Button variant="gold">Write an entry</Button>
+              <Link to={ROUTES.write} className={buttonVariants({ variant: 'gold' })}>
+                Write an entry
               </Link>
             }
           />

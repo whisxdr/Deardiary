@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Plus } from '@phosphor-icons/react';
-import { Button } from '@/components/ui';
+import { buttonVariants } from '@/components/ui';
 import { ROUTES } from '@/constants';
 import { formatCount } from '@/lib';
 import { useSettingsStore } from '@/store';
@@ -30,11 +30,9 @@ export function DashboardHeader({ total, visible, displayName }: DashboardHeader
           {`Showing ${visible} of ${formatCount(total, 'entry', 'entries')} in your book.`}
         </p>
       </div>
-      <Link to={ROUTES.write}>
-        <Button variant="gold">
-          <Plus size={16} weight="regular" aria-hidden="true" />
-          New entry
-        </Button>
+      <Link to={ROUTES.write} className={buttonVariants({ variant: 'gold' })}>
+        <Plus size={16} weight="regular" aria-hidden="true" />
+        New entry
       </Link>
     </header>
   );

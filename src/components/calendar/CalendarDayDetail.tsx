@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui';
+import { buttonVariants } from '@/components/ui';
 import { EmptyState } from '@/components/common';
 import { EmptyDiary } from '@/components/illustrations';
 import { EntryCard } from '@/components/entry';
@@ -56,10 +56,11 @@ export function CalendarDayDetail({ date, entries, onToggleFavorite }: CalendarD
  */
 function WriteThisDay({ date, variant }: { date: Date; variant: 'gold' | 'outline' }) {
   return (
-    <Link to={`${ROUTES.write}?date=${toDateKey(date)}`} className="self-start">
-      <Button size="sm" variant={variant}>
-        Write this day
-      </Button>
+    <Link
+      to={`${ROUTES.write}?date=${toDateKey(date)}`}
+      className={`${buttonVariants({ size: 'sm', variant })} self-start`}
+    >
+      Write this day
     </Link>
   );
 }

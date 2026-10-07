@@ -17,11 +17,6 @@ export function useMediaQuery(query: string): boolean {
   return matches;
 }
 
-/** Convenience wrapper for the small breakpoint used across the layout. */
-export function useIsMobile(): boolean {
-  return useMediaQuery('(max-width: 767px)');
-}
-
 /** True when the visitor asked for reduced motion. */
 export function usePrefersReducedMotion(): boolean {
   return useMediaQuery('(prefers-reduced-motion: reduce)');

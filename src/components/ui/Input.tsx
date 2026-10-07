@@ -46,7 +46,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <p
             id={`${inputId}-description`}
             role={error ? 'alert' : undefined}
-            className={cn('font-body text-xs', error ? 'text-error' : 'text-muted')}
+            className={cn('font-body text-xs', error ? 'text-error-text' : 'text-muted')}
           >
             {error ?? hint}
           </p>
