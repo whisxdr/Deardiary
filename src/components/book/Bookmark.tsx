@@ -20,6 +20,7 @@ export function Bookmark({ label = 'Bookmark', color = '#C9A961', className, ani
 
   return (
     <span
+      role="img"
       aria-label={label}
       title={label}
       className={cn(
