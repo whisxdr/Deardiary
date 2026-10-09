@@ -9,7 +9,7 @@
  *
  * Run: `node scripts/check-parse-export.mjs`
  */
-import { entry, loadSrc, reporter } from './check-sync-harness.mjs';
+import { entry, loadSrc, reporter } from './check-harness.mjs';
 
 const { htmlToText, htmlToMarkdown } = await loadSrc('lib/parse.ts');
 const { entryAsText } = await loadSrc('services/exportService.ts');

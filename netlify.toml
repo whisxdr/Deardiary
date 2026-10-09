@@ -20,12 +20,11 @@
 # style-src needs 'unsafe-inline' because Framer Motion writes style attributes.
 # Fonts are self-hosted, so font-src is 'self' with no third-party origin.
 # img-src allows any https host because inserting an image by URL is a feature.
-# connect-src adds the Supabase project origin, and its Realtime websocket, for the optional
-# cloud sync. Only *.supabase.co is opened; leaving sync unset means those hosts are unused.
+# connect-src is 'self': the diary is local-only, so no third-party origin is opened.
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"

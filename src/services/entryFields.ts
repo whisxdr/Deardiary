@@ -38,8 +38,8 @@ export function looksLikeEntry(value: unknown): value is Partial<Entry> {
 }
 
 /** Canonical ISO when the value parses, else the fallback. The instant is the identity, not
- * the spelling: the client writes `toISOString()` (`Z`) while PostgREST answers `+00:00` with
- * trailing zeros trimmed, so comparing raw strings made equal instants look like a change. */
+ * the spelling: this device writes `toISOString()` while an imported backup may carry the
+ * same instant spelled differently, and comparing raw strings makes equal instants differ. */
 function safeIso(value: unknown, fallback: string): string {
   if (typeof value !== 'string') return fallback;
   const parsed = new Date(value);
@@ -62,22 +62,20 @@ function safeMood(value: unknown): Mood {
  * value, so cleaning on write keeps every consumer safe rather than one.
  *
  * A record with no usable id gets a deterministic one derived from its content. A random
- * id would be minted separately on each device that repairs the same record, producing
- * two entries that can never merge and that both upload as new.
+ * id would be minted separately for each copy of the same note, producing two entries
+ * that can never be told apart.
  */
 export function coerceEntry(raw: Partial<Entry>): Entry {
   const now = new Date().toISOString();
-  // Bounded before sanitizing: a backup or a pulled record can carry a multi-megabyte
-  // body, and an unbounded value reaches localStorage (quota) and DOMPurify (a full parse
-  // on every render). `contentMaxLength` existed as a constant and was enforced nowhere.
+  // Bounded before sanitizing: a backup can carry a multi-megabyte body, and an unbounded
+  // value reaches localStorage (quota) and DOMPurify (a full parse on every render).
+  // `contentMaxLength` existed as a constant and was enforced nowhere.
   const rawContent = typeof raw.content === 'string' ? raw.content.slice(0, LIMITS.contentMaxLength) : '';
   const content = sanitizeEntryHtml(rawContent);
   const words = countWords(content);
   const date = safeIso(raw.date, now);
   const title = sanitizeTitle(typeof raw.title === 'string' ? raw.title : '');
   const id = typeof raw.id === 'string' && raw.id ? raw.id : createIdFrom(`${date}|${title}|${content}`);
-  // Normalized like the other stamps, but absent/unparsable must leave the key off entirely.
-  const deletedAt = typeof raw.deletedAt === 'string' ? safeIso(raw.deletedAt, '') : '';
   return {
     id,
     title,
@@ -95,7 +93,6 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
       : undefined,
     wordCount: words,
     readingTime: readingTimeMinutes(words),
-    ...(deletedAt ? { deletedAt } : {}),
   };
 }
 

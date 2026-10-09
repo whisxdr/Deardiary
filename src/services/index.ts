@@ -30,23 +30,3 @@ export {
 export { exportEntryAsPdf } from './pdfService';
 export { importBackupFile, parseBackup } from './importService';
 export type { ImportResult } from './importService';
-export {
-  clearUploaded,
-  claimDevice,
-  clearLocalEntries,
-  enqueue,
-  hasPendingUpload,
-  isForeignAccount,
-  mergeEntries,
-  nextStamp,
-  observeStamps,
-  outboxSignature,
-  pendingCount,
-  readOutbox,
-  readOwner,
-  syncNow,
-  writeOutbox,
-} from './sync';
-export type { Account, MergeResult, Outbox, PullResult, RemoteAdapter, SyncReport } from './sync';
-export { getSupabase, supabaseAdapter, syncEnabled } from './supabase';
-export type { EntryRow } from './supabase';

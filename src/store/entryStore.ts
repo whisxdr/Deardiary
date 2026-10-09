@@ -7,8 +7,8 @@ import {
   toggleFavorite,
   updateEntry,
 } from '@/services/entryService';
-import { lastWriteFailed } from '@/lib/storage';
-import { STORAGE_KEYS } from '@/constants';
+import { lastWriteFailed, removeKey } from '@/lib/storage';
+import { LEGACY_SYNC_KEYS, STORAGE_KEYS } from '@/constants';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 
 interface EntryState {
@@ -41,6 +41,8 @@ export const useEntryStore = create<EntryState>((set, get) => ({
 
   hydrate: () => {
     if (get().hydrated) return;
+    // One-time cleanup of the removed sync build's leftovers; see LEGACY_SYNC_KEYS.
+    LEGACY_SYNC_KEYS.forEach(removeKey);
     set({ entries: listEntries(), hydrated: true });
   },
 

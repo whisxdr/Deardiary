@@ -4,5 +4,5 @@ export { EDITOR_PLACEHOLDER, ENTRY_TEMPLATES } from './editor';
 export { DEFAULT_MOOD, MOODS, MOOD_STAMP_INK } from './moods';
 export { QUOTES, quoteForDate } from './quotes';
 export { LIMITS, TIMING } from './limits';
-export { BACKUP_VERSION, STORAGE_KEYS, STORAGE_NAMESPACE } from './storageKeys';
+export { BACKUP_VERSION, LEGACY_SYNC_KEYS, STORAGE_KEYS, STORAGE_NAMESPACE } from './storageKeys';
 export { READER_PATTERN, ROUTES, WRITE_ENTRY_PATTERN } from './routes';
