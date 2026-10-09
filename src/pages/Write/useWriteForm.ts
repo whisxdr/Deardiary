@@ -25,11 +25,12 @@ export function useWriteForm(options: UseWriteFormOptions) {
   /**
    * Stamp of the entry as it was loaded into the form.
    *
-   * Deliberately a snapshot rather than a live read of the store. A background sync
-   * updates the store, and reading the store here would hand the conflict guard the
-   * *new* stamp while the form still holds the old text — so the next autosave would be
-   * accepted and would overwrite the pulled version with stale words. Holding what the
-   * form actually loaded makes that write correctly rejected instead.
+   * Deliberately a snapshot rather than a live read of the store. Importing a backup or
+   * clearing the diary rewrites the collection while the form is open, and reading the
+   * store here would hand the conflict guard the *new* stamp while the form still holds
+   * the old text — so the next autosave would be accepted and would overwrite the
+   * imported version with stale words. Holding what the form actually loaded makes that
+   * write correctly rejected instead.
    */
   const [loadedStamp, setLoadedStamp] = useState<string | undefined>(undefined);
   /** Signature of the values as they came from storage; see `useAutosave.baseline`. */

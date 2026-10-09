@@ -7,7 +7,6 @@ import { ToastHost } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/common';
 import { useEntryStore, useSettingsStore } from '@/store';
 import { useStorageWarning } from '@/hooks/useStorageWarning';
-import { useSyncLifecycle } from '@/hooks/useSyncLifecycle';
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -27,10 +26,6 @@ function useBootstrap() {
 /** Wraps the app with error handling, bootstrap side effects and toasts. */
 export function Providers({ children }: ProvidersProps) {
   useBootstrap();
-  // Mounted here rather than on a page so the session survives navigation: a sync that
-  // only ran on the dashboard would leave the reader showing stale pages. The hook is a
-  // no-op when no backend is configured.
-  useSyncLifecycle();
   // A refused write has to be visible from every page, not just the composer.
   useStorageWarning();
 

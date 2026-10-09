@@ -14,13 +14,10 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit --pretty false",
     "lint:emoji": "eslint src --ext .ts,.tsx",
-    "sync:on": "node scripts/activate-supabase.mjs",
-    "sync:off": "node scripts/activate-supabase.mjs --off",
-    "test": "node scripts/check-sync-harness.mjs && node scripts/check-sync-merge.mjs && node scripts/check-sync-race.mjs && node scripts/check-sync-storage.mjs && node scripts/check-csp-parity.mjs && node scripts/check-sync-stamps.mjs && node scripts/check-sync-push-deny.mjs && node scripts/check-week-bucket.mjs && node scripts/check-parse-export.mjs"
+    "test": "node scripts/check-csp-parity.mjs && node scripts/check-week-bucket.mjs && node scripts/check-parse-export.mjs && node scripts/check-entry-writes.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
-    "@supabase/supabase-js": "^2.117.2",
     "@tiptap/extension-image": "^2.6.6",
     "@tiptap/extension-link": "^2.6.6",
     "@tiptap/extension-placeholder": "^2.6.6",

@@ -5,9 +5,9 @@
  * every other suite stayed green. This suite reads all three, extracts the full policy
  * string, and fails on any character that differs.
  *
- * It also pins the three properties the policy is there for: the Supabase origins are
- * allowed (or cloud sync cannot connect), and neither `unsafe-eval` nor an inline
- * `script-src` slipped in.
+ * It also pins these properties: `connect-src` opens nothing outside this origin (the
+ * diary is local-only, so no third-party connection is reachable), and neither
+ * `unsafe-eval` nor an inline `script-src` slipped in.
  *
  * Run: `node scripts/check-csp-parity.mjs`
  */
@@ -49,7 +49,7 @@ function fromServe() {
   return parts.join('; ');
 }
 
-/** One directive's value, e.g. `connect-src` -> `'self' https://...`. */
+/** One directive's value, e.g. `img-src` -> `'self' data: https:`. */
 function directive(policy, name) {
   const found = policy.split('; ').find((part) => part === name || part.startsWith(`${name} `));
   return found ?? '';
@@ -70,8 +70,8 @@ if (allPresent) {
   check('netlify.toml and serve-with-csp.mjs are byte-identical', netlify === serve, `${netlify.length} vs ${serve.length}`);
 
   const connect = directive(serve, 'connect-src');
-  check('connect-src allows https://*.supabase.co', connect.includes('https://*.supabase.co'), connect);
-  check('connect-src allows wss://*.supabase.co', connect.includes('wss://*.supabase.co'), connect);
+  check('connect-src opens no third-party origin', connect === "connect-src 'self'", connect);
+  check('no supabase origin remains in the policy', !/supabase\.(co|in)/.test(serve), serve.includes('supabase') ? 'found' : 'absent');
 
   check('no unsafe-eval anywhere in the policy', !serve.includes('unsafe-eval'), serve.includes('unsafe-eval') ? 'found' : 'absent');
 

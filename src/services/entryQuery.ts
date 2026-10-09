@@ -15,7 +15,7 @@ import { byNewest, coerceEntry, looksLikeEntry, needsRepair } from './entryField
  * `ponytail:` the whole collection is held in memory next to its raw text; move to a
  * per-record cache if a collection ever outgrows one tab's heap.
  */
-let cache: { raw: string; records: Entry[]; live: Entry[]; coerced: Set<Entry> } | null = null;
+let cache: { raw: string; records: Entry[]; coerced: Set<Entry> } | null = null;
 
 /**
  * The raw stored text, or null when it is not the authoritative copy.
@@ -41,13 +41,10 @@ function readRaw(): string | null {
  */
 function remember(records: Entry[]): void {
   const raw = readRaw();
-  cache =
-    raw === null
-      ? null
-      : { raw, records, live: records.filter((entry) => !entry.deletedAt), coerced: new Set(records) };
+  cache = raw === null ? null : { raw, records, coerced: new Set(records) };
 }
 
-/** Reads all valid entries, including tombstones, and repairs old shapes. */
+/** Reads all entries and repairs old shapes. */
 export function listAllRecords(): Entry[] {
   const raw = readRaw();
   if (raw !== null && cache !== null && cache.raw === raw) return cache.records;
@@ -55,21 +52,27 @@ export function listAllRecords(): Entry[] {
   const stored = readJson<unknown>(STORAGE_KEYS.entries, []);
   if (!Array.isArray(stored)) return [];
   const records = stored.filter(looksLikeEntry) as Partial<Entry>[];
-  const entries = byNewest(records.map(coerceEntry));
-  if (records.length !== stored.length || records.some(needsRepair)) writeJson(STORAGE_KEYS.entries, entries);
+  // One-time migration: the removed sync build kept a deleted entry in storage as a
+  // scrubbed record carrying `deletedAt`. Sync is gone and nothing recreates them, so the
+  // record is dropped here — kept instead, it would resurface as a blank entry on every
+  // read, and the first write would make that permanent. The id is remembered so a backup
+  // written before the deletion cannot bring the words back.
+  const tombstones = records.filter((record) => (record as { deletedAt?: unknown }).deletedAt !== undefined);
+  const live = records.filter((record) => (record as { deletedAt?: unknown }).deletedAt === undefined);
+  const entries = byNewest(live.map(coerceEntry));
+  if (live.length !== records.length || records.some(needsRepair)) {
+    writeJson(STORAGE_KEYS.entries, entries);
+    rememberDeleted(tombstones.map((record) => String(record.id)));
+  }
   remember(entries);
   return entries;
 }
 
-/** Active entries only; tombstones remain stored for sync. */
-export function listEntries(): Entry[] {
-  const records = listAllRecords();
-  if (cache !== null && cache.records === records) return cache.live;
-  return records.filter((entry) => !entry.deletedAt);
-}
+/** Every stored entry, newest first. */
+export const listEntries = listAllRecords;
 
 /**
- * Persists active entries and tombstones, priming the read cache with the written objects.
+ * Persists the collection, priming the read cache with the written objects.
  *
  * A written record that is already in the cache is kept as-is, so the objects the store
  * holds stay identical across a write and `memo(EntryCard)` can skip. Anything else — a
@@ -85,9 +88,29 @@ export function saveEntries(entries: Entry[]): boolean {
   return ok;
 }
 
-/** Finds one active entry by id. */
+/** Finds one entry by id. */
 export function findEntry(id: string): Entry | null {
-  return listEntries().find((entry) => entry.id === id) ?? null;
+  return listAllRecords().find((entry) => entry.id === id) ?? null;
+}
+
+/**
+ * Remembers deleted ids so a backup written before the deletion cannot resurrect them.
+ *
+ * Id only: no content and no stamp, and the log is capped because the oldest deletions
+ * matter least.
+ */
+const DELETED_IDS_CAP = 1_000;
+
+export function rememberDeleted(ids: string[]): void {
+  if (ids.length === 0) return;
+  const known = readJson<string[]>(STORAGE_KEYS.deletedIds, []).filter((id) => typeof id === 'string');
+  const merged = [...new Set([...known, ...ids])].slice(-DELETED_IDS_CAP);
+  writeJson(STORAGE_KEYS.deletedIds, merged);
+}
+
+/** True when the user deleted this id, so an import must not restore it. */
+export function wasDeleted(id: string): boolean {
+  return readJson<string[]>(STORAGE_KEYS.deletedIds, []).includes(id);
 }
 
 /** Every distinct tag in use, sorted alphabetically. */

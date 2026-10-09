@@ -7,19 +7,28 @@ export const STORAGE_KEYS = {
   settings: `${STORAGE_NAMESPACE}:settings`,
   draft: `${STORAGE_NAMESPACE}:draft`,
   view: `${STORAGE_NAMESPACE}:view`,
-  /** Entry ids changed locally and not yet uploaded; see `services/sync/outbox.ts`. */
-  outbox: `${STORAGE_NAMESPACE}:outbox`,
   /**
-   * Account id the local entries belong to (the Supabase user id).
+   * Ids of entries the user deleted, newest last.
    *
-   * Without it, signing out and signing in as someone else adopted the previous account's
-   * diary and uploaded it to the new one. A missing value means no account ever signed in
-   * here, so the entries are this person's own offline writing and adopting them is right.
+   * A deleted entry leaves no other trace, so importing a backup written before the
+   * deletion would bring it back. This log is what keeps a delete a delete. Id only:
+   * no content, no stamp, and it is capped because the oldest deletions matter least.
    */
-  owner: `${STORAGE_NAMESPACE}:owner`,
-  /** Highest logical stamp this device has observed; see `services/sync/clock.ts`. */
-  clock: `${STORAGE_NAMESPACE}:clock`,
+  deletedIds: `${STORAGE_NAMESPACE}:deleted-ids`,
 } as const;
+
+/**
+ * Keys the removed sync build wrote. Nothing reads them any more.
+ *
+ * They are cleared once at startup because they survive "Clear all entries" on their own:
+ * `owner` holds an account id and `outbox` the un-uploaded queue, and the storage estimate
+ * on the Data screen counts their bytes.
+ */
+export const LEGACY_SYNC_KEYS = [
+  `${STORAGE_NAMESPACE}:outbox`,
+  `${STORAGE_NAMESPACE}:owner`,
+  `${STORAGE_NAMESPACE}:clock`,
+] as const;
 
 /** Version stamped into exported backups. */
 export const BACKUP_VERSION = 1;

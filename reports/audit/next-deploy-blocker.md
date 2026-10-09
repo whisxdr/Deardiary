@@ -1,3 +1,7 @@
+
+> **SUPERSEDED 2026-10-09:** the Supabase sync/account feature this document describes was
+> removed from the codebase on purpose; the diary is local-only again. Nothing below is
+> actionable — do not re-add sync or its host environment variables from it.
 # Deploy blocker — sync not active in production (human action required)
 
 Repo: `D:\.1Kuliah\Coding\Dear dia`. Recorded 2026-10-05. Status: OPEN, not an agent task.
