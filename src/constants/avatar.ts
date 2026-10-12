@@ -1,5 +1,5 @@
 /** DiceBear style used for user portraits. */
-export const AVATAR_STYLE = 'avataaars';
+export const AVATAR_STYLE = 'lorelei';
 
 /** DiceBear CDN endpoint for SVG portraits. */
 export const AVATAR_API_BASE = 'https://api.dicebear.com/9.x';
@@ -7,15 +7,14 @@ export const AVATAR_API_BASE = 'https://api.dicebear.com/9.x';
 export type AvatarGender = 'man' | 'woman';
 
 /**
- * Hairstyles that read as feminine and masculine in the `avataaars` style.
+ * Hairstyles that read as feminine and masculine in the `lorelei` style.
  *
- * DiceBear has no gender switch, so the look is carried by the traits themselves. The
- * style was picked over `lorelei` because its `top` option ships distinct long and short
- * cuts; `lorelei` draws an androgynous face for every seed, so no amount of toggling
- * facial hair made one read as a woman.
+ * DiceBear has no gender switch, so the look is carried by the traits themselves: a long
+ * `hair` variant, earrings and a clean jaw for the woman set, a short variant for the man
+ * set. The variants were picked by rendering all 48 and choosing by eye.
  */
-const WOMAN_HAIR = ['bob', 'bun', 'curvy', 'straightAndStrand', 'longButNotTooLong', 'bigHair'] as const;
-const MAN_HAIR = ['theCaesar', 'theCaesarAndSidePart', 'shortFlat', 'shortRound', 'shortWaved', 'sides', 'shortCurly'] as const;
+const WOMAN_HAIR = ['variant15', 'variant16', 'variant24', 'variant30', 'variant40', 'variant48'] as const;
+const MAN_HAIR = ['variant01', 'variant03', 'variant07', 'variant08', 'variant27', 'variant29'] as const;
 
 /** Distinct seeds, one per portrait, so no two choices draw the same face. */
 const WOMAN_SEEDS = ['willow', 'poppy', 'lilac', 'hazel', 'orchid', 'wren'] as const;
@@ -38,8 +37,8 @@ const MAN_CHOICES = build(MAN_SEEDS, MAN_HAIR, 'man');
 /**
  * Portrait choices offered in Profile settings.
  *
- * The two sets are interleaved, so the single grid in Settings alternates between them
- * instead of reading as one block per gender.
+ * The two sets are interleaved, so the single grid alternates between them instead of
+ * reading as one block per gender.
  */
 export const AVATAR_CHOICES: readonly AvatarChoice[] = WOMAN_CHOICES.flatMap((woman, index) =>
   index < MAN_CHOICES.length ? [woman, MAN_CHOICES[index]] : [woman],
@@ -63,9 +62,10 @@ export function choiceForSeed(seed: string): AvatarChoice {
 
 /** Builds the DiceBear portrait URL for a seed and its presentation. */
 export function avatarUrl(seed: string, gender: AvatarGender = 'man', hair: string = MAN_HAIR[0]): string {
-  const params = new URLSearchParams({ seed, top: hair });
-  // Facial hair is what most reliably reads as "man" in this style, so it is off for the
-  // woman set and left on at a modest rate for the man set.
-  params.set('facialHairProbability', gender === 'woman' ? '0' : '40');
+  const params = new URLSearchParams({ seed, hair });
+  // Earrings and a clean jaw are what read as feminine here; the man set keeps the
+  // occasional beard the style draws on its own.
+  params.set('beardProbability', gender === 'woman' ? '0' : '15');
+  if (gender === 'woman') params.set('earringsProbability', '100');
   return `${AVATAR_API_BASE}/${AVATAR_STYLE}/svg?${params.toString()}`;
 }
