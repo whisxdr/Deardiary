@@ -1,13 +1,8 @@
 import { Check } from '@phosphor-icons/react';
 import { Avatar, Input, Textarea } from '@/components/ui';
-import { AVATAR_CHOICES, choiceForSeed, type AvatarChoice, type AvatarGender } from '@/constants/avatar';
+import { AVATAR_CHOICES, choiceForSeed, type AvatarChoice } from '@/constants/avatar';
 import { useSettingsStore } from '@/store';
 import { cn } from '@/utils';
-
-const GROUPS: { gender: AvatarGender; label: string }[] = [
-  { gender: 'woman', label: 'Woman portraits' },
-  { gender: 'man', label: 'Man portraits' },
-];
 
 /** One portrait button. */
 function PortraitButton({ choice, active, onSelect }: { choice: AvatarChoice; active: boolean; onSelect: () => void }) {
@@ -58,21 +53,14 @@ export function ProfileSection() {
           hair={active.hair}
           size="lg"
         />
-        <div className="flex flex-col gap-3">
-          {GROUPS.map((group) => (
-            <fieldset key={group.gender} className="flex flex-col gap-1.5">
-              <legend className="font-body text-xs text-primary-500 dark:text-primary-300">{group.label}</legend>
-              <div className="flex flex-wrap gap-1.5">
-                {AVATAR_CHOICES.filter((choice) => choice.gender === group.gender).map((choice) => (
-                  <PortraitButton
-                    key={choice.seed}
-                    choice={choice}
-                    active={settings.avatarSeed === choice.seed}
-                    onSelect={() => update({ avatarSeed: choice.seed })}
-                  />
-                ))}
-              </div>
-            </fieldset>
+        <div className="flex flex-wrap gap-1.5">
+          {AVATAR_CHOICES.map((choice) => (
+            <PortraitButton
+              key={choice.seed}
+              choice={choice}
+              active={settings.avatarSeed === choice.seed}
+              onSelect={() => update({ avatarSeed: choice.seed })}
+            />
           ))}
         </div>
       </div>

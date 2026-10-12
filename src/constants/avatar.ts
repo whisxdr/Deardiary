@@ -32,11 +32,18 @@ function build(seeds: readonly string[], hair: readonly string[], gender: Avatar
   return seeds.map((seed, index) => ({ seed, gender, hair: hair[index % hair.length] }));
 }
 
-/** Portrait choices offered in Profile settings. */
-export const AVATAR_CHOICES: readonly AvatarChoice[] = [
-  ...build(WOMAN_SEEDS, WOMAN_HAIR, 'woman'),
-  ...build(MAN_SEEDS, MAN_HAIR, 'man'),
-];
+const WOMAN_CHOICES = build(WOMAN_SEEDS, WOMAN_HAIR, 'woman');
+const MAN_CHOICES = build(MAN_SEEDS, MAN_HAIR, 'man');
+
+/**
+ * Portrait choices offered in Profile settings.
+ *
+ * The two sets are interleaved, so the single grid in Settings alternates between them
+ * instead of reading as one block per gender.
+ */
+export const AVATAR_CHOICES: readonly AvatarChoice[] = WOMAN_CHOICES.flatMap((woman, index) =>
+  index < MAN_CHOICES.length ? [woman, MAN_CHOICES[index]] : [woman],
+);
 
 /** Default portrait for a fresh install. */
 export const DEFAULT_AVATAR = AVATAR_CHOICES[0];
