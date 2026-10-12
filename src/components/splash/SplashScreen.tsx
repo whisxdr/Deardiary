@@ -144,11 +144,8 @@ export function SplashScreen({
                 className="h-px w-16 bg-gradient-to-r from-transparent via-accent-gold/60 to-transparent"
               />
               <blockquote className="font-sub text-base italic leading-relaxed text-accent-gold/90 sm:text-lg">
-                &ldquo;{quote.en}&rdquo;
+                &ldquo;{quote}&rdquo;
               </blockquote>
-              <figcaption lang="zh-Hans" className="font-body text-xs text-accent-cream/65 sm:text-sm">
-                {quote.zh}
-              </figcaption>
             </motion.figure>
           </div>
 
@@ -159,7 +156,7 @@ export function SplashScreen({
             aria-label="Skip the opening"
             className="absolute right-4 top-4 min-h-[44px] rounded-full border border-accent-gold/30 bg-accent-gold/10 px-5 font-body text-xs uppercase tracking-[0.2em] text-accent-cream/75 backdrop-blur-sm transition-colors duration-fast hover:border-accent-gold/50 hover:bg-accent-gold/20 hover:text-accent-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold sm:right-6 sm:top-6"
           >
-            Skip · 跳过
+            Skip
           </button>
 
           <p role="status" className="sr-only">
