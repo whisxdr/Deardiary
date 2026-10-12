@@ -26,6 +26,7 @@ function PortraitButton({ choice, active, onSelect }: { choice: AvatarChoice; ac
         name={choice.seed}
         seed={choice.seed}
         gender={choice.gender}
+        hair={choice.hair}
         size="md"
         className="h-full w-full rounded-none border-0"
       />
@@ -50,7 +51,13 @@ export function ProfileSection() {
         Profile
       </h2>
       <div className="flex items-start gap-4">
-        <Avatar name={settings.displayName} seed={active.seed} gender={active.gender} size="lg" />
+        <Avatar
+          name={settings.displayName}
+          seed={active.seed}
+          gender={active.gender}
+          hair={active.hair}
+          size="lg"
+        />
         <div className="flex flex-col gap-3">
           {GROUPS.map((group) => (
             <fieldset key={group.gender} className="flex flex-col gap-1.5">

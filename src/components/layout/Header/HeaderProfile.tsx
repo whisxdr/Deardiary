@@ -14,6 +14,7 @@ export function HeaderProfile() {
   const [open, setOpen] = useState(false);
   const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open);
   const { displayName, avatarSeed } = useSettingsStore((state) => state.settings);
+  const portrait = choiceForSeed(avatarSeed);
   const { toggleTheme, isDark } = useTheme();
 
   // Click-outside only covers the mouse; the menu also has to answer Escape.
@@ -36,7 +37,13 @@ export function HeaderProfile() {
         aria-label="Account menu"
         className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold"
       >
-        <Avatar name={displayName} seed={avatarSeed} gender={choiceForSeed(avatarSeed).gender} size="sm" />
+        <Avatar
+          name={displayName}
+          seed={avatarSeed}
+          gender={portrait.gender}
+          hair={portrait.hair}
+          size="sm"
+        />
       </button>
 
       {open ? (

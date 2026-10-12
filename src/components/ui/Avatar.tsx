@@ -9,6 +9,8 @@ export interface AvatarProps {
   seed?: string;
   /** Portrait presentation for the seed; defaults to the man set. */
   gender?: AvatarGender;
+  /** Pinned hairstyle; without one DiceBear picks from the whole style. */
+  hair?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -25,7 +27,7 @@ const SIZES = {
  * The portrait is fetched from the DiceBear CDN, so it falls back to local initials
  * when the browser is offline or the request is blocked.
  */
-export function Avatar({ name, seed, gender = 'man', size = 'md', className }: AvatarProps) {
+export function Avatar({ name, seed, gender = 'man', hair, size = 'md', className }: AvatarProps) {
   const [failed, setFailed] = useState(false);
   const showPortrait = Boolean(seed) && !failed;
 
@@ -41,7 +43,7 @@ export function Avatar({ name, seed, gender = 'man', size = 'md', className }: A
     >
       {showPortrait ? (
         <img
-          src={avatarUrl(seed as string, gender)}
+          src={avatarUrl(seed as string, gender, hair)}
           alt=""
           aria-hidden="true"
           loading="lazy"
