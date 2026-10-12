@@ -63,6 +63,18 @@
 }
 
 @layer components {
+  /*
+   * Rotation pivot for the opening screen's SVG groups.
+   *
+   * `transform-box: view-box` measures the origin against the viewBox rather than the
+   * element's own box, so the orbit rings and the centre star all turn about the middle
+   * of the drawing (320/2) instead of about their own corner.
+   */
+  .splash-pivot {
+    transform-box: view-box;
+    transform-origin: center;
+  }
+
   .paper-texture {
     background-image: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05)),
       url('/textures/paper.svg');

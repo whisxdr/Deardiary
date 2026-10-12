@@ -11,25 +11,101 @@
     <meta name="theme-color" content="#3E2723" />
     <!--
       Fonts are self-hosted (see src/styles/fonts.css), so no third-party origin sits in
-      the render-blocking path. All five cover the first screen: the cover title uses
-      Playfair Display, the body text Inter, the date JetBrains Mono, the title accent
-      Cormorant Garamond and the quote Caveat. Preloading the hand/mono/serif faces keeps
-      the cover from swapping fonts in after it has painted.
+      the render-blocking path. Only the two faces the opening screen paints are preloaded:
+      the greeting is Playfair Display and the quote Cormorant Garamond. Preloading the
+      other three cost 150 KB of early bandwidth on a slow link, which pushed the
+      stylesheet — and with it the first paint — past 1.4 s. They load when the text that
+      uses them is rendered.
     -->
     <link rel="preload" href="/fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/jetbrains-mono-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/cormorant-400-italic.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/caveat-400.woff2" as="font" type="font/woff2" crossorigin />
     <!--
-      Applies the stored theme before first paint. External rather than inline so the
-      `script-src 'self'` policy still holds; see public/theme-init.js for why it exists.
+      First paint no longer waits for the bundle.
+
+      The opening screen needs a star on a night ground, and that is all this markup and
+      its inline styles are: the same first frame `CelestialStars` draws, painted straight
+      from the HTML. The stylesheet and the entry chunk arrive later and hand over to the
+      animated version, which sits on exactly the same spot, so nothing moves.
+
+      The boot script replaces `public/theme-init.js`. Inlining it removes a request from
+      the critical path; `script-src` in the three CSP files carries its sha256 instead of
+      dropping to 'unsafe-inline'. scripts/check-csp-parity.mjs recomputes that hash, so a
+      stale policy fails the suite instead of silently breaking the first paint.
     -->
-    <script src="/theme-init.js"></script>
+    <style>
+      #splash-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1a0f0a;
+        background-image: radial-gradient(ellipse at center, rgba(201, 169, 97, 0.16), transparent 62%);
+      }
+      #splash-shell img {
+        width: min(58vw, 280px, 44vh);
+        height: min(58vw, 280px, 44vh);
+      }
+      html[data-splash='skip'] #splash-shell {
+        display: none;
+      }
+    </style>
+    <script>
+      (function () {
+        var THEMES = ['leather', 'paper', 'night'];
+        var FONT_SIZES = ['sm', 'md', 'lg'];
+        var root = document.documentElement;
+        var settings = null;
+        try {
+          var raw = window.localStorage.getItem('deardiary:settings');
+          settings = raw ? JSON.parse(raw) : null;
+        } catch (error) {
+          settings = null;
+        }
+        if (settings && typeof settings === 'object') {
+          if (THEMES.indexOf(settings.theme) !== -1) {
+            root.dataset.theme = settings.theme;
+            root.classList.toggle('dark', settings.theme === 'night');
+          }
+          if (FONT_SIZES.indexOf(settings.fontSize) !== -1) {
+            root.dataset.fontSize = settings.fontSize;
+          }
+        }
+
+        // The opening runs once per session. A returning visitor gets the app straight
+        // away, so the shell is hidden before the first paint rather than after it.
+        var shown = false;
+        try {
+          shown = window.sessionStorage.getItem('deardiary:splash-shown') === '1';
+        } catch (error) {
+          shown = false;
+        }
+        root.dataset.splash = shown ? 'skip' : 'shell';
+
+        if (!shown) {
+          // Safety net: if the bundle never mounts, the opening must not stay over the app.
+          window.setTimeout(function () {
+            var shell = document.getElementById('splash-shell');
+            if (shell) shell.remove();
+          }, 8000);
+        }
+      })();
+    </script>
     <title>DearDiary — Every page is your story</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Static first frame: the star system, painted before any script runs. It is an
+        <img> rather than inline SVG on purpose — the browser counts images towards
+        Largest Contentful Paint, so the opening screen's first paint is the one that sets
+        LCP instead of a paragraph further down the app.
+      -->
+      <div id="splash-shell" aria-hidden="true">
+        <img src="/splash-star.svg" alt="" />
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

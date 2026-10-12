@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Button } from '@/components/ui';
-import { ConfirmDialog } from '@/components/common';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { exportBackup } from '@/services';
 import { estimateUsage, isPersistent } from '@/lib/storage';
 import { formatBytes, formatCount } from '@/lib';

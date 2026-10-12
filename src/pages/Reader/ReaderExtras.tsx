@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui';
-import { ConfirmDialog, EmptyState } from '@/components/common';
+import { EmptyState } from '@/components/common';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { exportEntryAsMarkdown, exportEntryAsText } from '@/services';
 import type { Entry } from '@/types';
 

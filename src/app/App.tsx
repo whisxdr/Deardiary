@@ -1,17 +1,15 @@
-import { Suspense, lazy, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { SplashScreen } from '@/components/splash/SplashScreen';
 import { AppRouter } from './router';
 import { Providers } from './providers';
 
 /**
- * The opening screen is code-split for the same reason the routes are: it is the one other
- * place that pulls Framer Motion in, and the entry chunk should not carry it. The main app
- * mounts behind it, so the fade reveals a page that has already painted.
+ * Root component: providers around the router, with the opening on top.
+ *
+ * The opening screen is a plain import rather than a lazy chunk: it is CSS-only, so it no
+ * longer drags Framer Motion onto the first paint, and mounting it with the app is what
+ * lets it take over from the static shell in index.html without a gap between the two.
  */
-const SplashScreen = lazy(() =>
-  import('@/components/splash').then((module) => ({ default: module.SplashScreen })),
-);
-
-/** Root component: bootstrap providers around the router, with the opening on top. */
 export function App() {
   const [showSplash, setShowSplash] = useState(true);
   const hideSplash = useCallback(() => setShowSplash(false), []);
@@ -19,11 +17,7 @@ export function App() {
   return (
     <Providers>
       <AppRouter />
-      {showSplash ? (
-        <Suspense fallback={null}>
-          <SplashScreen onComplete={hideSplash} oncePerSession />
-        </Suspense>
-      ) : null}
+      {showSplash ? <SplashScreen onComplete={hideSplash} oncePerSession /> : null}
     </Providers>
   );
 }

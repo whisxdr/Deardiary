@@ -11,7 +11,7 @@ const PORT = Number(process.argv[2] ?? 5212);
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  "script-src 'self' 'sha256-3SU9DRvRUSfzkyiTfPe5E1YQJCR8QyqaEKZPr7wHtlU='",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: https:",

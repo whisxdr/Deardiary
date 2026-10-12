@@ -1,7 +1,7 @@
 export { AppLayout } from './AppLayout';
 export type { AppLayoutProps } from './AppLayout';
-export { ComposerModal, ENTRY_TYPE_OPTIONS } from './ComposerModal';
-export type { ComposerModalProps, EntryTypeOption } from './ComposerModal';
+// ComposerModal is deliberately not re-exported: it carries Framer Motion through Modal,
+// and only the dashboard opens it. That page lazy-loads it on the first click instead.
 export { FAB } from './FAB';
 export type { FABProps } from './FAB';
 export { Footer } from './Footer';

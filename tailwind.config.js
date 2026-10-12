@@ -98,6 +98,41 @@ export default {
           '0%, 100%': { opacity: '0.15', transform: 'scale(0.7)' },
           '50%': { opacity: '0.9', transform: 'scale(1.15)' },
         },
+        // The opening screen is CSS, not Framer Motion: it is the first thing every
+        // visitor paints, and the animation library cost more than the four loops it
+        // drew. Every keyframe below touches only transform and opacity.
+        'star-twinkle': {
+          '0%, 100%': { opacity: '0.35' },
+          '50%': { opacity: '1' },
+        },
+        orbit: {
+          from: { transform: 'rotate(0deg)' },
+          to: { transform: 'rotate(360deg)' },
+        },
+        'orbit-reverse': {
+          from: { transform: 'rotate(360deg)' },
+          to: { transform: 'rotate(0deg)' },
+        },
+        breathe: {
+          '0%, 100%': { transform: 'scale(0.95)' },
+          '50%': { transform: 'scale(1.05)' },
+        },
+        'splash-fade': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'splash-lift': {
+          from: { transform: 'translateY(0)' },
+          to: { transform: 'translateY(-20px)' },
+        },
+        'splash-rise': {
+          '0%': { opacity: '0', transform: 'translateY(16px)', filter: 'blur(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)', filter: 'blur(0)' },
+        },
+        'splash-out': {
+          from: { opacity: '1', transform: 'scale(1)' },
+          to: { opacity: '0', transform: 'scale(1.04)' },
+        },
       },
       animation: {
         'ink-drop': 'ink-drop 400ms cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -105,6 +140,14 @@ export default {
         'fade-slide': 'fade-slide 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
         twinkle: 'twinkle 4s ease-in-out infinite',
         'page-turn': 'page-turn 3s ease-in-out infinite',
+        'star-twinkle': 'star-twinkle 3.6s ease-in-out infinite',
+        orbit: 'orbit 10s linear infinite',
+        'orbit-reverse': 'orbit-reverse 10s linear infinite',
+        breathe: 'breathe 5.4s ease-in-out infinite',
+        'splash-fade': 'splash-fade 600ms cubic-bezier(0.16, 1, 0.3, 1) both',
+        'splash-lift': 'splash-lift 1.4s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'splash-rise': 'splash-rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'splash-out': 'splash-out 800ms cubic-bezier(0.16, 1, 0.3, 1) both',
       },
     },
   },

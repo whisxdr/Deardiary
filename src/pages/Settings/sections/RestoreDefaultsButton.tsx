@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, toast } from '@/components/ui';
-import { ConfirmDialog } from '@/components/common';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useSettingsStore } from '@/store';
 
 /** Restores every preference to its default, behind a confirmation. */

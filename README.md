@@ -26,7 +26,7 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Start the Vite dev server with hot reload |
-| `npm run build` | Type-check with `tsc` then build to `dist/` |
+| `npm run build` | Type-check with `tsc`, build to `dist/`, then inline the stylesheet into `dist/index.html` |
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` | Run the TypeScript compiler in check-only mode |
 | `npm run lint:emoji` | ESLint, including the rules that keep Unicode emoji out of the UI |

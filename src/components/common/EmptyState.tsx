@@ -21,7 +21,9 @@ export function EmptyState({ title, description, illustration, action, className
       )}
     >
       {illustration ? <div className="max-w-full">{illustration}</div> : null}
-      <h3 className="font-display text-lg text-primary-700 dark:text-primary-100">{title}</h3>
+      {/* h2 rather than h3: an empty dashboard is h1 then this, and a skipped level is a
+          heading-order failure for screen readers. */}
+      <h2 className="font-display text-lg text-primary-700 dark:text-primary-100">{title}</h2>
       <p className="max-w-sm font-body text-sm text-primary-500 dark:text-primary-300">{description}</p>
       {action ? <div className="mt-1">{action}</div> : null}
     </div>

@@ -1,0 +1,3 @@
+# The boot script inlined in index.html is pinned by a sha256 in the three CSP files.
+# A CRLF checkout would change its bytes, and the hash would no longer match.
+index.html text eol=lf

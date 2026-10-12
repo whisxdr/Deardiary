@@ -1,7 +1,7 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { STORAGE_NAMESPACE } from '@/constants';
 import { useKeyboard, usePrefersReducedMotion } from '@/hooks';
+import { cn } from '@/utils';
 import { CelestialStars, Stardust } from './CelestialStars';
 import { randomSplashQuote } from './quotes';
 
@@ -14,8 +14,12 @@ const AUTO_EXIT_MS = 5_500;
 /** A visitor who asked for reduced motion gets the still card, not a five second wait. */
 const REDUCED_MOTION_MS = 1_400;
 
-/** Shared easing: the same curve the dialog transitions already use. */
-const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
+/** Start of the lift, kept in step with `splash-lift` in tailwind.config.js. */
+const LIFT_DELAY_S = 2;
+
+/** Greeting and quote reveal one after the other; same table as `splash-rise`. */
+const TITLE_DELAY_S = 2.2;
+const QUOTE_DELAY_S = 3.4;
 
 function hasSeenSplash(): boolean {
   try {
@@ -47,6 +51,12 @@ export interface SplashScreenProps {
  * Cinematic opening: a star system drifts, the greeting surfaces, then the whole screen
  * fades and hands over through `onComplete`.
  *
+ * The animation is CSS, not Framer Motion. This is the first screen every visitor paints,
+ * so the library was the single largest thing on the critical path, and four keyframes do
+ * the same work with nothing to parse. `prefers-reduced-motion` is handled for free by the
+ * global rule that collapses animation durations, which lands every keyframe on its end
+ * state; the only thing left to do here is leave sooner.
+ *
  * The main app stays mounted behind this overlay, so the fade reveals a page that has
  * already painted and its lazy route chunk has already loaded.
  */
@@ -58,112 +68,110 @@ export function SplashScreen({
   const reducedMotion = usePrefersReducedMotion();
   const [skipped] = useState(() => oncePerSession && hasSeenSplash());
   const [quote] = useState(randomSplashQuote);
-  const [visible, setVisible] = useState(true);
-  const finish = useCallback(() => setVisible(false), []);
+  const [leaving, setLeaving] = useState(false);
+  // index.html painted this frame before any script ran. Fading in over it would blink
+  // the star the visitor is already looking at, so the opening starts visible instead.
+  const [shellPainted] = useState(() => document.documentElement.dataset.splash === 'shell');
+  const completed = useRef(false);
 
-  const stayMs = reducedMotion ? REDUCED_MOTION_MS : duration;
+  const complete = useCallback(() => {
+    if (completed.current) return;
+    completed.current = true;
+    onComplete();
+  }, [onComplete]);
 
-  // A returning visitor is waved straight through: `onComplete` unmounts this component
-  // in the same tick, so nothing of the opening ever paints.
+  const finish = useCallback(() => setLeaving(true), []);
+
+  // Take the static shell down as soon as this component owns the screen.
   useEffect(() => {
-    if (skipped) onComplete();
-  }, [onComplete, skipped]);
+    document.getElementById('splash-shell')?.remove();
+    document.documentElement.dataset.splash = skipped ? 'skip' : 'done';
+  }, [skipped]);
+
+  // A returning visitor is waved straight through: nothing of the opening ever paints.
+  useEffect(() => {
+    if (skipped) complete();
+  }, [complete, skipped]);
 
   useEffect(() => {
     if (skipped) return;
     if (oncePerSession) markSplashSeen();
-    const timer = window.setTimeout(finish, stayMs);
+    const timer = window.setTimeout(finish, reducedMotion ? REDUCED_MOTION_MS : duration);
     return () => window.clearTimeout(timer);
-  }, [finish, oncePerSession, skipped, stayMs]);
+  }, [duration, finish, oncePerSession, reducedMotion, skipped]);
 
-  useKeyboard([{ key: 'Escape', handler: finish }], visible && !skipped);
+  useKeyboard([{ key: 'Escape', handler: finish }], !skipped && !leaving);
 
   if (skipped) return null;
 
   return (
-    <AnimatePresence onExitComplete={onComplete}>
-      {visible ? (
-        <motion.div
-          key="splash"
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-primary-900 px-6"
-          initial={reducedMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            scale: reducedMotion ? 1 : 1.04,
-            transition: { duration: reducedMotion ? 0 : 0.8, ease: EASE_OUT_EXPO },
-          }}
-          transition={{ duration: reducedMotion ? 0 : 0.6 }}
+    <div
+      className={cn(
+        'fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-primary-900 px-6',
+        leaving ? 'animate-splash-out' : !shellPainted && 'animate-splash-fade',
+      )}
+      // The exit animation is the only signal that the handover is done; the guard in
+      // `complete` keeps a re-run from calling `onComplete` twice.
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget && leaving) complete();
+      }}
+    >
+      {/* Warm vignette over the night ground. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,169,97,0.16),transparent_62%)]"
+      />
+      <Stardust />
+
+      {/*
+        The star sits exactly on the viewport centre, where the static shell drew it, and
+        the greeting hangs below it. Both match the shell's geometry, so the handover moves
+        nothing.
+      */}
+      <div className="relative flex flex-col items-center">
+        <div
+          className="h-[min(58vw,280px,44vh)] w-[min(58vw,280px,44vh)] [will-change:transform] motion-safe:animate-splash-lift"
+          style={{ animationDelay: `${LIFT_DELAY_S}s` }}
         >
-          {/* Warm vignette over the night ground. */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(201,169,97,0.16),transparent_62%)]"
-          />
-          <Stardust />
+          <CelestialStars />
+        </div>
 
-          <div className="relative flex flex-col items-center gap-6">
-            <motion.div
-              className="h-[min(58vw,280px)] w-[min(58vw,280px)]"
-              initial={reducedMotion ? false : { opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1, y: reducedMotion ? 0 : [0, -20] }}
-              transition={
-                reducedMotion
-                  ? { duration: 0 }
-                  : {
-                      opacity: { duration: 1.4, ease: EASE_OUT_EXPO },
-                      scale: { duration: 1.4, ease: EASE_OUT_EXPO },
-                      y: { delay: 2, duration: 1.4, ease: EASE_OUT_EXPO },
-                    }
-              }
-            >
-              <CelestialStars />
-            </motion.div>
-
-            <motion.h1
-              className="font-display text-3xl tracking-[0.08em] text-accent-cream [text-shadow:0_0_28px_rgba(201,169,97,0.35)] sm:text-4xl md:text-5xl"
-              initial={reducedMotion ? false : { opacity: 0, y: 16, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={
-                reducedMotion ? { duration: 0 } : { delay: 2.2, duration: 1.2, ease: EASE_OUT_EXPO }
-              }
-            >
-              Welcome to Dear Diary
-            </motion.h1>
-
-            <motion.figure
-              className="flex max-w-xl flex-col items-center gap-3 text-center"
-              initial={reducedMotion ? false : { opacity: 0, y: 16, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={
-                reducedMotion ? { duration: 0 } : { delay: 3.4, duration: 1.2, ease: EASE_OUT_EXPO }
-              }
-            >
-              <span
-                aria-hidden="true"
-                className="h-px w-16 bg-gradient-to-r from-transparent via-accent-gold/60 to-transparent"
-              />
-              <blockquote className="font-sub text-base italic leading-relaxed text-accent-gold/90 sm:text-lg">
-                &ldquo;{quote}&rdquo;
-              </blockquote>
-            </motion.figure>
-          </div>
-
-          <button
-            type="button"
-            autoFocus
-            onClick={finish}
-            aria-label="Skip the opening"
-            className="absolute right-4 top-4 min-h-[44px] rounded-full border border-accent-gold/30 bg-accent-gold/10 px-5 font-body text-xs uppercase tracking-[0.2em] text-accent-cream/75 backdrop-blur-sm transition-colors duration-fast hover:border-accent-gold/50 hover:bg-accent-gold/20 hover:text-accent-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold sm:right-6 sm:top-6"
+        <div className="absolute left-1/2 top-full flex w-[min(88vw,40rem)] -translate-x-1/2 flex-col items-center gap-4 pt-6 text-center">
+          <h1
+            className="animate-splash-rise font-display text-3xl tracking-[0.08em] text-accent-cream [text-shadow:0_0_28px_rgba(201,169,97,0.35)] sm:text-4xl md:text-5xl"
+            style={{ animationDelay: `${TITLE_DELAY_S}s` }}
           >
-            Skip
-          </button>
+            Welcome to Dear Diary
+          </h1>
 
-          <p role="status" className="sr-only">
-            Opening Dear Diary
-          </p>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+          <figure
+            className="animate-splash-rise flex flex-col items-center gap-3"
+            style={{ animationDelay: `${QUOTE_DELAY_S}s` }}
+          >
+            <span
+              aria-hidden="true"
+              className="h-px w-16 bg-gradient-to-r from-transparent via-accent-gold/60 to-transparent"
+            />
+            <blockquote className="font-sub text-base italic leading-relaxed text-accent-gold/90 sm:text-lg">
+              &ldquo;{quote}&rdquo;
+            </blockquote>
+          </figure>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        autoFocus
+        onClick={finish}
+        aria-label="Skip the opening"
+        className="absolute right-4 top-4 min-h-[44px] rounded-full border border-accent-gold/30 bg-accent-gold/10 px-5 font-body text-xs uppercase tracking-[0.2em] text-accent-cream/75 backdrop-blur-sm transition-colors duration-fast hover:border-accent-gold/50 hover:bg-accent-gold/20 hover:text-accent-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold sm:right-6 sm:top-6"
+      >
+        Skip
+      </button>
+
+      <p role="status" className="sr-only">
+        Opening Dear Diary
+      </p>
+    </div>
   );
 }

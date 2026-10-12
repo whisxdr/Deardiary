@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 import { usePrefersReducedMotion } from '@/hooks';
 import { cn } from '@/utils';
@@ -13,14 +12,13 @@ const CREAM = '#F5F0E6';
 /** Spikes of the little travelling stars, in viewBox units; orbits scale from this. */
 const SPARKLE_UNIT = 6;
 
-/** One full orbit. Slow enough to read as drifting rather than spinning. */
-const ORBIT_SECONDS = 10;
-
 /**
  * Star outline as an SVG path.
  *
  * Walks `points` spikes, alternating the outer and inner radius, so the shape is
- * generated instead of pasted in as a long `d` string.
+ * generated instead of pasted in as a long `d` string. The static shell in index.html
+ * carries the same two paths in plain markup, so the first painted frame and this one
+ * sit on exactly the same pixels.
  */
 function starPath(outer: number, inner: number, points: number): string {
   const step = Math.PI / points;
@@ -85,25 +83,19 @@ export interface CelestialStarsProps {
 /**
  * Rotating star system: an 8-point star inside two orbit rings, each ring carrying stars.
  *
- * Every ring sits inside the group it rotates with, so the group's bounding box is the
- * ring itself. Motion rotates an SVG child about its own box, which makes the ring centre
- * the rotation origin without any `transform-origin` guesswork.
- *
- * The `initial` transform on each animated group is load-bearing: Motion only copies an
- * SVG element's transform into a rendered CSS transform after it has measured the node,
- * and it measures on the first update where a transform value exists. A keyframe-only
- * `animate` misses that window and the rotation is dropped without a warning.
+ * Every loop is a CSS keyframe on the compositor: three infinite animations are cheap
+ * there, while the same loops driven from JavaScript kept a phone's main thread busy.
+ * Rings sit inside the group they rotate with, and `.splash-pivot` measures the transform
+ * origin against the viewBox, so the rotation centre is the ring centre.
  *
  * The glow is layered radial gradients rather than an SVG blur or drop-shadow filter: a
  * filter would repaint the whole subtree on every frame of the breathing loop.
  */
 export function CelestialStars({ className }: CelestialStarsProps) {
-  const reducedMotion = usePrefersReducedMotion();
-
   return (
     <svg
       viewBox={`0 0 ${SIZE} ${SIZE}`}
-      className={cn('h-full w-full [will-change:transform,opacity]', className)}
+      className={cn('h-full w-full', className)}
       aria-hidden="true"
       focusable="false"
     >
@@ -124,15 +116,12 @@ export function CelestialStars({ className }: CelestialStarsProps) {
       <circle cx={CENTER} cy={CENTER} r={CENTER} fill="url(#splash-halo)" />
 
       {ORBITS.map((orbit) => (
-        <motion.g
+        <g
           key={orbit.radius}
-          initial={{ rotate: 0 }}
-          animate={{ rotate: reducedMotion ? 0 : orbit.direction === 1 ? [0, 360] : [360, 0] }}
-          transition={
-            reducedMotion
-              ? { duration: 0 }
-              : { duration: ORBIT_SECONDS, repeat: Infinity, ease: 'linear' }
-          }
+          className={cn(
+            'splash-pivot [will-change:transform]',
+            orbit.direction === 1 ? 'animate-orbit' : 'animate-orbit-reverse',
+          )}
         >
           <circle
             cx={CENTER}
@@ -152,30 +141,20 @@ export function CelestialStars({ className }: CelestialStarsProps) {
             return (
               // Wrapper carries the position so the animated path only ever touches opacity.
               <g key={star.angle} transform={`translate(${x} ${y}) scale(${scale})`}>
-                <motion.path
+                <path
                   d={SPARKLE}
                   fill={CREAM}
-                  animate={reducedMotion ? { opacity: 0.85 } : { opacity: [0.35, 1, 0.35] }}
-                  transition={
-                    reducedMotion
-                      ? { duration: 0 }
-                      : { duration: 3.6, repeat: Infinity, ease: 'easeInOut', delay: star.delay }
-                  }
+                  className="animate-star-twinkle"
+                  style={{ animationDelay: `${star.delay}s` }}
                 />
               </g>
             );
           })}
-        </motion.g>
+        </g>
       ))}
 
       {/* The centre star, breathing in place. */}
-      <motion.g
-        initial={{ scale: 1 }}
-        animate={reducedMotion ? { scale: 1 } : { scale: [0.95, 1.05, 0.95] }}
-        transition={
-          reducedMotion ? { duration: 0 } : { duration: 5.4, repeat: Infinity, ease: 'easeInOut' }
-        }
-      >
+      <g className="splash-pivot animate-breathe [will-change:transform]">
         <g transform={`translate(${CENTER} ${CENTER})`}>
           <circle r="34" fill="url(#splash-core)" />
           <path d={STAR_CROSS} fill={GOLD} transform="rotate(45)" />
@@ -183,7 +162,7 @@ export function CelestialStars({ className }: CelestialStarsProps) {
           <path d={STAR_SPIKES} fill={CREAM} fillOpacity="0.95" />
           <circle r="2.6" fill={CREAM} />
         </g>
-      </motion.g>
+      </g>
     </svg>
   );
 }
@@ -204,7 +183,7 @@ interface Mote {
 /**
  * Twinkling stardust behind the star system.
  *
- * CSS keyframes rather than a Motion loop: this is a dozen infinite animations, and the
+ * CSS keyframes rather than a script loop: this is a dozen infinite animations, and the
  * cover's rising dust already learned that many JS-driven loops keep a phone's main
  * thread busy while a compositor animation costs nothing per frame.
  */

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AppLayout, ComposerModal, FAB } from '@/components/layout';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { FAB } from '@/components/layout/FAB';
 import { ROUTES } from '@/constants';
 import { useEntries, useFilter } from '@/hooks';
 import { useEntryStore, useSettingsStore, useUiStore } from '@/store';
@@ -8,6 +9,15 @@ import { DashboardGrid } from './DashboardGrid';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardToolbar } from './DashboardToolbar';
 import { tagOptionsFor } from './dashboardFilters';
+
+/**
+ * The composer is only ever opened by a click, and it carries Framer Motion through
+ * `Modal`. Loading it on that click keeps the animation library off the dashboard's first
+ * paint, which is the route every visitor lands on.
+ */
+const ComposerModal = lazy(() =>
+  import('@/components/layout/ComposerModal').then((module) => ({ default: module.ComposerModal })),
+);
 
 /** Entry library: search, filter, sort and browse every written page. */
 export default function Dashboard() {
@@ -82,16 +92,20 @@ export default function Dashboard() {
         />
       </div>
       <FAB onClick={() => setComposerOpen(true)} />
-      <ComposerModal
-        open={composerOpen}
-        onClose={() => setComposerOpen(false)}
-        onSelect={(templateId, backdated) => {
-          setComposerOpen(false);
-          const params = new URLSearchParams({ template: templateId });
-          if (backdated) params.set('backdated', 'true');
-          navigate(`${ROUTES.write}?${params.toString()}`);
-        }}
-      />
+      {composerOpen ? (
+        <Suspense fallback={null}>
+          <ComposerModal
+            open
+            onClose={() => setComposerOpen(false)}
+            onSelect={(templateId, backdated) => {
+              setComposerOpen(false);
+              const params = new URLSearchParams({ template: templateId });
+              if (backdated) params.set('backdated', 'true');
+              navigate(`${ROUTES.write}?${params.toString()}`);
+            }}
+          />
+        </Suspense>
+      ) : null}
     </AppLayout>
   );
 }

@@ -1,7 +1,7 @@
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout';
-import { ConfirmDialog } from '@/components/common';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useKeyboard } from '@/hooks';
 import { ROUTES } from '@/constants';
 import { WriteEditor } from './WriteEditor';

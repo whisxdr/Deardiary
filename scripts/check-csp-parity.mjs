@@ -11,6 +11,7 @@
  *
  * Run: `node scripts/check-csp-parity.mjs`
  */
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -77,6 +78,21 @@ if (allPresent) {
 
   const script = directive(serve, 'script-src');
   check("script-src does not carry 'unsafe-inline'", !script.includes('unsafe-inline'), script);
+
+  // The boot script in index.html runs before the first paint, so it is inline and the
+  // policy names it by hash. A stale digest would silently block it: the stored theme
+  // stops applying and the first frame flashes the default. Recompute it here.
+  const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
+  const inline = html.match(/<script>([\s\S]*?)<\/script>/);
+  const expected = inline
+    ? `sha256-${createHash('sha256').update(inline[1], 'utf8').digest('base64')}`
+    : null;
+  check('index.html carries the inline boot script', Boolean(inline));
+  check(
+    'script-src carries the sha256 of that boot script',
+    Boolean(expected) && script.includes(`'${expected}'`),
+    expected ?? 'no inline script',
+  );
 }
 
 console.log('\n# csp parity');

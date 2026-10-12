@@ -6,7 +6,14 @@ export const LIMITS = {
   contentMaxLength: 20_000,
   locationMaxLength: 120,
   maxImages: 6,
-  virtualizeThreshold: 100,
+  /**
+   * Above this many entries the dashboard grid virtualizes.
+   *
+   * Each card is a few dozen nodes, so a hundred of them was the point where a phone
+   * started holding thousands of nodes for cards nobody scrolled to. Thirty keeps a
+   * screenful rendered plus overscan at every size the grid switches between.
+   */
+  virtualizeThreshold: 30,
 } as const;
 
 /** Timing values shared by autosave, search and animation helpers. */
