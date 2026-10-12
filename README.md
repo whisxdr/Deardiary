@@ -36,7 +36,7 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Leather cover, daily quote, "Open the Book" |
+| `/` | Opening screen, then straight into the dashboard |
 | `/dashboard` | Search, filter, sort and browse every entry |
 | `/write` and `/write/:id` | Rich text editor with autosave and a details sidebar |
 | `/entry/:id` | Two-page reader with drop cap and page-flip navigation |
@@ -60,7 +60,7 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 - Tailwind CSS 3.4 with a custom book theme
 - Zustand for entries and settings state
 - Tiptap for the rich text editor
-- Framer Motion for page flips, ink drops and the cover parallax
+- Framer Motion for page flips, the opening screen and the dialog transitions
 - Recharts for the statistics charts
 - sonner for toasts, uuid for ids
 - jsPDF and html2canvas for PDF export

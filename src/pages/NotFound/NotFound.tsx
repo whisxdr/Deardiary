@@ -18,9 +18,6 @@ export default function NotFoundPage() {
           <ArrowLeft size={16} weight="regular" aria-hidden="true" />
           Back to entries
         </Link>
-        <Link to={ROUTES.landing} className={buttonVariants({ variant: 'outline' })}>
-          Return to the cover
-        </Link>
       </div>
     </main>
   );

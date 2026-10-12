@@ -23,7 +23,7 @@ const FOCUS_RING =
 /** Wordmark and primary navigation links for the app header. */
 export function HeaderLogo() {
   return (
-    <NavLink to={ROUTES.landing} className={`flex items-center gap-2 rounded-md ${FOCUS_RING}`}>
+    <NavLink to={ROUTES.home} className={`flex items-center gap-2 rounded-md ${FOCUS_RING}`}>
       <BookOpen size={24} weight="duotone" aria-hidden="true" className="text-accent-gold" />
       <span className="font-display text-lg tracking-wide text-accent-cream">{APP_CONFIG.name}</span>
       <span className="sr-only">{APP_CONFIG.tagline}</span>

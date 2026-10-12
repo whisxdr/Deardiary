@@ -1,4 +1,4 @@
-/** Rotating quotes shown on the cover page footer. */
+/** Rotating quotes shown in the app footer. */
 export const QUOTES: string[] = [
   'Every page is your story.',
   'A diary is a mirror that remembers.',

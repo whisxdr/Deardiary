@@ -19,7 +19,7 @@ function dayToIso(day: string): string {
  *
  * A template, a backdated request or an explicit day from the calendar always wins: the
  * composer only sends one when the user just picked it, and starting from a draft would
- * ignore the choice. "Continue Writing" is the only caller that passes `resumeDraft`.
+ * ignore the choice. `?resume=true` is the only thing that passes `resumeDraft`.
  */
 export function resumesDraft(
   templateId: string | null,

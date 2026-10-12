@@ -9,7 +9,7 @@ export interface UseWriteFormOptions {
   backdated?: boolean;
   /** ISO date chosen on the calendar, used as the entry's day. */
   dated?: string | null;
-  /** True only for "Continue Writing", which resumes a stored draft. */
+  /** True only for `?resume=true`, which loads a stored draft. */
   resume?: boolean;
 }
 

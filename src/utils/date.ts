@@ -4,7 +4,7 @@ import { longDateFormatter, shortDateFormatter, timeFormatter } from './formatte
  * Shared date primitives: parsing, ISO keys and display formatting.
  *
  * These helpers used `date-fns`, which is tree-shakeable but still put a large shared
- * chunk on the first paint: the cover page needs one long date, and every visit paid for
+ * chunk on the first paint: one long date is all the UI needs, and every visit paid for
  * the library's parsing and locale machinery. `Intl` is native and ships no bytes.
  */
 

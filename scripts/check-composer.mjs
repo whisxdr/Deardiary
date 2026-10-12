@@ -82,16 +82,18 @@ try {
     JSON.stringify((afterNewEntry.body ?? '').slice(0, 40)),
   );
 
-  // 3. "Continue Writing" must still resume the draft.
+  // 3. The app opens straight into the diary, and `?resume=true` still restores the draft.
   await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
-  const continueButton = page.getByRole('button', { name: /Continue Writing/i });
-  check('Landing offers Continue Writing while a draft exists', (await continueButton.count()) > 0);
-  await continueButton.first().click();
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(400);
+  const rootPath = await page.evaluate(() => window.location.pathname);
+  check('The app root lands on the dashboard', rootPath === '/dashboard', rootPath);
+
+  await page.goto(`${BASE}/write?resume=true`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(600);
   const resumed = await composerState();
-  check('Continue Writing restores the draft title', resumed.title === 'First note', JSON.stringify(resumed.title));
+  check('Resuming a draft restores its title', resumed.title === 'First note', JSON.stringify(resumed.title));
   check(
-    'Continue Writing restores the draft body',
+    'Resuming a draft restores its body',
     (resumed.body ?? '').includes('Body of the first note'),
     JSON.stringify((resumed.body ?? '').slice(0, 40)),
   );

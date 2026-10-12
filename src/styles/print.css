@@ -27,8 +27,7 @@
     color: #444444;
   }
 
-  .paper-texture,
-  .leather-texture {
+  .paper-texture {
     background-image: none !important;
   }
 }

@@ -103,7 +103,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         className="absolute inset-y-0 left-0 flex w-64 flex-col gap-2 border-r border-primary-700 bg-primary-800 p-5 shadow-hard"
       >
         <NavLink
-          to={ROUTES.landing}
+          to={ROUTES.home}
           onClick={onClose}
           className="mb-4 flex items-center gap-2 rounded-md font-display text-lg text-accent-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold"
         >

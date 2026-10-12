@@ -62,7 +62,6 @@ export default {
         soft: '0 2px 8px rgba(62, 39, 35, 0.08)',
         medium: '0 4px 16px rgba(62, 39, 35, 0.12)',
         hard: '0 8px 32px rgba(62, 39, 35, 0.20)',
-        book: '0 20px 60px rgba(62, 39, 35, 0.35), inset 0 0 100px rgba(0,0,0,0.05)',
       },
       transitionDuration: {
         fast: '150ms',
@@ -87,40 +86,25 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        // Rising gold dust for the cover. Transform and opacity only, so the browser
-        // can run it on the compositor without touching layout or paint.
-        dust: {
-          '0%': { transform: 'translate3d(0, 110%, 0)', opacity: '0' },
-          '50%': { opacity: '0.8' },
-          '100%': { transform: 'translate3d(0, -10%, 0)', opacity: '0' },
-        },
         // Page turn for the loading illustration. Lives here rather than in Framer
         // Motion because that component renders in the router's Suspense fallback.
         'page-turn': {
           '0%, 100%': { transform: 'rotateY(0deg)' },
           '50%': { transform: 'rotateY(-150deg)' },
         },
-        // Cover opening tilt on first paint. CSS so the landing page does not pull
-        // Framer Motion into the initial bundle.
-        'cover-open': {
-          '0%': { transform: 'perspective(1400px) rotateY(-8deg)', opacity: '0' },
-          '100%': { transform: 'perspective(1400px) rotateY(0deg)', opacity: '1' },
-        },
-        // Ribbon bookmark settling into place. Same reason as the cover tilt: the
-        // landing page is the first paint for every visitor.
-        'bookmark-drop': {
-          '0%': { transform: 'translateY(-32px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+        // Twinkling stardust on the opening screen. Transform and opacity only, so a
+        // dozen motes run on the compositor instead of on the main thread.
+        twinkle: {
+          '0%, 100%': { opacity: '0.15', transform: 'scale(0.7)' },
+          '50%': { opacity: '0.9', transform: 'scale(1.15)' },
         },
       },
       animation: {
         'ink-drop': 'ink-drop 400ms cubic-bezier(0.16, 1, 0.3, 1) both',
         drift: 'drift 6s ease-in-out infinite',
         'fade-slide': 'fade-slide 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
-        dust: 'dust 7s linear infinite',
+        twinkle: 'twinkle 4s ease-in-out infinite',
         'page-turn': 'page-turn 3s ease-in-out infinite',
-        'cover-open': 'cover-open 800ms cubic-bezier(0.16, 1, 0.3, 1) both',
-        'bookmark-drop': 'bookmark-drop 700ms cubic-bezier(0.68, -0.55, 0.265, 1.55) both',
       },
     },
   },

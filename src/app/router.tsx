@@ -1,10 +1,9 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { createBrowserRouter, RouterProvider, useLocation } from 'react-router-dom';
+import { Navigate, createBrowserRouter, RouterProvider, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/common';
 import { Loading } from '@/components/illustrations';
 import { APP_CONFIG, READER_PATTERN, ROUTES, WRITE_ENTRY_PATTERN } from '@/constants';
 
-const Landing = lazy(() => import('@/pages/Landing/Landing'));
 const Dashboard = lazy(() => import('@/pages/Dashboard/Dashboard'));
 const Write = lazy(() => import('@/pages/Write/WriteRoute'));
 const Reader = lazy(() => import('@/pages/Reader/Reader'));
@@ -43,7 +42,7 @@ const WRITE_ENTRY_PREFIX = WRITE_ENTRY_PATTERN.replace(':id', '');
  */
 function documentTitle(pathname: string): string | null {
   if (pathname.startsWith(READER_PREFIX)) return null;
-  if (pathname === ROUTES.landing) return `${APP_CONFIG.name} — ${APP_CONFIG.tagline}`;
+  if (pathname === ROUTES.home) return `${APP_CONFIG.name} — ${APP_CONFIG.tagline}`;
   if (pathname.startsWith(WRITE_ENTRY_PREFIX)) return `Edit entry — ${APP_CONFIG.name}`;
   const page = PAGE_TITLES[pathname];
   return page ? `${page} — ${APP_CONFIG.name}` : `Page not found — ${APP_CONFIG.name}`;
@@ -101,7 +100,8 @@ function withBoundary(element: React.ReactNode) {
 }
 
 const router = createBrowserRouter([
-  { path: ROUTES.landing, element: withBoundary(<Landing />) },
+  // The root hands straight over to the diary: the opening screen is the only cover now.
+  { path: ROUTES.home, element: <Navigate to={ROUTES.dashboard} replace /> },
   { path: ROUTES.dashboard, element: withBoundary(<Dashboard />) },
   { path: ROUTES.write, element: withBoundary(<Write />) },
   { path: WRITE_ENTRY_PATTERN, element: withBoundary(<Write />) },

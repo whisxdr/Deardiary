@@ -1,6 +1,7 @@
 /** Route paths used by the router and by navigation links. */
 export const ROUTES = {
-  landing: '/',
+  /** App root: redirects to the dashboard. */
+  home: '/',
   dashboard: '/dashboard',
   write: '/write',
   writeEntry: (id: string) => `/write/${id}`,
