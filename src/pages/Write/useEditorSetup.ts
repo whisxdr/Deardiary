@@ -1,5 +1,6 @@
 import { useEditor } from '@tiptap/react';
 import { useEffect, useRef } from 'react';
+import { insertImageByUrl, insertImageFromFile, reportUpload } from './editorImages';
 import { EDITOR_ATTRIBUTES, EDITOR_EXTENSIONS } from './editorConfig';
 import { useEditorCounts } from './useEditorCounts';
 import { useStoredContent } from './useStoredContent';
@@ -63,18 +64,16 @@ export function useEditorSetup({ initialContent, entryId, storedContent, onUpdat
     measureNow(editor.getHTML());
   }, [editor]);
 
-  /**
-   * Inserts an image by URL, the simplest path that needs no upload backend.
-   *
-   * Only `http(s)` is accepted. A `data:` URL would render and save, but the Image
-   * extension's parse rule drops `data:` sources, so the next reload lost the image and
-   * the following keystroke wrote the body back without it.
-   */
-  const insertImage = () => {
-    if (!editor) return;
-    const url = window.prompt('Image URL');
-    if (url && /^https?:\/\//i.test(url)) editor.chain().focus().setImage({ src: url }).run();
-  };
-
-  return { editor, words, characters, contentLength, insertImage } as const;
+  return {
+    editor,
+    words,
+    characters,
+    contentLength,
+    insertImage: () => {
+      if (editor) insertImageByUrl(editor);
+    },
+    uploadImage: (file: File) => {
+      if (editor) reportUpload(insertImageFromFile, editor, file);
+    },
+  } as const;
 }

@@ -6,6 +6,12 @@ export const LIMITS = {
   contentMaxLength: 20_000,
   locationMaxLength: 120,
   maxImages: 6,
+  /** Refused before any decoding work; a larger file cannot survive compression anyway. */
+  imageFileMaxBytes: 10 * 1024 * 1024,
+  /** Longest side after downscaling. Entries live in a ~5 MB localStorage quota. */
+  imageMaxDimension: 1600,
+  imageQuality: 0.8,
+  imageAspectRatio: 4 / 3,
   /**
    * Above this many entries the dashboard grid virtualizes.
    *

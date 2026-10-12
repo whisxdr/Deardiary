@@ -16,7 +16,9 @@ export const EDITOR_EXTENSIONS = [
   StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
   Underline,
   Link.configure({ openOnClick: false, autolink: true }),
-  Image.configure({ inline: false }),
+  // Uploaded photos are stored as `data:` URLs, which `allowBase64: false` silently drops
+  // on parse — the image renders, saves, and is gone at the next load.
+  Image.configure({ inline: false, allowBase64: true }),
   Placeholder.configure({ placeholder: EDITOR_PLACEHOLDER }),
 ];
 

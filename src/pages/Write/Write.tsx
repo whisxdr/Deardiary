@@ -26,14 +26,13 @@ export default function Write() {
       resume: searchParams.get('resume') === 'true',
     });
 
-  const { editor, words, characters, contentLength, insertImage } = useEditorSetup({
+  const { editor, words, characters, contentLength, insertImage, uploadImage } = useEditorSetup({
     initialContent: form.content,
     entryId: id,
     storedContent: entry?.content,
     onUpdate: (html) => patch({ content: html }),
     onSubmit: publish,
   });
-
   // Tiptap already binds Ctrl+B, Ctrl+I and Ctrl+Enter inside the editor. Binding them
   // here too makes both handlers run and the toggle cancels itself out.
   useKeyboard([
@@ -60,6 +59,7 @@ export default function Write() {
           title={form.title}
           onTitleChange={(title) => patch({ title })}
           onInsertImage={insertImage}
+          onUploadImage={uploadImage}
         />
         <WriteSidebar
           date={form.date}

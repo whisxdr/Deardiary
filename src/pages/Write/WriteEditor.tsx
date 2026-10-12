@@ -13,6 +13,7 @@ export interface WriteEditorProps {
   title: string;
   onTitleChange: (title: string) => void;
   onInsertImage: () => void;
+  onUploadImage: (file: File) => void;
 }
 
 /** Editor column: title field, sticky toolbar, paper surface and counters. */
@@ -24,6 +25,7 @@ export function WriteEditor({
   title,
   onTitleChange,
   onInsertImage,
+  onUploadImage,
 }: WriteEditorProps) {
   // Feedback starts at 90% so the limit never arrives unannounced. The write path clamps
   // silently, so without this the tail of a long entry would vanish on the next save.
@@ -42,7 +44,7 @@ export function WriteEditor({
         maxLength={120}
         className="w-full border-0 border-b border-primary-200 bg-transparent pb-2 font-display text-2xl text-primary-800 placeholder:text-muted focus:border-accent-gold focus:outline-none dark:border-primary-700 dark:text-primary-100"
       />
-      <EditorToolbar editor={editor} onInsertImage={onInsertImage} />
+      <EditorToolbar editor={editor} onInsertImage={onInsertImage} onUploadImage={onUploadImage} />
       <EditorBody editor={editor} />
       <EditorCounter words={words} characters={characters} />
       {nearLimit ? (

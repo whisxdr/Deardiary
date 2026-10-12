@@ -13,6 +13,7 @@ export {
   readingTimeMinutes,
 } from './format';
 export { htmlToMarkdown, htmlToText } from './parse';
+export { cropToAspect, fitWithin, imageFileToDataUrl } from './imageFile';
 export { looksUnsafe, sanitizeEntryHtml } from './sanitize';
 export { searchText } from './searchIndex';
 export { normalizeTag, normalizeText, parseTagInput, sanitizeTags, sanitizeTitle } from './validate';

@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit --pretty false",
     "lint:emoji": "eslint src --ext .ts,.tsx",
-    "test": "node scripts/check-csp-parity.mjs && node scripts/check-week-bucket.mjs && node scripts/check-parse-export.mjs && node scripts/check-entry-writes.mjs"
+    "test": "node scripts/check-csp-parity.mjs && node scripts/check-week-bucket.mjs && node scripts/check-parse-export.mjs && node scripts/check-entry-writes.mjs && node scripts/check-image-upload.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

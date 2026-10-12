@@ -8,18 +8,21 @@ import {
   TextHOne,
   TextHThree,
   TextHTwo,
+  UploadSimple,
 } from '@phosphor-icons/react';
 import type { Editor } from '@tiptap/react';
+import { ImageUploadButton } from './ImageUploadButton';
 import { ToolbarButton } from './ToolbarButton';
 import { ToolbarDivider } from './ToolbarDivider';
 
 export interface BlockButtonsProps {
   editor: Editor;
   onInsertImage: () => void;
+  onUploadImage: (file: File) => void;
 }
 
 /** Headings, lists, quote, rule, link and image controls. */
-export function BlockButtons({ editor, onInsertImage }: BlockButtonsProps) {
+export function BlockButtons({ editor, onInsertImage, onUploadImage }: BlockButtonsProps) {
   const setLink = () => {
     const previous = editor.getAttributes('link').href as string | undefined;
     const url = window.prompt('Link URL', previous ?? 'https://');
@@ -82,7 +85,11 @@ export function BlockButtons({ editor, onInsertImage }: BlockButtonsProps) {
         onClick={setLink}
         icon={<LinkIcon size={16} aria-hidden="true" />}
       />
-      <ToolbarButton label="Image" onClick={onInsertImage} icon={<ImageIcon size={16} aria-hidden="true" />} />
+      <ToolbarButton label="Image from URL" onClick={onInsertImage} icon={<ImageIcon size={16} aria-hidden="true" />} />
+      <ImageUploadButton
+        onSelect={onUploadImage}
+        icon={<UploadSimple size={16} aria-hidden="true" />}
+      />
     </>
   );
 }
