@@ -75,6 +75,17 @@
     transform-origin: center;
   }
 
+  /*
+   * Hinge for the loading illustration's cover. The origin must be measured against the
+   * viewBox, not the group's own box, so the cover turns about its spine edge (x=58 in the
+   * 400x300 drawing). `transform-box`/`transform-origin` are not animatable, so this cannot
+   * live in the keyframes.
+   */
+  .cover-pivot {
+    transform-box: view-box;
+    transform-origin: 58px 160px;
+  }
+
   .paper-texture {
     background-image: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05)),
       url('/textures/paper.svg');

@@ -1,0 +1,150 @@
+/*
+ * Variant A of the loading study — "layered paper stack".
+ *
+ * CSS + SVG only, on purpose: this component is rendered inside the router's Suspense
+ * fallback, so an animation library here would land in the entry chunk for every visitor.
+ * Every keyframe below touches `transform` and `opacity` only, so the sheet and the ribbon
+ * run on the compositor while the route chunk loads. Class names are prefixed
+ * `lsr-paper-stack-` so the three variants can never collide.
+ */
+
+/*
+ * Both movers measure their pivot against the viewBox rather than their own box, so
+ * `276px 143px` is the centre of the sheet in drawing coordinates and `314px 210px` the
+ * point the ribbon hangs from.
+ */
+.lsr-paper-stack-sheet {
+  transform-box: view-box;
+  transform-origin: 276px 143px;
+}
+
+.lsr-paper-stack-ribbon {
+  transform-box: view-box;
+  transform-origin: 314px 210px;
+}
+
+/*
+ * prefers-reduced-motion: the animation is attached under `no-preference` only (see the
+ * bottom of this file), and this block pins both movers to their resting state — the
+ * sheet flat on its own stack, the ribbon hanging straight. Never a frozen mid-swipe frame.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .lsr-paper-stack-sheet,
+  .lsr-paper-stack-ribbon {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/*
+ * The sheet: one 1.2s loop, infinite.
+ *
+ *   0 →  8%  lifts off the right stack, easing in so the leave accelerates
+ *   8 → 20%  sweeps across the gutter; the scaleX dip stands in for the curl
+ *  20 → 34%  keeps accelerating into the descent
+ *  34 → 42%  slaps down 14px past its landing spot
+ *  42 → 56%  springs back and settles with cubic-bezier(0.16, 1, 0.3, 1)
+ *  56 → 74%  holds flat — a fresh blank page over the written one
+ *  74 → 84%  dissolves away where it landed
+ *  84 → 92%  jumps back to its origin while fully transparent: ~96ms, against ~408ms
+ *             for the entrance, so the reset is far quicker than the approach
+ *  92 →100%  fades in at its origin, and the loop is seamless
+ */
+@keyframes lsr-paper-stack-lift {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1, 1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  }
+  8% {
+    transform: translate(-10px, -12px) rotate(-4deg) scale(0.98, 0.94);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  20% {
+    transform: translate(-74px, -18px) rotate(-7deg) scale(0.8, 0.96);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.55);
+  }
+  34% {
+    transform: translate(-128px, -8px) rotate(-5deg) scale(0.94, 1.04);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.55);
+  }
+  42% {
+    transform: translate(-166px, 2px) rotate(1.4deg) scale(1.04, 0.93);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  50% {
+    transform: translate(-157px, 0) rotate(-0.5deg) scale(0.99, 1.01);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  56% {
+    transform: translate(-152px, 0) rotate(0deg) scale(1, 1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  74% {
+    transform: translate(-152px, 0) rotate(0deg) scale(1, 1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  84% {
+    transform: translate(-152px, 0) rotate(0deg) scale(1, 1);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.7, 0, 0.95, 0.6);
+  }
+  92% {
+    transform: translate(0, 0) rotate(0deg) scale(1, 1);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1, 1);
+    opacity: 1;
+  }
+}
+
+/*
+ * The ribbon swings ±3deg against the sheet: the page travels left, the bookmark is
+ * dragged the other way by the stack it hangs from, and the swing damps out by 82%.
+ */
+@keyframes lsr-paper-stack-sway {
+  0% {
+    transform: rotate(0deg);
+  }
+  22% {
+    transform: rotate(3deg);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  42% {
+    transform: rotate(-2.4deg);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  56% {
+    transform: rotate(1.2deg);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  70% {
+    transform: rotate(-0.5deg);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+  82%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Attached only while motion is welcome; see the reduce block above for the still state. */
+@media (prefers-reduced-motion: no-preference) {
+  .lsr-paper-stack-sheet {
+    animation: lsr-paper-stack-lift 1.2s infinite;
+  }
+
+  .lsr-paper-stack-ribbon {
+    animation: lsr-paper-stack-sway 1.2s ease-in-out infinite;
+  }
+}

@@ -86,11 +86,34 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        // Page turn for the loading illustration. Lives here rather than in Framer
-        // Motion because that component renders in the router's Suspense fallback.
-        'page-turn': {
-          '0%, 100%': { transform: 'rotateY(0deg)' },
-          '50%': { transform: 'rotateY(-150deg)' },
+        // The loading illustration's cover. Open travel is capped at 44px: the drawing has
+        // only 46 units of left margin and the SVG clips at its own edges, so a wider swing
+        // pushes the cover outside the frame at small sizes.
+        'cover-open': {
+          '0%': { transform: 'translateX(0) rotate(0deg)', animationTimingFunction: 'cubic-bezier(0.4, 0, 1, 1)' },
+          '14%': {
+            transform: 'translateX(-11px) rotate(-2.5deg)',
+            animationTimingFunction: 'cubic-bezier(0.55, 0, 1, 0.45)',
+          },
+          '44%': {
+            transform: 'translateX(-44px) rotate(-9deg)',
+            animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          },
+          '56%': {
+            transform: 'translateX(-41px) rotate(-8.4deg)',
+            animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          },
+          '66%': {
+            transform: 'translateX(-41px) rotate(-8.4deg)',
+            animationTimingFunction: 'cubic-bezier(0.5, 0, 0.9, 0.55)',
+          },
+          '78%, 100%': { transform: 'translateX(0) rotate(0deg)' },
+        },
+        // The gleam rides the cover: up as it opens, gone as it closes.
+        'cover-gleam': {
+          '0%': { opacity: '0' },
+          '44%, 66%': { opacity: '0.34' },
+          '78%, 100%': { opacity: '0' },
         },
         // Twinkling stardust on the opening screen. Transform and opacity only, so a
         // dozen motes run on the compositor instead of on the main thread.
@@ -139,7 +162,8 @@ export default {
         drift: 'drift 6s ease-in-out infinite',
         'fade-slide': 'fade-slide 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
         twinkle: 'twinkle 4s ease-in-out infinite',
-        'page-turn': 'page-turn 3s ease-in-out infinite',
+        'cover-open': 'cover-open 1.2s infinite',
+        'cover-gleam': 'cover-gleam 1.2s ease-in-out infinite',
         'star-twinkle': 'star-twinkle 3.6s ease-in-out infinite',
         orbit: 'orbit 10s linear infinite',
         'orbit-reverse': 'orbit-reverse 10s linear infinite',

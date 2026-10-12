@@ -1,0 +1,171 @@
+/*
+ * Variant B of the loading study — "hand-inked spread".
+ *
+ * CSS + SVG only, as with variant A: this component is rendered inside the router's
+ * Suspense fallback, so an animation library here would land in the entry chunk for
+ * every visitor. The only properties any keyframe touches are `transform`,
+ * `stroke-dashoffset` (the one SVG stroke the study permits beyond transform/opacity)
+ * and `animation-timing-function`. Class names are prefixed `lsr-inked-spread-`.
+ *
+ * Note the deliberate name reuse: the reveal line's class and its keyframe are both
+ * `lsr-inked-spread-ink`. CSS keeps class selectors and animation names in separate
+ * namespaces, so this is valid — the keyframe name is what makes it read oddly.
+ */
+
+/*
+ * Both movers pivot in viewBox coordinates rather than their own box. The page's origin
+ * (360px 155px) is the centre of its outer edge — the far end of the sheet — so the turn
+ * swings about the side opposite the spine.
+ */
+.lsr-inked-spread-quill {
+  transform-box: view-box;
+  transform-origin: 111px 176px;
+}
+
+.lsr-inked-spread-page {
+  transform-box: view-box;
+  transform-origin: 360px 155px;
+}
+
+/*
+ * The reveal line is a single 400-unit dash that slides in from the start of the path,
+ * so the ink looks laid down by the quill rather than switched on. `stroke-dasharray` is
+ * static — only the offset animates.
+ */
+.lsr-inked-spread-ink {
+  stroke-dasharray: 400;
+}
+
+/*
+ * prefers-reduced-motion: the three animations are attached under `no-preference` only
+ * (bottom of this file), and this block lands every mover on a finished state — the quill
+ * resting where it stopped, the ink fully written, the page flat on the right-hand side.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .lsr-inked-spread-quill,
+  .lsr-inked-spread-page {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+
+  .lsr-inked-spread-ink {
+    stroke-dashoffset: 0;
+    opacity: 0.75;
+  }
+}
+
+/*
+ * Mover 1, the quill: 0 -> 24px -> 108px -> 24px -> 0, in 1.2s. Both writing segments
+ * are linear and step through 24px on the way out, which is what keeps the nib locked to
+ * the ink it is laying down (see `lsr-inked-spread-ink`). It retracts faster than it
+ * wrote, then waits out the page turn.
+ */
+@keyframes lsr-inked-spread-write {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: linear;
+  }
+  8% {
+    transform: translateX(24px);
+    animation-timing-function: linear;
+  }
+  45% {
+    transform: translateX(108px);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  55% {
+    transform: translateX(24px);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  65% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/*
+ * The ink, keyframed to the same 0 / 8 / 45 shape as the quill so the two cannot drift.
+ * At 8% the nib has covered 24 of its 108 units, so the offset is 400 x (1 - 24/108) =
+ * 311.1 — the drawn tip stays under the nib for the whole stroke. It then holds at 0 for
+ * the rest of the loop: the line stays written.
+ */
+@keyframes lsr-inked-spread-ink {
+  /*
+   * The ink is opaque, so unlike variant A's sheet it cannot hide a reset behind an
+   * always-on transparent window. It hides the reset behind a short fade instead: the
+   * line stays written from 45% to 90%, dips out of sight for 70ms, snaps its offset
+   * back to 400 while nothing is painted, and is back at full opacity by 100% — which
+   * is exactly the 0% state, so the loop seam is continuous in both channels.
+   */
+  0% {
+    stroke-dashoffset: 400;
+    opacity: 0.75;
+    animation-timing-function: linear;
+  }
+  8% {
+    stroke-dashoffset: 311.1;
+    opacity: 0.75;
+    animation-timing-function: linear;
+  }
+  45% {
+    stroke-dashoffset: 0;
+    opacity: 0.75;
+  }
+  90% {
+    stroke-dashoffset: 0;
+    opacity: 0.75;
+  }
+  95% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  97% {
+    stroke-dashoffset: 400;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 400;
+    opacity: 0.75;
+  }
+}
+
+/*
+ * Mover 2, the page: it waits for the writing to finish, then turns. The outgoing sweep
+ * accelerates on `cubic-bezier(0.55, 0, 1, 0.45)` across 25% of the loop, and the settle
+ * back to the spine decelerates on `cubic-bezier(0.16, 1, 0.3, 1)` across 10% — the
+ * return is 40% of the outgoing duration, so coming home is the quicker half.
+ */
+@keyframes lsr-inked-spread-swipe {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  65% {
+    transform: translateX(0) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  90% {
+    transform: translateX(-172px) rotate(-3deg);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+/* Attached only while motion is welcome; see the reduce block above for the still state. */
+@media (prefers-reduced-motion: no-preference) {
+  .lsr-inked-spread-quill {
+    animation: lsr-inked-spread-write 1.2s infinite;
+  }
+
+  .lsr-inked-spread-ink {
+    animation: lsr-inked-spread-ink 1.2s infinite;
+  }
+
+  .lsr-inked-spread-page {
+    animation: lsr-inked-spread-swipe 1.2s infinite;
+  }
+}

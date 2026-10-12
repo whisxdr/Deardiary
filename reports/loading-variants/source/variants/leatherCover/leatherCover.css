@@ -1,0 +1,109 @@
+/*
+ * Variant C of the loading study — "warm leather cover".
+ *
+ * CSS + SVG only, on purpose: this component renders inside the router's Suspense fallback,
+ * so an animation library here would land in the entry chunk for every visitor. Every
+ * keyframe below touches `transform` and `opacity` only, so the cover and the gleam run on
+ * the compositor while the route chunk loads. Class names are prefixed `lsr-leather-cover-`
+ * so the three variants can never collide.
+ */
+
+/*
+ * Both movers measure their pivot against the viewBox rather than their own box, so
+ * `58px 160px` is the spine edge the cover hinges on.
+ */
+.lsr-leather-cover-front {
+  transform-box: view-box;
+  transform-origin: 58px 160px;
+}
+
+/*
+ * prefers-reduced-motion: the animations are attached under `no-preference` only (see the
+ * bottom of this file), and this block pins the cover shut and the gleam invisible — a
+ * still, finished state, never a frame frozen mid-swing.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .lsr-leather-cover-front {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+
+  .lsr-leather-cover-gleam {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/*
+ * The cover: one 1.2s loop, infinite.
+ *
+ *   0 → 14%  unlatches, easing in so the open accelerates
+ *  14 → 44%  swings open 44px left with a 2D rotate, revealing the page stack
+ *  44 → 56%  settles on cubic-bezier(0.16, 1, 0.3, 1) so it decelerates into place
+ *  56 → 66%  holds open — the pages are readable
+ *  66 → 78%  closes faster than it opened: ~144ms against ~528ms
+ *  78 →100%  holds shut, and the loop restarts seamlessly
+ *
+ * The open travel is deliberately capped at 44px from a spine at x=58: the SVG clips at
+ * its own edges, and the drawing sits inside the 400-unit viewBox with only 46 units of
+ * left margin, so a larger travel (the first draft used 104px) swings up to 28px of the
+ * cover — 13% of the illustration's width — outside the frame on a 220px render. The
+ * cover is this variant's entire subject, so it must stay inside its own picture.
+ */
+@keyframes lsr-leather-cover-open {
+  0% {
+    transform: translateX(0) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  }
+  14% {
+    transform: translateX(-11px) rotate(-2.5deg);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  44% {
+    transform: translateX(-44px) rotate(-9deg);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  56% {
+    transform: translateX(-41px) rotate(-8.4deg);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  66% {
+    transform: translateX(-41px) rotate(-8.4deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.55);
+  }
+  78% {
+    transform: translateX(0) rotate(0deg);
+  }
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+/* The gleam rides the cover: it rises as the cover opens and dies as it closes. */
+@keyframes lsr-leather-cover-gleam {
+  0% {
+    opacity: 0;
+  }
+  44% {
+    opacity: 0.34;
+  }
+  66% {
+    opacity: 0.34;
+  }
+  78%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Attached only while motion is welcome; see the reduce block above for the still state. */
+@media (prefers-reduced-motion: no-preference) {
+  .lsr-leather-cover-front {
+    animation: lsr-leather-cover-open 1.2s infinite;
+  }
+
+  .lsr-leather-cover-gleam {
+    animation: lsr-leather-cover-gleam 1.2s ease-in-out infinite;
+  }
+}
