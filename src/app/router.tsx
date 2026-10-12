@@ -4,7 +4,25 @@ import { ErrorBoundary } from '@/components/common';
 import { Loading } from '@/components/illustrations';
 import { APP_CONFIG, READER_PATTERN, ROUTES, WRITE_ENTRY_PATTERN } from '@/constants';
 
-const Dashboard = lazy(() => import('@/pages/Dashboard/Dashboard'));
+/**
+ * Opened once at module scope for the landing routes, whose chunk graph the browser would
+ * otherwise request only at first render, behind the entry's CPU-bound evaluation — a
+ * 1.3 s idle gap on a throttled phone. Deep links keep it lazy: they render another route
+ * first and must not pay for this graph.
+ */
+let dashboardModule: Promise<typeof import('@/pages/Dashboard/Dashboard')> | null = null;
+
+function loadDashboard() {
+  if (!dashboardModule) {
+    dashboardModule = import('@/pages/Dashboard/Dashboard');
+    // Without a handler the request can reject before `lazy` attaches one; `lazy` still
+    // receives the rejection and the route error boundary shows its fallback.
+    dashboardModule.catch(() => {});
+  }
+  return dashboardModule;
+}
+
+const Dashboard = lazy(loadDashboard);
 const Write = lazy(() => import('@/pages/Write/WriteRoute'));
 const Reader = lazy(() => import('@/pages/Reader/Reader'));
 const Calendar = lazy(() => import('@/pages/Calendar/Calendar'));
@@ -12,12 +30,24 @@ const Stats = lazy(() => import('@/pages/Stats/Stats'));
 const Settings = lazy(() => import('@/pages/Settings/Settings'));
 const NotFoundPage = lazy(() => import('@/pages/NotFound/NotFound'));
 
+const { home, dashboard: dashboardRoute } = ROUTES;
+if (window.location.pathname === home || window.location.pathname === dashboardRoute) {
+  loadDashboard();
+}
+
 /** Full-screen fallback shown while a route chunk loads. */
 function RouteFallback() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-primary-50 dark:bg-primary-900">
       <Loading size={220} />
-      <p className="font-body text-sm text-primary-500 dark:text-primary-300">Opening your book</p>
+      {/*
+        Serif, not the body font, on purpose: this fallback paints behind the opening
+        screen within a few hundred milliseconds, and Inter is a 39 KB request that would
+        then race the entry chunk — the thing that unblocks the app — for a slow link. The
+        display face is already loaded for the greeting. On a direct deep link the opening
+        is skipped and this line is the first thing shown, where the serif still reads.
+      */}
+      <p className="font-display text-sm text-primary-500 dark:text-primary-300">Opening your book</p>
     </div>
   );
 }

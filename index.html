@@ -12,10 +12,12 @@
     <!--
       Fonts are self-hosted (see src/styles/fonts.css), so no third-party origin sits in
       the render-blocking path. Only the two faces the opening screen paints are preloaded:
-      the greeting is Playfair Display and the quote Cormorant Garamond. Preloading the
-      other three cost 150 KB of early bandwidth on a slow link, which pushed the
-      stylesheet — and with it the first paint — past 1.4 s. They load when the text that
-      uses them is rendered.
+      the greeting is Playfair Display and the quote Cormorant Garamond. Inter is not:
+      the opening and the route fallback are deliberately serif-only, so the body font is
+      not requested until the dashboard itself renders — under the opening's overlay, where
+      a slow fetch is invisible. Preloading all three cost 150 KB of early bandwidth on a
+      slow link and pushed the stylesheet — and with it the first paint — past 1.4 s.
+      Caveat and JetBrains Mono load when the text that uses them is rendered.
     -->
     <link rel="preload" href="/fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/cormorant-400-italic.woff2" as="font" type="font/woff2" crossorigin />

@@ -16,3 +16,7 @@ tmp-*
 .v2c
 .zcode
 .zcodeignore
+.claude
+.claude-flow
+.dsh-tmp
+.ci-pending
