@@ -101,6 +101,8 @@ Mood colors live only in `src/constants/moods.ts`. The picker reads them from th
 
 **Avatars** come from [DiceBear](https://dicebear.com) in the `lorelei` style, seeded by a string the user picks in Settings. Because that is a network request, `Avatar` falls back to local initials when the request fails, so the diary still works offline.
 
+The style has no gender option, so the woman portraits are expressed with the two options that actually change the drawing — `beardProbability=0` and `earringsProbability=100`. Both only gate a feature that the seed already derives, so the woman row in Settings uses seeds verified to render earrings and no beard rather than seeds that are merely labelled that way. See `src/constants/avatar.ts`.
+
 **Accessibility** — decorative icons carry `aria-hidden="true"`; icon-only buttons carry an `aria-label`; mood stamps expose the mood name to screen readers through `MoodBadge`.
 
 **Keeping emoji out** — `.eslintrc.json` enables `no-restricted-syntax` rules that fail on emoji in string literals, JSX text, and template strings. To audit manually:

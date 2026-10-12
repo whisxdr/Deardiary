@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { avatarUrl } from '@/constants/avatar';
+import { avatarUrl, type AvatarGender } from '@/constants/avatar';
 import { cn } from '@/utils';
 import { initials } from '@/utils/string';
 
@@ -7,6 +7,8 @@ export interface AvatarProps {
   name: string;
   /** DiceBear seed; when omitted the initials fallback is used. */
   seed?: string;
+  /** Portrait presentation for the seed; defaults to the man set. */
+  gender?: AvatarGender;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -23,7 +25,7 @@ const SIZES = {
  * The portrait is fetched from the DiceBear CDN, so it falls back to local initials
  * when the browser is offline or the request is blocked.
  */
-export function Avatar({ name, seed, size = 'md', className }: AvatarProps) {
+export function Avatar({ name, seed, gender = 'man', size = 'md', className }: AvatarProps) {
   const [failed, setFailed] = useState(false);
   const showPortrait = Boolean(seed) && !failed;
 
@@ -39,7 +41,7 @@ export function Avatar({ name, seed, size = 'md', className }: AvatarProps) {
     >
       {showPortrait ? (
         <img
-          src={avatarUrl(seed as string)}
+          src={avatarUrl(seed as string, gender)}
           alt=""
           aria-hidden="true"
           loading="lazy"

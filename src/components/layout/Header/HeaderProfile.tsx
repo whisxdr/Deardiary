@@ -3,6 +3,7 @@ import { Moon, PencilSimple, Gear, Sun, User } from '@phosphor-icons/react';
 import { Avatar } from '@/components/ui';
 import { IconButton } from '@/components/common';
 import { ROUTES } from '@/constants';
+import { choiceForSeed } from '@/constants/avatar';
 import { useClickOutside } from '@/hooks';
 import { useEffect, useState } from 'react';
 import { useSettingsStore } from '@/store';
@@ -35,7 +36,7 @@ export function HeaderProfile() {
         aria-label="Account menu"
         className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold"
       >
-        <Avatar name={displayName} seed={avatarSeed} size="sm" />
+        <Avatar name={displayName} seed={avatarSeed} gender={choiceForSeed(avatarSeed).gender} size="sm" />
       </button>
 
       {open ? (
