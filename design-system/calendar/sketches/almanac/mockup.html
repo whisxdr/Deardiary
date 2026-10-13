@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DearDiary — Calendar (Almanac Pages sketch)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper:        #FAF6F0;
+    --card:         #F5F0E6;
+    --rule:         #E0C9A6;
+    --margin-rule:  #D98A7E;
+    --ink:          #2A1A14;
+    --ink-2:        #3E2723;
+    --ink-3:        #5D4037;
+    --ink-4:        #7D5A3C;
+    --ink-5:        #A67C52;
+    --gold:         #C9A961;
+    --gold-deep:    #6F5220;
+    --sage:         #8A9A5B;
+    --rose:         #B76E79;
+    --border:       #E0C9A6;
+    --border-soft:  #E7D9C4;
+    --shadow-soft:  0 2px 8px rgba(62, 39, 35, 0.08);
+    --shadow-med:   0 4px 16px rgba(62, 39, 35, 0.12);
+    --shadow-hard:  0 8px 32px rgba(62, 39, 35, 0.20);
+    --radius: 6px;
+    --radius-lg: 12px;
+  }
+  [data-theme="night"] {
+    --paper:        #1A0F0A;
+    --card:         #2A1A14;
+    --rule:         #4E342E;
+    --margin-rule:  #A15B52;
+    --ink:          #F5F0E6;
+    --ink-2:        #F0E6D2;
+    --ink-3:        #E0C9A6;
+    --ink-4:        #C9A961;
+    --ink-5:        #C9A961;
+    --gold:         #C9A961;
+    --gold-deep:    #C9A961;
+    --sage:         #C9A961;
+    --rose:         #B76E79;
+    --border:       #5D4037;
+    --border-soft:  #3E2723;
+    --shadow-soft:  0 2px 8px rgba(0, 0, 0, 0.45);
+    --shadow-med:   0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-hard:  0 8px 32px rgba(0, 0, 0, 0.6);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 18% 6%, rgba(201,169,97,0.05), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(183,110,121,0.04), transparent 44%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .display { font-family: 'Playfair Display', Georgia, serif; }
+  .sub { font-family: 'Cormorant Garamond', Georgia, serif; }
+  .hand { font-family: 'Caveat', cursive; }
+  .sc { font-variant: small-caps; letter-spacing: 0.06em; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 32px 90px; }
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle {
+    position: fixed; top: 20px; right: 22px; z-index: 60;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Inter'; font-size: 13px; font-weight: 600; color: var(--ink);
+    background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+    padding: 10px 16px; cursor: pointer; box-shadow: var(--shadow-soft);
+    transition: box-shadow 250ms cubic-bezier(0.16,1,0.3,1), transform 250ms, border-color 250ms;
+  }
+  .theme-toggle:hover { box-shadow: var(--shadow-med); transform: translateY(-1px); border-color: var(--gold); }
+  .theme-toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  /* ---------- masthead ---------- */
+  .masthead { position: relative; padding: 0 0 0 152px; border-bottom: 3px double var(--ink); }
+  .masthead::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 116px; width: 2px;
+    background: var(--margin-rule); opacity: 0.55;
+  }
+  .head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+  .head-nav { display: flex; align-items: center; gap: 2px; }
+  .nav-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: var(--radius);
+    border: 1px solid transparent; background: transparent; color: var(--ink-3);
+    cursor: pointer; transition: background 200ms, border-color 200ms, color 200ms;
+  }
+  .nav-btn:hover { background: rgba(201,169,97,0.12); border-color: var(--border); color: var(--ink); }
+  .nav-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .today-btn {
+    height: 44px; padding: 0 16px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: transparent; color: var(--ink-3);
+    font-family: 'Inter'; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; transition: background 200ms, border-color 200ms, color 200ms;
+  }
+  .today-btn:hover { background: rgba(201,169,97,0.12); color: var(--ink); border-color: var(--gold); }
+  .today-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .head-kicker { font-family: 'Inter'; font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-4); }
+  .head-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(34px, 5vw, 46px); line-height: 1.05; margin: 2px 0 0; letter-spacing: -0.5px; }
+  .head-title .yr { font-style: italic; font-weight: 500; color: var(--ink-4); }
+  .head-rule { display: flex; gap: 8px; margin-top: 8px; }
+  .head-rule span { height: 3px; border-radius: 2px; }
+  .r1 { width: 92px; background: var(--gold); }
+  .r2 { width: 40px; background: var(--sage); }
+  .r3 { width: 16px; background: var(--rose); }
+
+  /* ---------- weekday strip ---------- */
+  .weekday-strip { display: grid; grid-template-columns: repeat(7, 1fr); margin: 14px 0 0 152px; border-bottom: 1px solid var(--ink); }
+  .weekday-strip > div {
+    padding: 8px 0 7px; text-align: center;
+    font-family: 'Inter'; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .weekday-strip > div + div { border-left: 1px solid var(--border-soft); }
+  .weekday-strip .we { color: var(--ink-4); font-style: italic; text-transform: none; letter-spacing: 0.08em; }
+
+  /* ---------- month grid ---------- */
+  .grid-shell { margin-left: 152px; }
+  .month-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    border-left: 1px solid var(--border); border-top: 1px solid var(--border);
+  }
+  .day {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    min-height: 92px; padding: 8px 6px 9px;
+    border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: transparent; cursor: pointer; text-align: center;
+    transition: background 200ms cubic-bezier(0.16,1,0.3,1);
+  }
+  .day:hover { background: rgba(201,169,97,0.09); }
+  .day:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; z-index: 2; }
+  .day.out { opacity: 0.42; }
+  .day.empty .dnum { color: var(--ink-4); }
+  .day.quiet::after {
+    content: ""; position: absolute; left: 8px; right: 8px; bottom: 7px; height: 1px;
+    background: var(--rule); opacity: 0.85;
+  }
+  .dnum { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; line-height: 1; color: var(--ink-2); }
+  .today-pill {
+    font-family: 'Inter'; font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-4); border: 1px solid var(--gold); border-radius: 999px; padding: 2px 7px 1px;
+  }
+  .day.is-today { background: rgba(201,169,97,0.16); box-shadow: inset 0 0 0 1px var(--gold); }
+  .day.is-today .dnum { color: var(--gold-deep); }
+  [data-theme="night"] .day.is-today .dnum { color: var(--gold); }
+  .day.is-selected { background: rgba(201,169,97,0.10); box-shadow: inset 0 0 0 2px var(--gold); }
+  .day.is-selected .dnum { color: var(--gold-deep); }
+  [data-theme="night"] .day.is-selected .dnum { color: var(--gold); }
+  .day.is-selected::before {
+    content: ""; position: absolute; top: -1px; left: -1px; right: -1px; height: 3px; background: var(--gold);
+  }
+  .dots { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px; min-height: 8px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(62,39,35,0.18); }
+  .dcount { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-4); letter-spacing: 0.04em; }
+  .overflow { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-4); }
+  .day-note {
+    font-family: 'Caveat', cursive; font-size: 15px; line-height: 1.1; color: var(--ink-4);
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* ---------- detail panel ---------- */
+  .detail-layout { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 26px; }
+  .panel {
+    position: relative; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); padding: 22px 24px 24px;
+    margin-left: 152px; border-left: 4px solid var(--gold);
+  }
+  .panel-kicker { font-family: 'Inter'; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-4); }
+  .panel-date { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 26px; margin: 4px 0 0; letter-spacing: -0.3px; }
+  .panel-meta { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 16px; color: var(--ink-4); margin-top: 2px; }
+  .panel-note {
+    font-family: 'Caveat', cursive; font-size: 19px; color: var(--ink-3);
+    border-top: 1px dashed var(--border); margin-top: 14px; padding-top: 10px;
+  }
+  .mood-key { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+  .mk { display: inline-flex; align-items: center; gap: 6px; font-family: 'Inter'; font-size: 12px; color: var(--ink-3); }
+  .mk i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(62,39,35,0.2); }
+
+  /* ---------- entries ---------- */
+  .entries { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+  .entry { border-top: 1px solid var(--border-soft); padding-top: 14px; }
+  .entry:first-child { border-top: none; padding-top: 0; }
+  .entry-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .entry-title { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 18px; margin: 0; color: var(--ink-2); }
+  .mood-tag { display: inline-flex; align-items: center; gap: 6px; font-family: 'Inter'; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+  .mood-tag i { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(62,39,35,0.2); }
+  .entry-preview { font-family: 'Cormorant Garamond', serif; font-size: 17px; line-height: 1.5; color: var(--ink-3); margin: 7px 0 0; }
+  .entry-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 9px; }
+  .foot-item { display: inline-flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-4); }
+  .fav { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: var(--radius); border: 1px solid transparent; background: transparent; color: var(--ink-4); cursor: pointer; transition: color 200ms, background 200ms; }
+  .fav:hover { background: rgba(201,169,97,0.12); color: var(--gold-deep); }
+  .fav[aria-pressed="true"] { color: var(--gold-deep); }
+  [data-theme="night"] .fav[aria-pressed="true"], [data-theme="night"] .fav:hover { color: var(--gold); }
+  .fav:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .write-btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px;
+    border-radius: var(--radius); border: 1px solid var(--gold-deep); background: var(--gold-deep);
+    color: #FAF6F0; font-family: 'Inter'; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: transform 250ms cubic-bezier(0.16,1,0.3,1), box-shadow 250ms;
+  }
+  .write-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-med); }
+  .write-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .write-btn.ghost { background: transparent; color: var(--ink-3); border-color: var(--border); }
+  .write-btn.ghost:hover { border-color: var(--gold); color: var(--ink); }
+  .panel-actions { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+
+  .footnote { margin: 30px 0 0 152px; font-family: 'Caveat', cursive; font-size: 20px; color: var(--ink-4); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 900px) {
+    .wrap { padding: 20px 16px 80px; }
+    .masthead { padding-left: 0; }
+    .masthead::before { display: none; }
+    .weekday-strip { margin-left: 0; }
+    .grid-shell { margin-left: 0; }
+    .panel { margin-left: 0; }
+    .footnote { margin-left: 0; }
+    .day { min-height: 78px; }
+    .dnum { font-size: 17px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Switch to night mode" aria-pressed="false">
+  <span id="toggleIcon" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>
+  </span>
+  <span id="toggleLabel">Night</span>
+</button>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="head-row">
+      <div>
+        <div class="head-kicker">The Almanac of Days</div>
+        <h1 class="head-title">October <span class="yr">2026</span></h1>
+        <div class="head-rule" aria-hidden="true"><span class="r1"></span><span class="r2"></span><span class="r3"></span></div>
+      </div>
+      <div class="head-nav">
+        <button class="today-btn" type="button">Today</button>
+        <button class="nav-btn" type="button" aria-label="Previous month">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="nav-btn" type="button" aria-label="Next month">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="weekday-strip" aria-hidden="true">
+    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div class="we">Fri</div><div class="we">Sat</div>
+  </div>
+
+  <div class="grid-shell">
+    <div class="month-grid" id="monthGrid" role="grid" aria-label="October 2026"></div>
+  </div>
+
+  <!-- day detail -->
+  <section class="panel" id="dayPanel" aria-label="Entries for the selected day">
+    <div class="panel-kicker" id="panelKicker">The selected day</div>
+    <h2 class="panel-date" id="panelDate">Tuesday, October 13</h2>
+    <p class="panel-meta" id="panelMeta">1 entry · 214 words</p>
+    <p class="panel-note" id="panelNote">the page you will remember this month for</p>
+
+    <div class="entries" id="entryList"></div>
+
+    <div class="panel-actions">
+      <button class="write-btn" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Write this day
+      </button>
+    </div>
+
+    <div class="mood-key" id="moodKey" aria-label="Mood key"></div>
+  </section>
+
+  <p class="footnote">* every mark tallied from the entries kept in this browser.</p>
+</div>
+
+<script>
+  // ---------- theme ----------
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  const label = document.getElementById('toggleLabel');
+  const icon = document.getElementById('toggleIcon');
+  const SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></g></svg>';
+  const MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>';
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    const night = t === 'night';
+    btn.setAttribute('aria-pressed', night ? 'true' : 'false');
+    btn.setAttribute('aria-label', night ? 'Switch to light mode' : 'Switch to night mode');
+    label.textContent = night ? 'Light' : 'Night';
+    icon.innerHTML = night ? SUN : MOON;
+    try { localStorage.setItem('dd-theme', t); } catch (e) {}
+  }
+  btn.addEventListener('click', () => setTheme(root.getAttribute('data-theme') === 'night' ? 'light' : 'night'));
+  let saved = null; try { saved = localStorage.getItem('dd-theme'); } catch (e) {}
+  if (saved) setTheme(saved);
+
+  // ---------- mood palette (mirrors src/constants/moods.ts) ----------
+  const MOODS = {
+    happy:     { label: 'Happy',     color: '#F4B400' },
+    sad:       { label: 'Sad',       color: '#5C6BC0' },
+    angry:     { label: 'Angry',     color: '#E53935' },
+    tired:     { label: 'Tired',     color: '#7E57C2' },
+    thoughtful:{ label: 'Thoughtful',color: '#78909C' },
+    loved:     { label: 'Loved',     color: '#EC407A' },
+    cool:      { label: 'Cool',      color: '#26A69A' },
+    anxious:   { label: 'Anxious',   color: '#FF7043' },
+    excited:   { label: 'Excited',   color: '#FFC107' },
+    calm:      { label: 'Calm',      color: '#8A9A5B' },
+    adoring:   { label: 'Adoring',   color: '#AB47BC' },
+    mindblown: { label: 'Mind-blown',color: '#FF5722' },
+  };
+
+  // ---------- October 2026 fixture ----------
+  const TODAY = 13;
+  const SELECTED = 13;
+  const DAYS = {
+    1:  { moods: ['happy'], note: 'first light', entries: [{ title: 'The first morning of October', mood: 'happy', preview: 'Woke before the alarm and the light through the curtain was the colour of weak tea. Made coffee standing up.', words: 214, reading: 2, time: '07:12', tags: ['morning'], fav: true }] },
+    3:  { moods: ['thoughtful'], note: 'the long way', entries: [{ title: 'The long way home', mood: 'thoughtful', preview: 'Walked the canal instead of the high street. Two herons, one very confident gull, and a thought I could not put down.', words: 388, reading: 2, time: '18:40', tags: ['walk'], fav: false }] },
+    5:  { moods: ['cool'], note: 'fresh ink', entries: [{ title: 'New notebook, fresh ink', mood: 'cool', preview: 'Broke in the new book at last. The first page is always the hardest and always the best.', words: 176, reading: 1, time: '21:05', tags: ['books'], fav: false }] },
+    6:  { moods: ['loved'], note: 'a good call', entries: [{ title: 'A call that ran long', mood: 'loved', preview: 'Two hours on the phone and neither of us noticed until the light went. Some conversations are their own country.', words: 302, reading: 2, time: '20:30', tags: ['family'], fav: true }] },
+    8:  { moods: ['anxious'], note: 'the deadline', entries: [{ title: 'Deadline weather', mood: 'anxious', preview: 'The work has a shape now, which is worse than when it did not. Wrote it down so it would stop circling.', words: 265, reading: 1, time: '23:15', tags: ['work'], fav: false }] },
+    10: { moods: ['excited'], note: 'loud room', entries: [{ title: 'Loud room, good band', mood: 'excited', preview: 'Stood too close to the speaker and would do it again. Ears still ringing in the best way.', words: 198, reading: 1, time: '23:50', tags: ['music'], fav: false }] },
+    11: { moods: ['calm','tired'], note: 'two pages', entries: [
+        { title: 'Sunday, undone', mood: 'calm', preview: 'Did almost nothing on purpose. The house was quiet in the way it only is on a Sunday afternoon.', words: 241, reading: 1, time: '15:20', tags: ['rest'], fav: false },
+        { title: 'Late, and tired', mood: 'tired', preview: 'The week arrived early. Wrote this lying down, which is not how it should be done.', words: 132, reading: 1, time: '22:45', tags: [], fav: false },
+      ] },
+    12: { moods: ['tired'], note: 'running low', entries: [{ title: 'Running on the reserve tank', mood: 'tired', preview: 'Third poor night. Everything feels like it is happening slightly behind glass.', words: 158, reading: 1, time: '22:10', tags: [], fav: false }] },
+    13: { moods: ['mindblown'], note: 'this page', entries: [{ title: 'Something finally clicked', mood: 'mindblown', preview: 'Stared at the problem for a week and then it simply opened. Wrote it down before it could close again.', words: 214, reading: 1, time: '09:35', tags: ['work'], fav: true }] },
+    15: { moods: ['sad'], note: 'rain again', entries: [{ title: 'Rain, and the long afternoon', mood: 'sad', preview: 'Grey all day and no reason for it that I could name. Sat with it instead of arguing.', words: 287, reading: 2, time: '17:05', tags: ['rain'], fav: false }] },
+    23: { moods: ['loved'], note: 'called home', entries: [{ title: 'Called home', mood: 'loved', preview: 'Nothing happened on the call, which is exactly the point. Forty minutes of ordinary weather.', words: 226, reading: 1, time: '19:20', tags: ['family'], fav: false }] },
+    25: { moods: ['happy'], note: 'the market', entries: [{ title: 'Market morning', mood: 'happy', preview: 'Bought too many tomatoes and a loaf still warm. Ate one on the walk back.', words: 203, reading: 1, time: '10:15', tags: ['morning'], fav: true }] },
+    26: { moods: ['excited'], note: 'plans', entries: [{ title: 'Plans taking shape', mood: 'excited', preview: 'Dates on a page at last. It is real now that it has a number beside it.', words: 189, reading: 1, time: '20:00', tags: ['travel'], fav: false }] },
+    28: { moods: ['thoughtful'], note: 'turning over', entries: [{ title: 'Turning things over', mood: 'thoughtful', preview: 'Re-read the entry from spring. Same worry, entirely different person holding it.', words: 311, reading: 2, time: '21:30', tags: ['reflection'], fav: false }] },
+    30: { moods: ['calm'], note: 'a steady day', entries: [{ title: 'A steady, unremarkable day', mood: 'calm', preview: 'Nothing to report and glad of it. This is what most good days look like written down.', words: 167, reading: 1, time: '18:00', tags: ['rest'], fav: false }] },
+    31: { moods: ['happy'], note: 'last page', entries: [{ title: 'Last page of October', mood: 'happy', preview: 'Closed the book on the month. Fourteen entries, one quiet stretch, and a page worth keeping.', words: 248, reading: 1, time: '22:20', tags: ['reflection'], fav: true }] },
+  };
+
+  const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // ---------- build the grid: Oct 1 2026 is a Thursday (index 4) ----------
+  const firstWeekday = 4;
+  const daysInMonth = 31;
+  const cells = [];
+  for (let i = 0; i < firstWeekday; i++) cells.push({ out: true, day: daysInMonth - firstWeekday + 1 + i });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ out: false, day: d });
+  while (cells.length % 7 !== 0) cells.push({ out: true, day: cells.length - firstWeekday - daysInMonth + 1 });
+
+  const grid = document.getElementById('monthGrid');
+  const key = (d) => `Oct ${d}`;
+
+  cells.forEach((cell) => {
+    const data = cell.out ? null : DAYS[cell.day];
+    const count = data ? data.entries.length : 0;
+    const isToday = !cell.out && cell.day === TODAY;
+    const isSelected = !cell.out && cell.day === SELECTED;
+
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'day' + (cell.out ? ' out' : '') + (count === 0 && !cell.out ? ' empty quiet' : '') + (isToday ? ' is-today' : '') + (isSelected ? ' is-selected' : '');
+    el.setAttribute('role', 'gridcell');
+    el.setAttribute('aria-label', `${MONTHS[9]} ${cell.day}${cell.out ? ' (other month)' : ''}, ${count} ${count === 1 ? 'entry' : 'entries'}${data ? ', mood ' + data.moods.map(m => MOODS[m].label).join(' and ') : ''}${isToday ? ', today' : ''}`);
+
+    const dots = data ? data.moods.slice(0, 4).map(m => `<span class="dot" style="background:${MOODS[m].color}"></span>`).join('') : '';
+    const overflow = data && data.moods.length > 4 ? `<span class="overflow">+${data.moods.length - 4}</span>` : '';
+
+    el.innerHTML = `
+      <span class="dnum">${cell.day}</span>
+      ${isToday ? '<span class="today-pill">Today</span>' : ''}
+      <span class="dots">${dots}${overflow}</span>
+      ${count > 0 ? `<span class="dcount">${count} ${count === 1 ? 'entry' : 'entries'}</span>` : ''}
+      ${data && data.note ? `<span class="day-note">${data.note}</span>` : ''}
+    `;
+    grid.appendChild(el);
+  });
+
+  // ---------- mood key ----------
+  (function () {
+    const keyEl = document.getElementById('moodKey');
+    Object.values(MOODS).forEach((m) => {
+      const s = document.createElement('span');
+      s.className = 'mk';
+      s.innerHTML = `<i style="background:${m.color}"></i>${m.label}`;
+      keyEl.appendChild(s);
+    });
+  })();
+
+  // ---------- render the detail panel for the selected day ----------
+  (function () {
+    const d = SELECTED;
+    const data = DAYS[d];
+    const words = data.entries.reduce((t, e) => t + e.words, 0);
+    const dateObj = new Date(2026, 9, d);
+    const fmt = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+    document.getElementById('panelDate').textContent = fmt.format(dateObj);
+    document.getElementById('panelMeta').textContent = `${data.entries.length} ${data.entries.length === 1 ? 'entry' : 'entries'} · ${words} words`;
+
+    const list = document.getElementById('entryList');
+    list.innerHTML = '';
+    data.entries.forEach((e) => {
+      const m = MOODS[e.mood];
+      const art = document.createElement('article');
+      art.className = 'entry';
+      art.innerHTML = `
+        <div class="entry-head">
+          <h3 class="entry-title">${e.title}</h3>
+          <span class="mood-tag"><i style="background:${m.color}"></i>${m.label}</span>
+        </div>
+        <p class="entry-preview">${e.preview}</p>
+        <div class="entry-foot">
+          <span class="foot-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${e.words} words</span>
+          <span class="foot-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${e.reading} min</span>
+          <span class="foot-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${e.time}</span>
+          ${e.tags.length ? `<span class="foot-item">#${e.tags.join(' #')}</span>` : ''}
+          <button class="fav" type="button" aria-pressed="${e.fav}" aria-label="Favourite ${e.title}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="${e.fav ? 'currentColor' : 'none'}" aria-hidden="true"><path d="M12 3.6l2.6 5.4 5.9.7-4.4 4 1.2 5.8L12 16.7 6.7 19.5l1.2-5.8-4.4-4 5.9-.7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      `;
+      list.appendChild(art);
+    });
+
+    // favourites toggle (visual only in the sketch)
+    list.querySelectorAll('.fav').forEach((b) => {
+      b.addEventListener('click', () => {
+        const on = b.getAttribute('aria-pressed') === 'true';
+        b.setAttribute('aria-pressed', on ? 'false' : 'true');
+        b.querySelector('svg').setAttribute('fill', on ? 'none' : 'currentColor');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

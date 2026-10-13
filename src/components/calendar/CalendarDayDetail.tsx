@@ -19,10 +19,16 @@ export function CalendarDayDetail({ date, entries, onToggleFavorite }: CalendarD
   const words = entries.reduce((total, entry) => total + entry.wordCount, 0);
 
   return (
-    <section aria-label="Entries for the selected day" className="flex flex-col gap-4">
+    <section
+      aria-label="Entries for the selected day"
+      className="flex flex-col gap-4 rounded-lg border border-primary-200 border-l-4 border-l-accent-gold bg-accent-cream p-5 shadow-soft dark:border-primary-600 dark:bg-primary-800"
+    >
       <header className="flex flex-col gap-1">
-        <h3 className="font-display text-lg text-primary-800 dark:text-primary-100">{formatLongDate(date)}</h3>
-        <p className="font-body text-xs text-primary-500 dark:text-primary-300">
+        <p className="font-body text-[10px] font-bold tracking-[0.2em] text-primary-500 uppercase dark:text-primary-300">
+          The selected day
+        </p>
+        <h3 className="font-display text-xl text-primary-800 dark:text-primary-100">{formatLongDate(date)}</h3>
+        <p className="font-body text-sm text-primary-500 dark:text-primary-300">
           {`${formatCount(entries.length, 'entry', 'entries')} · ${formatWordCount(words)}`}
         </p>
       </header>
@@ -56,10 +62,7 @@ export function CalendarDayDetail({ date, entries, onToggleFavorite }: CalendarD
  */
 function WriteThisDay({ date, variant }: { date: Date; variant: 'gold' | 'outline' }) {
   return (
-    <Link
-      to={`${ROUTES.write}?date=${toDateKey(date)}`}
-      className={`${buttonVariants({ size: 'sm', variant })} self-start`}
-    >
+    <Link to={`${ROUTES.write}?date=${toDateKey(date)}`} className={`${buttonVariants({ size: 'sm', variant })} self-start`}>
       Write this day
     </Link>
   );
