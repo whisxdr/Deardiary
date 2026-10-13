@@ -6,5 +6,4 @@ export { CalendarGrid } from './CalendarGrid';
 export type { CalendarGridProps } from './CalendarGrid';
 export { CalendarHeader } from './CalendarHeader';
 export type { CalendarHeaderProps } from './CalendarHeader';
-export { CalendarMoodKey } from './CalendarMoodKey';
 export { CalendarWeekdays } from './CalendarWeekdays';

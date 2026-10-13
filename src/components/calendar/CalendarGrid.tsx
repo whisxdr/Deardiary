@@ -31,7 +31,7 @@ export function CalendarGrid({ month, entries, selectedDate, onSelect }: Calenda
   return (
     <div className="flex flex-col gap-1.5" role="grid" aria-label="Month grid">
       <CalendarWeekdays />
-      <div className="grid grid-cols-7 gap-1.5 border-l border-t border-primary-200/70 dark:border-primary-600/70">
+      <div className="grid grid-cols-7 gap-1.5">
         {days.map((day) => {
           const key = toDateKey(day);
           const dayEntries = byDay[key] ?? [];
@@ -44,7 +44,6 @@ export function CalendarGrid({ month, entries, selectedDate, onSelect }: Calenda
               isToday={isSameCalendarDay(day, new Date())}
               isSelected={isSameCalendarDay(day, selectedDate)}
               isCurrentMonth={day.getMonth() === month.getMonth()}
-              note={dayEntries[0]?.tags[0]}
               onSelect={onSelect}
             />
           );
