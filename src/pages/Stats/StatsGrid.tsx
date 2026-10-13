@@ -1,5 +1,5 @@
 import { Star } from '@phosphor-icons/react';
-import { LedgerRow, LedgerSheet, MoodDistribution, MoodStamp, StatNumber, TagIndex, WritingStreak } from '@/components/stats';
+import { LedgerRow, LedgerSheet, MoodDistribution, MoodStamp, StatNumber, StatsMargin, TagIndex, WritingStreak } from '@/components/stats';
 import { ActivityBarChart, EntriesLineChart, HeatmapChart } from '@/components/charts';
 import { formatCount, formatPercent, formatWordCount } from '@/lib';
 import { signed } from '@/utils';
@@ -83,6 +83,9 @@ function FavoritesRow({ stats }: { stats: StatsSummary }) {
 export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
   return (
     <div className="flex flex-col gap-4">
+      {/* Margin furniture for the gutters either side of the sheet. Fixed and
+          pointer-events:none, so it adds no layout and never blocks the sheet. */}
+      <StatsMargin />
       <LedgerSheet>
         <TotalEntriesRow stats={stats} />
         <LedgerRow

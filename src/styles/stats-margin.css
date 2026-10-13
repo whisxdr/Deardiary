@@ -1,0 +1,154 @@
+/*
+ * Statistics page — margin furniture.
+ *
+ * The ledger sheet is centred inside `main`'s `max-w-7xl` column, so on wide
+ * desktops a quiet gutter is left on either side. This layer fills those gutters
+ * with hand-made touches (vertical folio/pagination labels, italic serif asides,
+ * line-art illustrations, a perforated stamp, dotted rules) without touching the
+ * central sheet.
+ *
+ * Colours and opacities are CSS variables so the whole layer can be retuned in
+ * one place and follows the night theme. Everything is decorative: the layer is
+ * `aria-hidden` and `pointer-events: none`, it is fixed to the viewport so it
+ * escapes the centred column, and it is hidden below 1280px where the gutters no
+ * longer exist.
+ */
+
+:root {
+  /* Line art + vertical mono labels. */
+  --margin-ink: #3e2723;
+  /* Italic serif asides — soft, never louder than the sheet's own text. */
+  --margin-note: #7d5a3c;
+  /* Dotted rules + the stamp tint. */
+  --margin-rule: #d98a7e;
+  --margin-rose: #b76e79;
+
+  /* Per-element opacities, kept in the recommended 0.25–0.55 band. */
+  --deco-op-label: 0.5;
+  --deco-op-note: 0.55;
+  --deco-op-art: 0.35;
+  --deco-op-stamp: 0.42;
+  --deco-op-rule: 0.4;
+}
+
+[data-theme='night'] {
+  /* Lighter inks so the furniture stays visible on dark paper. */
+  --margin-ink: #e0c9a6;
+  --margin-note: #c9a961;
+  --margin-rule: #a15b52;
+  --margin-rose: #d9a7b0;
+
+  --deco-op-label: 0.55;
+  --deco-op-note: 0.55;
+  --deco-op-art: 0.5;
+  --deco-op-stamp: 0.5;
+  --deco-op-rule: 0.5;
+}
+
+/*
+ * The layer itself. `position: fixed` lets it escape the centred `max-w-7xl`
+ * column; `inset: 0` spans the viewport; `pointer-events: none` keeps it from
+ * ever intercepting clicks or scrolls. The fade-in touches opacity only, so it
+ * runs on the compositor and never reflows the page.
+ */
+.stats-margin {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  animation: stats-margin-in 700ms ease-out both;
+}
+
+@keyframes stats-margin-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* One side's stack of furniture, centred against the viewport height. */
+.stats-margin__col {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.25rem;
+}
+
+.stats-margin__col--left {
+  left: 0;
+  padding-left: 1.75rem;
+}
+
+.stats-margin__col--right {
+  right: 0;
+  padding-right: 1.75rem;
+}
+
+/* Vertical spine label — monospace, per the "页码使用等宽字体" rule. */
+.stats-margin__label {
+  writing-mode: vertical-rl;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--margin-ink);
+  opacity: var(--deco-op-label);
+}
+
+/* Italic serif aside, matching the header subtitle's Cormorant italic. */
+.stats-margin__note {
+  max-width: 9rem;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.55;
+  text-align: center;
+  color: var(--margin-note);
+  opacity: var(--deco-op-note);
+}
+
+/* Line-art illustrations: currentColor so the CSS variables drive the ink. */
+.stats-margin__art {
+  color: var(--margin-ink);
+  opacity: var(--deco-op-art);
+}
+
+/* A whisper of rotation for the hand-made feel (static, never animated). */
+.stats-margin__art--tilt {
+  transform: rotate(-6deg);
+}
+
+.stats-margin__art--tilt-alt {
+  transform: rotate(5deg);
+}
+
+/* Perforated stamp / seal. */
+.stats-margin__stamp {
+  color: var(--margin-rose);
+  opacity: var(--deco-op-stamp);
+  transform: rotate(-7deg);
+}
+
+/* Dotted vertical rule. */
+.stats-margin__rule {
+  width: 0;
+  height: 4.5rem;
+  border-left: 1px dashed var(--margin-rule);
+  opacity: var(--deco-op-rule);
+}
+
+/*
+ * Below 1280px the `max-w-7xl` column fills the viewport, so the gutters — and
+ * therefore the whole layer — disappear. This also keeps the furniture from
+ * squeezing the main content on tablets and phones.
+ */
+@media (max-width: 1279.98px) {
+  .stats-margin {
+    display: none;
+  }
+}

@@ -6,6 +6,7 @@ export { MoodDistribution } from './MoodDistribution';
 export type { MoodDistributionProps } from './MoodDistribution';
 export { MoodStamp } from './MoodStamp';
 export type { MoodStampProps } from './MoodStamp';
+export { StatsMargin } from './StatsMargin';
 export { StatNumber } from './StatNumber';
 export type { StatNumberProps } from './StatNumber';
 export { TagIndex } from './TagIndex';
