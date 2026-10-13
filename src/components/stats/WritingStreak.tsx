@@ -14,10 +14,10 @@ export function WritingStreak({ current, longest }: WritingStreakProps) {
         <FlameGlyph />
       </span>
       <div className="flex flex-col">
-        <span className="font-display text-[46px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+        <span className="font-display text-[46px] leading-none font-bold text-primary-800 dark:text-primary-100">
           <StatNumber value={current} />
         </span>
-        <span className="font-sub text-[15px] italic text-muted">
+        <span className="font-body text-sm text-primary-600 dark:text-primary-200">
           {current === 1 ? 'day in a row' : 'days in a row'}
         </span>
       </div>
@@ -26,7 +26,7 @@ export function WritingStreak({ current, longest }: WritingStreakProps) {
           <TrendUp size={16} weight="bold" aria-hidden="true" />
           {longest}
         </span>
-        <span className="font-body text-[10px] tracking-[1px] uppercase text-muted">longest streak</span>
+        <span className="font-body text-[11px] tracking-wide text-primary-600 uppercase dark:text-primary-200">longest streak</span>
       </div>
     </div>
   );

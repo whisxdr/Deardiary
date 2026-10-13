@@ -73,7 +73,7 @@ export function HeatmapChart({ cells, title = 'Writing activity' }: HeatmapChart
         <div className="flex min-w-0 flex-col">
           <div className="mb-1 flex gap-1" aria-hidden="true">
             {weeks.map((week) => (
-              <span key={`label-${week.key}`} className="w-[13px] shrink-0 font-body text-[10px] text-muted">
+              <span key={`label-${week.key}`} className="w-[13px] shrink-0 font-body text-[11px] text-primary-600 dark:text-primary-200">
                 {week.monthLabel === null ? '' : MONTH_NAMES[week.monthLabel]}
               </span>
             ))}
@@ -93,7 +93,7 @@ export function HeatmapChart({ cells, title = 'Writing activity' }: HeatmapChart
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-1.5 font-body text-[11px] text-muted">
+      <div className="flex items-center gap-1.5 font-body text-[12px] text-primary-600 dark:text-primary-200">
         <span>Less</span>
         {LEVEL_CLASSES.map((levelClass) => (
           <span key={levelClass} aria-hidden="true" className={`size-3 rounded-[3px] ${levelClass}`} />

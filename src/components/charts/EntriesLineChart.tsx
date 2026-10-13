@@ -75,7 +75,7 @@ export function EntriesLineChart({ data }: EntriesLineChartProps) {
           />
         </LineChart>
       </ResponsiveContainer>
-      <p className="font-mono text-xs text-accent-gold-deep dark:text-accent-gold">
+      <p className="font-mono text-[13px] font-semibold text-accent-gold-deep dark:text-accent-gold">
         {`peak ${peakPoint.entries} · week of ${peakPoint.week}`}
       </p>
     </div>

@@ -23,8 +23,8 @@ export const TOOLTIP_STYLE = {
   background: CHART_TOKENS.tooltipBg,
   color: CHART_TOKENS.tooltipText,
   fontFamily: 'Inter, sans-serif',
-  fontSize: 12,
+  fontSize: 13,
 } as const;
 
 /** Shared axis tick styling. */
-export const TICK_STYLE = { fontSize: 11, fill: CHART_TOKENS.tick } as const;
+export const TICK_STYLE = { fontSize: 12, fill: CHART_TOKENS.tick } as const;

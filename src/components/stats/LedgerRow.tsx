@@ -35,10 +35,10 @@ export function LedgerRow({ id, number, label, sublabel, marginNote, children, b
     <div className="ledger-row grid items-center gap-x-lg gap-y-xs py-3.5 min-h-[68px] border-b border-primary-200/50 last:border-b-0 lg:grid-cols-[200px_1fr]">
       <div className="flex flex-col gap-1">
         <div className="flex items-baseline gap-2.5">
-          <span aria-hidden="true" className="font-mono text-xs text-primary-400 dark:text-primary-300">
+          <span aria-hidden="true" className="font-mono text-[13px] text-primary-600 dark:text-primary-200">
             {number}
           </span>
-          <h3 className="font-body text-xs font-semibold uppercase tracking-[1.2px] text-muted">{label}</h3>
+          <h3 className="font-body text-[13px] font-semibold tracking-wide text-primary-600 uppercase dark:text-primary-200">{label}</h3>
         </div>
         {sublabel ? <div className="pl-7">{sublabel}</div> : null}
       </div>
@@ -52,7 +52,7 @@ export function LedgerRow({ id, number, label, sublabel, marginNote, children, b
       {marginNote ? (
         <p
           id={id ? `${id}-note` : undefined}
-          className="ledger-margin-note -order-1 font-hand text-lg font-semibold leading-snug text-primary-600 lg:hidden dark:text-primary-200"
+          className="ledger-margin-note -order-1 font-body text-[15px] leading-relaxed font-medium text-primary-600 italic lg:hidden dark:text-primary-200"
         >
           {marginNote}
         </p>

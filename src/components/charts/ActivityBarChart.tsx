@@ -34,7 +34,7 @@ export function ActivityBarChart({ data }: ActivityBarChartProps) {
       <ResponsiveContainer width="100%" height={140}>
         <BarChart data={data} margin={{ top: 14, right: 12, bottom: 0, left: -18 }}>
           <CartesianGrid stroke={CHART_TOKENS.grid} strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="label" interval={2} tick={{ ...TICK_STYLE, fontSize: 10 }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="label" interval={2} tick={{ ...TICK_STYLE, fontSize: 12 }} axisLine={false} tickLine={false} />
           <YAxis tick={TICK_STYLE} axisLine={false} tickLine={false} allowDecimals={false} />
           <Tooltip
             contentStyle={TOOLTIP_STYLE}
@@ -51,7 +51,7 @@ export function ActivityBarChart({ data }: ActivityBarChartProps) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <p className="font-mono text-xs text-accent-gold-deep dark:text-accent-gold">
+      <p className="font-mono text-[13px] font-semibold text-accent-gold-deep dark:text-accent-gold">
         {`${peakBucket.label} · ${formatCount(peakBucket.entries, 'entry', 'entries')} · your peak`}
       </p>
     </div>

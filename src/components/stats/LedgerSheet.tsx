@@ -9,11 +9,12 @@ export interface LedgerSheetProps {
   className?: string;
 }
 
-/** A `LedgerRow` element reduced to just its handwritten margin note. */
+/** A `LedgerRow` element reduced to just its margin note. */
 function MarginNote({ note }: { note: ReactNode }) {
+  // Inter, not Caveat: this note repeats down the sheet and a handwriting face is slow to read.
   return (
     <div className="flex min-h-[68px] items-start px-2.5 py-3.5">
-      <p className="font-hand text-[21px] leading-snug font-semibold text-primary-600 dark:text-primary-200">{note}</p>
+      <p className="font-body text-[15px] leading-relaxed font-medium text-primary-600 italic dark:text-primary-200">{note}</p>
     </div>
   );
 }

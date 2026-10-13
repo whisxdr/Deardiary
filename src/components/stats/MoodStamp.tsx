@@ -23,12 +23,12 @@ export function MoodStamp({ mood, className }: MoodStampProps) {
       aria-label={`Top mood: ${mood.label}, ${formatPercent(mood.percentage)} of all entries`}
       className={`inline-flex size-[76px] shrink-0 -rotate-[7deg] flex-col items-center justify-center gap-0.5 rounded-full border-[3px] border-double text-accent-ink dark:text-[#D9CBB0] ${className ?? ''}`}
     >
-      <span aria-hidden="true" className="font-body text-[9px] font-bold tracking-[1.5px] uppercase opacity-85">
+      <span aria-hidden="true" className="font-body text-[10px] font-semibold tracking-[0.6px] uppercase opacity-90">
         Stamp
       </span>
       <MoodIcon mood={mood.mood} size={20} color="currentColor" />
       <span className="font-display text-[15px] leading-none font-bold">{mood.label}</span>
-      <span className="font-mono text-xs leading-none font-bold">{formatPercent(mood.percentage)}</span>
+      <span className="font-mono text-[13px] leading-none font-bold">{formatPercent(mood.percentage)}</span>
     </span>
   );
 }

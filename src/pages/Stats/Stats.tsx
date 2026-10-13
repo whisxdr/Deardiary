@@ -25,11 +25,11 @@ export default function Stats() {
               <h1 className="font-display text-2xl text-primary-800 sm:text-3xl dark:text-primary-100">
                 Your writing year
               </h1>
-              <p className="font-sub text-base italic text-muted">
+              <p className="font-sub text-base text-primary-600 italic dark:text-primary-200">
                 Everything here is calculated from entries stored in this browser.
               </p>
             </div>
-            <p aria-hidden="true" className="font-mono text-[11px] tracking-[1px] text-muted uppercase">
+            <p className="font-mono text-[12px] tracking-[0.4px] text-primary-600 dark:text-primary-200">
               Folio No. 2025 · Statistics Ledger
             </p>
           </div>

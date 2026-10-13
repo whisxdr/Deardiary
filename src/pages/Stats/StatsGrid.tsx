@@ -18,7 +18,7 @@ function TotalEntriesRow({ stats }: { stats: StatsSummary }) {
       label="Total entries"
       marginNote={<>every page you turned <span aria-hidden="true">&rarr;</span> a year of them</>}
     >
-      <span className="font-display text-[44px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+      <span className="font-display text-[44px] leading-none font-bold tracking-tight text-primary-800 dark:text-primary-100">
         <StatNumber value={stats.totalEntries} />
       </span>
       <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-accent-gold/15 px-2.5 py-1 font-body text-[13px] font-semibold whitespace-nowrap text-accent-gold-deep dark:border-primary-600 dark:text-accent-gold">
@@ -33,7 +33,7 @@ function TotalEntriesRow({ stats }: { stats: StatsSummary }) {
         )}
         {`${signed(stats.monthChangePercent)}% vs last month`}
       </span>
-      <span className="font-sub text-base italic text-muted">
+      <span className="font-body text-sm text-primary-600 dark:text-primary-200">
         {`${formatCount(stats.entriesThisMonth, 'entry', 'entries')} this month`}
       </span>
     </LedgerRow>
@@ -48,11 +48,11 @@ function TotalWordsRow({ stats }: { stats: StatsSummary }) {
       label="Total words"
       marginNote={<>ink spent <span aria-hidden="true">&rarr;</span> word by word</>}
     >
-      <span className="font-display text-[44px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+      <span className="font-display text-[44px] leading-none font-bold tracking-tight text-primary-800 dark:text-primary-100">
         <StatNumber value={stats.totalWords} />
-        <span className="ml-1.5 font-sub text-lg font-medium italic text-muted">words</span>
+        <span className="font-sub text-lg font-medium text-primary-600 italic dark:text-primary-200">words</span>
       </span>
-      <span className="font-sub text-base italic text-muted">
+      <span className="font-body text-sm text-primary-600 dark:text-primary-200">
         {`${formatWordCount(stats.averageWords)} per entry on average`}
       </span>
     </LedgerRow>
@@ -67,11 +67,11 @@ function FavoritesRow({ stats }: { stats: StatsSummary }) {
       label="Favorites"
       marginNote={<>the keepers <span aria-hidden="true">&rarr;</span> starred pages</>}
     >
-      <span className="font-display text-[44px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+      <span className="font-display text-[44px] leading-none font-bold tracking-tight text-primary-800 dark:text-primary-100">
         <StatNumber value={stats.favorites} />
       </span>
       <Star aria-hidden="true" size={26} weight="fill" className="text-accent-gold" />
-      <span className="font-sub text-base italic text-muted">entries you starred</span>
+      <span className="font-body text-sm text-primary-600 dark:text-primary-200">entries you starred</span>
     </LedgerRow>
   );
 }
@@ -101,32 +101,32 @@ export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
           {stats.topMood ? (
             <>
               <MoodStamp mood={stats.topMood} />
-              <span className="font-sub text-base italic text-muted">
+              <span className="font-body text-sm text-primary-600 dark:text-primary-200">
                 {`${formatPercent(stats.topMood.percentage)} of all entries · your most common feeling`}
               </span>
             </>
           ) : (
-            <span className="font-sub text-base italic text-muted">No moods recorded yet</span>
+            <span className="font-body text-sm text-primary-600 dark:text-primary-200">No moods recorded yet</span>
           )}
         </LedgerRow>
         <TotalWordsRow stats={stats} />
         <LedgerRow
           number="05"
           label="Average per week"
-          sublabel={<span className="font-sub text-base italic text-muted">based on the last eight weeks</span>}
+          sublabel={<span className="font-body text-sm text-primary-600 dark:text-primary-200">based on the last eight weeks</span>}
           marginNote={<>a steady hand <span aria-hidden="true">&rarr;</span> week by week</>}
           bodyClassName="items-stretch"
         >
-          <span className="font-display text-[34px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+          <span className="font-display text-[34px] leading-none font-bold tracking-tight text-primary-800 dark:text-primary-100">
             {stats.averagePerWeek}
-            <span className="ml-1.5 font-sub text-base font-medium italic text-muted">/ week</span>
+            <span className="ml-1.5 font-sub text-base font-medium text-primary-600 italic dark:text-primary-200">/ week</span>
           </span>
           <EntriesLineChart data={stats.weeklyActivity} />
         </LedgerRow>
         <LedgerRow
           number="06"
           label="Mood distribution"
-          sublabel={<span className="font-sub text-base italic text-muted">how your feelings split up</span>}
+          sublabel={<span className="font-body text-sm text-primary-600 dark:text-primary-200">how your feelings split up</span>}
           marginNote={<>the weather of your year <span aria-hidden="true">&rarr;</span> all twelve moods</>}
         >
           <MoodDistribution data={stats.moodDistribution} />
@@ -134,7 +134,7 @@ export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
         <LedgerRow
           number="07"
           label="Activity by hour"
-          sublabel={<span className="font-sub text-base italic text-muted">your most productive hour</span>}
+          sublabel={<span className="font-body text-sm text-primary-600 dark:text-primary-200">your most productive hour</span>}
           marginNote={<>when the pen moves <span aria-hidden="true">&rarr;</span> evening, mostly</>}
           bodyClassName="items-stretch"
         >
@@ -153,7 +153,7 @@ export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
           number="10"
           label="Writing activity"
           sublabel={
-            <span className="font-sub text-base italic text-muted">
+            <span className="font-body text-sm text-primary-600 dark:text-primary-200">
               {`${formatCount(stats.heatmap.filter((cell) => cell.count > 0).length, 'active day')} · each square is a day`}
             </span>
           }
@@ -163,7 +163,7 @@ export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
           <HeatmapChart cells={stats.heatmap} />
         </LedgerRow>
       </LedgerSheet>
-      <p className="font-hand text-xl text-muted">
+      <p className="font-hand text-xl text-primary-600 dark:text-primary-200">
         <span aria-hidden="true">* </span>
         every figure tallied from entries kept in this browser.
       </p>

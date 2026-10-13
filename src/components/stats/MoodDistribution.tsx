@@ -39,14 +39,14 @@ export function MoodDistribution({ data }: MoodDistributionProps) {
             className="size-3.5 rounded-sm border border-primary-700/25 dark:border-primary-100/25"
             style={{ background: item.color }}
           />
-          <span className="truncate font-body text-[13px] text-primary-600 dark:text-primary-200">{item.label}</span>
+          <span className="truncate font-body text-sm text-primary-600 dark:text-primary-200">{item.label}</span>
           <span className="h-2 overflow-hidden rounded-sm bg-primary-200 dark:bg-primary-600">
             <span
               className="block h-full rounded-sm"
               style={{ width: `${Math.max(2, (item.percentage / scale) * 100)}%`, background: item.color }}
             />
           </span>
-          <span className="text-right font-mono text-xs text-muted">{formatPercent(item.percentage)}</span>
+          <span className="text-right font-mono text-[13px] text-primary-600 dark:text-primary-200">{formatPercent(item.percentage)}</span>
         </li>
       ))}
     </ul>
