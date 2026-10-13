@@ -1,9 +1,17 @@
+export { LedgerRow } from './LedgerRow';
+export type { LedgerRowProps } from './LedgerRow';
+export { LedgerSheet } from './LedgerSheet';
+export type { LedgerSheetProps } from './LedgerSheet';
 export { MoodDistribution } from './MoodDistribution';
 export type { MoodDistributionProps } from './MoodDistribution';
+export { MoodStamp } from './MoodStamp';
+export type { MoodStampProps } from './MoodStamp';
 export { StatCard } from './StatCard';
 export type { StatCardProps } from './StatCard';
 export { StatNumber } from './StatNumber';
 export type { StatNumberProps } from './StatNumber';
+export { TagIndex } from './TagIndex';
+export type { TagIndexProps } from './TagIndex';
 export { WordCloud } from './WordCloud';
 export type { WordCloudProps } from './WordCloud';
 export { WritingStreak } from './WritingStreak';

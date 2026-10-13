@@ -33,6 +33,13 @@
 
   /* Ink used by unselected mood stamps. */
   --mood-stamp-ink: #1a237e;
+
+  /* Darkened gold for small text on cream. Plain accent-gold is 1.98:1 against
+     accent-cream, so chips and tag hashes use this to clear AA (≈5.9:1). */
+  --accent-gold-deep: #6f5220;
+
+  /* The soft red rule down a ledger's left margin (decorative only). */
+  --ledger-rule: #d98a7e;
 }
 
 [data-theme='night'] {
@@ -55,5 +62,12 @@
 
   /* Deep ink is unreadable on dark paper, so night mode uses a light ink. */
   --mood-stamp-ink: #d9cbb0;
+
+  /* Gold is fully legible as text on night paper (7.43:1), so the deepened value
+     is not needed there. */
+  --accent-gold-deep: #c9a961;
+
+  /* Softened so the ledger margin rule does not glare on dark paper. */
+  --ledger-rule: #a15b52;
 }
 

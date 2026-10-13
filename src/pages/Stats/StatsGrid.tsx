@@ -1,10 +1,8 @@
-import { FileText, Star, TrendUp, TextT } from '@phosphor-icons/react';
-import { StatCard, StatNumber, WordCloud, WritingStreak } from '@/components/stats';
+import { Star } from '@phosphor-icons/react';
+import { LedgerRow, LedgerSheet, MoodDistribution, MoodStamp, StatNumber, TagIndex, WritingStreak } from '@/components/stats';
 import { ActivityBarChart, EntriesLineChart, HeatmapChart } from '@/components/charts';
-import { MoodDistribution } from '@/components/stats';
-import { MoodIcon } from '@/components/mood';
 import { formatCount, formatPercent, formatWordCount } from '@/lib';
-import { moodLabel, signed } from '@/utils';
+import { signed } from '@/utils';
 import type { StatsSummary } from '@/types';
 
 export interface StatsGridProps {
@@ -12,82 +10,163 @@ export interface StatsGridProps {
   onTagClick: (tag: string) => void;
 }
 
-/** Dashboard of every statistic the diary can compute locally. */
+/** Row 01 of the ledger: the headline count, with this month's delta. */
+function TotalEntriesRow({ stats }: { stats: StatsSummary }) {
+  return (
+    <LedgerRow
+      number="01"
+      label="Total entries"
+      marginNote={<>every page you turned <span aria-hidden="true">&rarr;</span> a year of them</>}
+    >
+      <span className="font-display text-[44px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+        <StatNumber value={stats.totalEntries} />
+      </span>
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-accent-gold/15 px-2.5 py-1 font-body text-[13px] font-semibold whitespace-nowrap text-accent-gold-deep dark:border-primary-600 dark:text-accent-gold">
+        {stats.monthChangePercent >= 0 ? (
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 5l7 8h-4v6h-6v-6H5z" />
+          </svg>
+        ) : (
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 19l-7-8h4V5h6v6h4z" />
+          </svg>
+        )}
+        {`${signed(stats.monthChangePercent)}% vs last month`}
+      </span>
+      <span className="font-sub text-base italic text-muted">
+        {`${formatCount(stats.entriesThisMonth, 'entry', 'entries')} this month`}
+      </span>
+    </LedgerRow>
+  );
+}
+
+/** Row 04 of the ledger: total words written. */
+function TotalWordsRow({ stats }: { stats: StatsSummary }) {
+  return (
+    <LedgerRow
+      number="04"
+      label="Total words"
+      marginNote={<>ink spent <span aria-hidden="true">&rarr;</span> word by word</>}
+    >
+      <span className="font-display text-[44px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+        <StatNumber value={stats.totalWords} />
+        <span className="ml-1.5 font-sub text-lg font-medium italic text-muted">words</span>
+      </span>
+      <span className="font-sub text-base italic text-muted">
+        {`${formatWordCount(stats.averageWords)} per entry on average`}
+      </span>
+    </LedgerRow>
+  );
+}
+
+/** Row 09 of the ledger: starred entries. */
+function FavoritesRow({ stats }: { stats: StatsSummary }) {
+  return (
+    <LedgerRow
+      number="09"
+      label="Favorites"
+      marginNote={<>the keepers <span aria-hidden="true">&rarr;</span> starred pages</>}
+    >
+      <span className="font-display text-[44px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+        <StatNumber value={stats.favorites} />
+      </span>
+      <Star aria-hidden="true" size={26} weight="fill" className="text-accent-gold" />
+      <span className="font-sub text-base italic text-muted">entries you starred</span>
+    </LedgerRow>
+  );
+}
+
+/**
+ * The statistics page as a single continuous ledger: one ruled sheet of ten
+ * numbered rows, read top to bottom. Replaces the old flat grid of equal-weight
+ * `StatCard`s.
+ */
 export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
   return (
-    <div className="grid min-w-0 gap-4 lg:grid-cols-3">
-      <StatCard
-        label="Total entries"
-        value={<StatNumber value={stats.totalEntries} />}
-        hint={`${formatCount(stats.entriesThisMonth, 'entry', 'entries')} this month`}
-        icon={<FileText size={20} weight="regular" />}
-      >
-        <p className="font-body text-xs text-primary-500 dark:text-primary-300">
-          {`${signed(stats.monthChangePercent)}% vs last month`}
-        </p>
-      </StatCard>
-
-      <StatCard label="Writing streak" value={<span className="sr-only">{stats.writingStreak}</span>} hint="Consecutive days with an entry">
-        <WritingStreak current={stats.writingStreak} longest={stats.longestStreak} />
-      </StatCard>
-
-      <StatCard
-        label="Top mood"
-        value={stats.topMood ? stats.topMood.label : 'No data'}
-        hint={stats.topMood ? `${formatPercent(stats.topMood.percentage)} of all entries` : 'No moods recorded yet'}
-        icon={stats.topMood ? <MoodIcon mood={stats.topMood.mood} size={20} color={stats.topMood.color} /> : <Star size={20} weight="regular" />}
-      />
-
-      <StatCard
-        label="Total words"
-        value={<StatNumber value={stats.totalWords} />}
-        hint={`${formatWordCount(stats.averageWords)} per entry on average`}
-        icon={<TextT size={20} weight="regular" />}
-      />
-
-      <StatCard
-        label="Average per week"
-        value={stats.averagePerWeek}
-        hint="Based on the last eight weeks"
-        icon={<TrendUp size={20} weight="regular" />}
-      >
-        <EntriesLineChart data={stats.weeklyActivity} />
-      </StatCard>
-
-      <StatCard
-        label="Mood distribution"
-        value={formatCount(stats.moodDistribution.length, 'mood')}
-        hint="How your feelings split up"
-      >
-        <MoodDistribution data={stats.moodDistribution} />
-      </StatCard>
-
-      <StatCard
-        label="Activity by hour"
-        value={stats.activityByHour.reduce((peak, hour) => (hour.entries > peak.entries ? hour : peak), stats.activityByHour[0]).label}
-        hint="Your most productive hour"
-      >
-        <ActivityBarChart data={stats.activityByHour} />
-      </StatCard>
-
-      <StatCard
-        label="Popular tags"
-        value={formatCount(stats.popularTags.length, 'tag')}
-        hint={stats.topMood ? `Favorite feeling: ${moodLabel(stats.topMood.mood)}` : undefined}
-        className="lg:col-span-2"
-      >
-        <WordCloud tags={stats.popularTags} onTagClick={onTagClick} />
-      </StatCard>
-
-      <StatCard label="Favorites" value={<StatNumber value={stats.favorites} />} hint="Entries you starred" />
-
-      <StatCard
-        label="Writing activity"
-        value={formatCount(stats.heatmap.filter((cell) => cell.count > 0).length, 'active day')}
-        className="lg:col-span-3"
-      >
-        <HeatmapChart cells={stats.heatmap} />
-      </StatCard>
+    <div className="flex flex-col gap-4">
+      <LedgerSheet>
+        <TotalEntriesRow stats={stats} />
+        <LedgerRow
+          number="02"
+          label="Writing streak"
+          marginNote={<>don't break the chain <span aria-hidden="true">&rarr;</span> the flame holds</>}
+        >
+          <WritingStreak current={stats.writingStreak} longest={stats.longestStreak} />
+        </LedgerRow>
+        <LedgerRow
+          number="03"
+          label="Top mood"
+          marginNote={<>the feeling you reach for <span aria-hidden="true">&rarr;</span> stamped &amp; sealed</>}
+        >
+          {stats.topMood ? (
+            <>
+              <MoodStamp mood={stats.topMood} />
+              <span className="font-sub text-base italic text-muted">
+                {`${formatPercent(stats.topMood.percentage)} of all entries · your most common feeling`}
+              </span>
+            </>
+          ) : (
+            <span className="font-sub text-base italic text-muted">No moods recorded yet</span>
+          )}
+        </LedgerRow>
+        <TotalWordsRow stats={stats} />
+        <LedgerRow
+          number="05"
+          label="Average per week"
+          sublabel={<span className="font-sub text-base italic text-muted">based on the last eight weeks</span>}
+          marginNote={<>a steady hand <span aria-hidden="true">&rarr;</span> week by week</>}
+          bodyClassName="items-stretch"
+        >
+          <span className="font-display text-[34px] leading-none font-extrabold text-primary-800 dark:text-primary-100">
+            {stats.averagePerWeek}
+            <span className="ml-1.5 font-sub text-base font-medium italic text-muted">/ week</span>
+          </span>
+          <EntriesLineChart data={stats.weeklyActivity} />
+        </LedgerRow>
+        <LedgerRow
+          number="06"
+          label="Mood distribution"
+          sublabel={<span className="font-sub text-base italic text-muted">how your feelings split up</span>}
+          marginNote={<>the weather of your year <span aria-hidden="true">&rarr;</span> all twelve moods</>}
+        >
+          <MoodDistribution data={stats.moodDistribution} />
+        </LedgerRow>
+        <LedgerRow
+          number="07"
+          label="Activity by hour"
+          sublabel={<span className="font-sub text-base italic text-muted">your most productive hour</span>}
+          marginNote={<>when the pen moves <span aria-hidden="true">&rarr;</span> evening, mostly</>}
+          bodyClassName="items-stretch"
+        >
+          <ActivityBarChart data={stats.activityByHour} />
+        </LedgerRow>
+        <LedgerRow
+          number="08"
+          label="Popular tags"
+          marginNote={<>threads you return to <span aria-hidden="true">&rarr;</span> tap to filter</>}
+          bodyClassName="items-start"
+        >
+          <TagIndex tags={stats.popularTags} onTagClick={onTagClick} />
+        </LedgerRow>
+        <FavoritesRow stats={stats} />
+        <LedgerRow
+          number="10"
+          label="Writing activity"
+          sublabel={
+            <span className="font-sub text-base italic text-muted">
+              {`${formatCount(stats.heatmap.filter((cell) => cell.count > 0).length, 'active day')} · each square is a day`}
+            </span>
+          }
+          marginNote={<>the whole year, squared <span aria-hidden="true">&rarr;</span> one page of days</>}
+          bodyClassName="items-stretch"
+        >
+          <HeatmapChart cells={stats.heatmap} />
+        </LedgerRow>
+      </LedgerSheet>
+      <p className="font-hand text-xl text-muted">
+        <span aria-hidden="true">* </span>
+        every figure tallied from entries kept in this browser.
+      </p>
     </div>
   );
 }

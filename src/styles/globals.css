@@ -160,4 +160,51 @@
   .editor-surface .ProseMirror :is(h1, h2, h3) {
     @apply mb-2 mt-4 font-display;
   }
+
+  /*
+   * The statistics ledger sheet.
+   *
+   * Both decorations are pseudo-elements, so they add no DOM and cannot affect
+   * layout. The margin rule is pinned to the fixed 132px margin column and the
+   * ruled lines run on a 34px pitch — the pitch of a real ledger pad. Both are
+   * deliberately faint: too strong and the sheet reads as graph paper.
+   */
+  .ledger-sheet::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 132px;
+    width: 2px;
+    background: theme('colors.ledger-rule');
+    opacity: 0.55;
+  }
+
+  .ledger-sheet::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 33px,
+      theme('colors.primary.200') 33px 34px
+    );
+    opacity: 0.16;
+    pointer-events: none;
+  }
+
+  [data-theme='night'] .ledger-sheet::after {
+    opacity: 0.22;
+  }
+
+  /* Below `lg` the margin column collapses, so the rule and the ruled lines go with it. */
+  @media (max-width: 1023px) {
+    .ledger-sheet::before {
+      display: none;
+    }
+
+    .ledger-sheet::after {
+      opacity: 0.1;
+    }
+  }
 }

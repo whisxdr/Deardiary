@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DearDiary — Statistics (A Year in Pages sketch)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper:        #FAF6F0;
+    --card:         #F5F0E6;
+    --ink:          #3E2723;
+    --ink-soft:     #5D4037;
+    --muted:        #7D5A3C;
+    --muted-2:      #A67C52;
+    --gold:         #C9A961;
+    --gold-deep:    #6F5220;
+    --sage:         #8A9A5B;
+    --rose:         #B76E79;
+    --ink-accent:   #1A237E;
+    --border:       #E0C9A6;
+    --border-soft:  #E7D9C4;
+    --shadow-soft:  0 2px 8px rgba(62, 39, 35, 0.08);
+    --shadow-med:   0 4px 16px rgba(62, 39, 35, 0.12);
+    --grid-line:    #E0C9A6;
+    --radius: 16px;
+    --radius-sm: 8px;
+    /* chapter accents — all from the warm palette */
+    --ch-habit:   #C9A961;   /* gold */
+    --ch-feel:    #B76E79;   /* rose */
+    --ch-rhythm:  #8A9A5B;   /* sage */
+    --ch-archive: #A67C52;   /* leather */
+  }
+  [data-theme="night"] {
+    --paper:        #1A0F0A;
+    --card:         #2A1A14;
+    --ink:          #F0E6D2;
+    --ink-soft:     #E0C9A6;
+    --muted:        #C9A961;
+    --muted-2:      #C9A961;
+    --gold:         #C9A961;
+    --gold-deep:    #C9A961;
+    --sage:         #C9A961;
+    --rose:         #B76E79;
+    --ink-accent:   #D9CBB0;
+    --border:       #5D4037;
+    --border-soft:  #3E2723;
+    --shadow-soft:  0 2px 8px rgba(0, 0, 0, 0.45);
+    --shadow-med:   0 4px 16px rgba(0, 0, 0, 0.5);
+    --grid-line:    #5D4037;
+    --ch-habit:   #C9A961;
+    --ch-feel:    #D98A9A;
+    --ch-rhythm:  #A9B573;
+    --ch-archive: #C9A961;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 18% 8%, rgba(201,169,97,0.05), transparent 42%),
+      radial-gradient(circle at 88% 85%, rgba(183,110,121,0.04), transparent 46%);
+    background-attachment: fixed;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 32px 140px; }
+
+  /* ---------- Bookmark progress ribbon ---------- */
+  .ribbon {
+    position: fixed; top: 0; left: 0; right: 0; height: 5px; z-index: 60;
+    background: transparent;
+  }
+  .ribbon .fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--ch-habit), var(--ch-feel), var(--ch-rhythm), var(--ch-archive)); transition: width 120ms linear; }
+  .bookmark {
+    position: fixed; top: 5px; right: 26px; z-index: 59;
+    width: 46px; background: var(--gold); color: var(--ink);
+    border-radius: 0 0 8px 8px; box-shadow: var(--shadow-soft);
+    display: flex; flex-direction: column; align-items: center; padding: 6px 0 10px;
+    font-family: 'Caveat', cursive; font-weight: 700; font-size: 15px; line-height: 1.1;
+  }
+  .bookmark::after { content: ""; position: absolute; bottom: -14px; left: 0; width: 0; height: 0; border-top: 14px solid var(--gold); border-right: 23px solid transparent; }
+  .bookmark::before { content: ""; position: absolute; bottom: -14px; right: 0; width: 0; height: 0; border-top: 14px solid var(--gold); border-left: 23px solid transparent; }
+  .bookmark .pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; }
+
+  /* ---------- Theme toggle ---------- */
+  .theme-toggle {
+    position: fixed; top: 22px; right: 90px; z-index: 61;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Inter'; font-size: 13px; font-weight: 600; color: var(--ink);
+    background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+    padding: 10px 16px; cursor: pointer; box-shadow: var(--shadow-soft);
+    transition: box-shadow 250ms cubic-bezier(0.16,1,0.3,1), transform 250ms, border-color 250ms;
+  }
+  .theme-toggle:hover { box-shadow: var(--shadow-med); transform: translateY(-1px); border-color: var(--gold); }
+  .theme-toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  /* ---------- Cover / intro hook ---------- */
+  .cover { text-align: center; padding: 40px 0 56px; }
+  .cover .wordmark { font-family: 'Caveat', cursive; font-weight: 700; font-size: 40px; color: var(--ink); }
+  .cover h1 { font-family: 'Playfair Display', serif; font-weight: 800; font-size: clamp(38px,6vw,58px); margin: 10px 0 6px; letter-spacing: -1px; }
+  .cover .sub { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 20px; color: var(--muted); }
+  .cover .scrollcue { margin-top: 40px; font-family: 'Inter'; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted-2); }
+  .cover .scrollcue .chev { display: block; margin: 8px auto 0; animation: bob 2s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+
+  /* ---------- Chapter ---------- */
+  .chapter { margin-top: 70px; }
+  .ch-head { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+  .ch-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--ch-accent); letter-spacing: 1px; }
+  .ch-rule { flex: 1; height: 2px; background: var(--ch-accent); opacity: 0.5; border-radius: 2px; }
+  .ch-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(28px,4vw,40px); margin: 6px 0 4px; color: var(--ink); }
+  .ch-title .em { font-style: italic; color: var(--ch-accent); }
+  .ch-lede { font-family: 'Cormorant Garamond', serif; font-size: 20px; line-height: 1.55; color: var(--ink-soft); max-width: 60ch; margin: 0 0 8px; }
+  .ch-pull { font-family: 'Caveat', cursive; font-weight: 600; font-size: 26px; color: var(--ch-accent); margin: 18px 0; }
+
+  /* per-chapter accent */
+  #ch-habit   { --ch-accent: var(--ch-habit); }
+  #ch-feel    { --ch-accent: var(--ch-feel); }
+  #ch-rhythm  { --ch-accent: var(--ch-rhythm); }
+  #ch-archive { --ch-accent: var(--ch-archive); }
+
+  /* ---------- Reveal (scroll) ---------- */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity 600ms cubic-bezier(0.16,1,0.3,1), transform 600ms cubic-bezier(0.16,1,0.3,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal[data-d="1"] { transition-delay: 90ms; }
+  .reveal[data-d="2"] { transition-delay: 180ms; }
+  .reveal[data-d="3"] { transition-delay: 270ms; }
+
+  /* ---------- Stat tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 26px; }
+  .tile {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow-soft); padding: 26px; min-width: 0;
+    transition: box-shadow 300ms cubic-bezier(0.16,1,0.3,1), transform 300ms, border-color 300ms;
+  }
+  .tile.interactive:hover { box-shadow: var(--shadow-med); transform: translateY(-3px); border-color: var(--ch-accent); }
+  .tile.wide { grid-column: span 2; }
+  .tile-label { font-family: 'Inter'; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.6px; color: var(--muted); }
+  .tile-big { font-family: 'Playfair Display', serif; font-weight: 800; font-size: clamp(46px,6vw,64px); line-height: 1; color: var(--ink); margin-top: 8px; }
+  .tile-big .unit { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500; font-size: 20px; color: var(--muted); margin-left: 8px; }
+  .tile-hint { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 17px; color: var(--muted); margin-top: 6px; }
+  .tile-sub { font-family: 'Inter'; font-size: 13px; color: var(--ink-soft); margin-top: 10px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .delta { display: inline-flex; align-items: center; gap: 6px; font-family: 'Inter'; font-weight: 600; font-size: 13px; color: var(--gold-deep); background: rgba(201,169,97,0.14); border: 1px solid var(--border); padding: 4px 11px; border-radius: 999px; margin-top: 12px; }
+  [data-theme="night"] .delta { color: var(--gold); }
+
+  /* streak */
+  .streak-row { display: flex; align-items: center; gap: 20px; margin-top: 10px; }
+  .streak-row .flame { color: var(--rose); }
+  .streak-row .cur { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 60px; line-height: 1; }
+  .streak-row .lbl-sm { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 17px; }
+  .streak-row .longest { margin-left: auto; text-align: right; }
+  .streak-row .longest .v { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 22px; color: var(--ink-soft); }
+  .streak-row .longest .k { font-family: 'Inter'; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+  /* mood ring + legend */
+  .mood-wrap { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; margin-top: 12px; }
+  .ring { position: relative; width: 172px; height: 172px; flex: 0 0 auto; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .ring .center .n { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 34px; color: var(--ink); }
+  .ring .center .k { font-family: 'Inter'; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .legend { display: grid; grid-template-columns: 1fr; gap: 6px; flex: 1; min-width: 200px; }
+  .lg-row { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; font-size: 13px; }
+  .lg-row .sw { width: 13px; height: 13px; border-radius: 3px; border: 1px solid rgba(62,39,35,0.25); }
+  .lg-row .nm { font-family: 'Inter'; color: var(--ink-soft); }
+  .lg-row .pc { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* charts */
+  .chart-box { width: 100%; margin-top: 12px; }
+  .peak-chip { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold-deep); background: rgba(201,169,97,0.14); border: 1px solid var(--border); padding: 3px 10px; border-radius: 999px; margin-top: 10px; }
+  [data-theme="night"] .peak-chip { color: var(--gold); }
+  .axis-label { font-family: 'Inter'; font-size: 10px; fill: var(--muted); }
+
+  /* tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .tag { display: inline-flex; align-items: baseline; gap: 5px; cursor: pointer; font-family: 'Inter'; font-size: 14px; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--border); border-radius: 999px; padding: 8px 15px; transition: transform 220ms cubic-bezier(0.16,1,0.3,1), border-color 220ms, background 220ms; }
+  .tag:hover { border-color: var(--ch-archive); background: rgba(201,169,97,0.10); transform: translateY(-2px); }
+  .tag:focus-visible { outline: 3px solid var(--ch-archive); outline-offset: 2px; }
+  .tag .hash { color: var(--gold-deep); font-weight: 700; }
+  [data-theme="night"] .tag .hash { color: var(--gold); }
+  .tag .c { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* heatmap */
+  .hm-scroll { overflow-x: auto; padding-bottom: 4px; margin-top: 12px; }
+  .hm-inner { display: inline-block; min-width: 780px; }
+  .hm-grid { display: flex; gap: 4px; }
+  .heat-week { display: flex; flex-direction: column; gap: 4px; }
+  .cell { width: 13px; height: 13px; border-radius: 3px; background: var(--border-soft); }
+  .cell.l2 { background: color-mix(in srgb, var(--sage) 45%, var(--card)); }
+  .cell.l3 { background: color-mix(in srgb, var(--sage) 70%, var(--card)); }
+  .cell.l4 { background: var(--sage); }
+  .cell.l5 { background: var(--gold); }
+  .hm-months { display: flex; gap: 4px; margin-bottom: 6px; font-family: 'Inter'; font-size: 10px; color: var(--muted); }
+  .hm-legend { display: flex; align-items: center; gap: 6px; font-family: 'Inter'; font-size: 11px; color: var(--muted); margin-top: 10px; }
+  .hm-legend .cell { width: 12px; height: 12px; }
+
+  /* closing CTA */
+  .closing { text-align: center; margin-top: 90px; }
+  .closing .cta-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(30px,5vw,44px); }
+  .closing .cta-sub { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 19px; color: var(--muted); margin: 8px 0 24px; }
+  .cta-btn { display: inline-flex; align-items: center; gap: 10px; font-family: 'Inter'; font-weight: 600; font-size: 15px; color: #FAF6F0; background: var(--gold-deep); border: none; border-radius: 999px; padding: 14px 28px; cursor: pointer; box-shadow: var(--shadow-med); transition: transform 250ms cubic-bezier(0.16,1,0.3,1), box-shadow 250ms; }
+  [data-theme="night"] .cta-btn { color: #1A0F0A; background: var(--gold); }
+  .cta-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-med); }
+  .cta-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .footnote { margin-top: 30px; font-family: 'Caveat', cursive; font-size: 20px; color: var(--muted); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px) {
+    .wrap { padding: 28px 16px 120px; }
+    .tiles { grid-template-columns: 1fr; }
+    .tile.wide { grid-column: span 1; }
+    .bookmark { right: 12px; }
+    .theme-toggle { right: 76px; padding: 8px 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .cover .scrollcue .chev { animation: none; }
+    * { transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ribbon" aria-hidden="true"><div class="fill" id="ribbonFill"></div></div>
+<div class="bookmark" aria-hidden="true"><span class="pct" id="bmPct">0%</span></div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Switch to night mode" aria-pressed="false">
+  <span id="toggleIcon" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>
+  </span>
+  <span id="toggleLabel">Night</span>
+</button>
+
+<div class="wrap">
+
+  <!-- ===== Cover / intro hook ===== -->
+  <header class="cover reveal in">
+    <div class="wordmark">DearDiary</div>
+    <h1>A Year in Pages</h1>
+    <p class="sub">Your diary kept a record of you. Here's what it noticed.</p>
+    <div class="scrollcue">Scroll to read it<span class="chev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+  </header>
+
+  <!-- ===== Chapter 1 — The Habit ===== -->
+  <section class="chapter" id="ch-habit" aria-labelledby="ch1t">
+    <div class="ch-head reveal"><span class="ch-num">CHAPTER I</span><span class="ch-rule"></span></div>
+    <h2 class="ch-title reveal" id="ch1t">The <span class="em">Habit</span></h2>
+    <p class="ch-lede reveal" data-d="1">Before anything else: you showed up. Again and again, a page at a time.</p>
+    <p class="ch-pull reveal" data-d="2">&ldquo;You wrote on 302 of the last 365 days.&rdquo;</p>
+
+    <div class="tiles">
+      <article class="tile interactive reveal">
+        <span class="tile-label">Total entries</span>
+        <div class="tile-big">1,847</div>
+        <span class="delta"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5l7 8h-4v6h-6v-6H5z"/></svg> 21.7% vs last month</span>
+        <p class="tile-sub">142 entries this month &middot; a year of pages, faithfully filled.</p>
+      </article>
+
+      <article class="tile interactive reveal" data-d="1">
+        <span class="tile-label">Writing streak</span>
+        <div class="streak-row">
+          <span class="flame" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M12 21a6 6 0 0 0 6-6c0-3.6-3-6.6-6-12.5C9 8.4 6 11.4 6 15a6 6 0 0 0 6 6z" fill="currentColor" opacity="0.85"/><path d="M12 21a2.4 2.4 0 0 0 2.4-2.4c0-1.6-1.2-2.9-2.4-4.7-1.2 1.8-2.4 3.1-2.4 4.7A2.4 2.4 0 0 0 12 21z" fill="#F5F0E6"/></svg></span>
+          <span class="cur">12</span>
+          <span class="lbl-sm">days<br>in a row</span>
+          <span class="longest"><span class="v">34</span><br><span class="k">longest streak</span></span>
+        </div>
+      </article>
+
+      <article class="tile interactive reveal" data-d="2">
+        <span class="tile-label">Total words</span>
+        <div class="tile-big">118,640<span class="unit">words</span></div>
+        <p class="tile-hint">64 words per entry on average.</p>
+      </article>
+
+      <article class="tile interactive reveal" data-d="3">
+        <span class="tile-label">Favorites</span>
+        <div class="tile-big">132</div>
+        <p class="tile-hint">the pages you starred to keep.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== Chapter 2 — The Feelings ===== -->
+  <section class="chapter" id="ch-feel" aria-labelledby="ch2t">
+    <div class="ch-head reveal"><span class="ch-num">CHAPTER II</span><span class="ch-rule"></span></div>
+    <h2 class="ch-title reveal" id="ch2t">The <span class="em">Feelings</span></h2>
+    <p class="ch-lede reveal" data-d="1">Each entry carried a mood. Together they're a portrait of your inner weather.</p>
+    <p class="ch-pull reveal" data-d="2">&ldquo;Calm was your most common feeling &mdash; 28% of everything you wrote.&rdquo;</p>
+
+    <div class="tiles">
+      <article class="tile wide interactive reveal">
+        <span class="tile-label">Mood distribution</span>
+        <div class="mood-wrap">
+          <div class="ring" id="moodRing" role="img" aria-label="Mood distribution ring: Calm 28%, Happy 22%, Thoughtful 14%, Tired 10%, and eight more moods.">
+            <svg width="172" height="172" viewBox="0 0 172 172"></svg>
+            <div class="center"><span class="n">12</span><span class="k">moods</span></div>
+          </div>
+          <div class="legend" id="moodLegend"></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== Chapter 3 — The Rhythm ===== -->
+  <section class="chapter" id="ch-rhythm" aria-labelledby="ch3t">
+    <div class="ch-head reveal"><span class="ch-num">CHAPTER III</span><span class="ch-rule"></span></div>
+    <h2 class="ch-title reveal" id="ch3t">The <span class="em">Rhythm</span></h2>
+    <p class="ch-lede reveal" data-d="1">When do the pages get written? The diary knows the hours you keep.</p>
+    <p class="ch-pull reveal" data-d="2">&ldquo;You're a night writer &mdash; 21:00 is your most productive hour.&rdquo;</p>
+
+    <div class="tiles">
+      <article class="tile wide interactive reveal">
+        <span class="tile-label">Average per week</span>
+        <p class="tile-sub">14 entries per week, based on the last eight weeks.</p>
+        <div class="chart-box"><svg id="lineChart" width="100%" height="180" viewBox="0 0 720 180" preserveAspectRatio="none" role="img" aria-label="Entries per week line chart, peaking at 23 in the week of May 18"></svg></div>
+        <span class="peak-chip">peak 23 &middot; week of May 18</span>
+      </article>
+
+      <article class="tile wide interactive reveal" data-d="1">
+        <span class="tile-label">Activity by hour</span>
+        <p class="tile-sub">when your pages get written</p>
+        <div class="chart-box"><svg id="hourChart" width="100%" height="170" viewBox="0 0 720 170" preserveAspectRatio="none" role="img" aria-label="Entries by hour bar chart, peaking at 21:00 with 96 entries"></svg></div>
+        <span class="peak-chip">21:00 &middot; 96 entries &middot; your peak</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== Chapter 4 — The Archive ===== -->
+  <section class="chapter" id="ch-archive" aria-labelledby="ch4t">
+    <div class="ch-head reveal"><span class="ch-num">CHAPTER IV</span><span class="ch-rule"></span></div>
+    <h2 class="ch-title reveal" id="ch4t">The <span class="em">Archive</span></h2>
+    <p class="ch-lede reveal" data-d="1">A whole year, one square per day &mdash; and the threads you kept returning to.</p>
+    <p class="ch-pull reveal" data-d="2">&ldquo;302 active days. Reflection is the thread you pull most.&rdquo;</p>
+
+    <div class="tiles">
+      <article class="tile wide interactive reveal">
+        <span class="tile-label">Writing activity</span>
+        <p class="tile-sub">each square is a day &middot; the last 53 weeks</p>
+        <div class="hm-scroll">
+          <div class="hm-inner">
+            <div class="hm-months" id="hmMonths"></div>
+            <div class="hm-grid" id="heatmap" role="img" aria-label="Writing activity heatmap for the last 53 weeks"></div>
+          </div>
+        </div>
+        <div class="hm-legend">Less <span class="cell"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l4"></span><span class="cell l5"></span> More</div>
+      </article>
+
+      <article class="tile wide interactive reveal" data-d="1">
+        <span class="tile-label">Popular tags</span>
+        <p class="tile-sub">tap a thread to filter your entries</p>
+        <div class="tags" id="tagList">
+          <button class="tag"><span class="hash">#</span>reflection<span class="c">148</span></button>
+          <button class="tag"><span class="hash">#</span>gratitude<span class="c">132</span></button>
+          <button class="tag"><span class="hash">#</span>work<span class="c">98</span></button>
+          <button class="tag"><span class="hash">#</span>family<span class="c">91</span></button>
+          <button class="tag"><span class="hash">#</span>travel<span class="c">64</span></button>
+          <button class="tag"><span class="hash">#</span>books<span class="c">52</span></button>
+          <button class="tag"><span class="hash">#</span>morning<span class="c">40</span></button>
+          <button class="tag"><span class="hash">#</span>rain<span class="c">33</span></button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== Closing CTA ===== -->
+  <section class="closing reveal">
+    <div class="cta-title">The next page is blank.</div>
+    <p class="cta-sub">Your story isn't finished &mdash; add today's entry.</p>
+    <button class="cta-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg> Write an entry</button>
+    <p class="footnote">* every figure tallied from entries kept in this browser.</p>
+  </section>
+
+</div>
+
+<script>
+  // ---------- Theme toggle ----------
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  const label = document.getElementById('toggleLabel');
+  const icon = document.getElementById('toggleIcon');
+  const SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></g></svg>';
+  const MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>';
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    const night = t === 'night';
+    btn.setAttribute('aria-pressed', night ? 'true' : 'false');
+    btn.setAttribute('aria-label', night ? 'Switch to light mode' : 'Switch to night mode');
+    label.textContent = night ? 'Light' : 'Night';
+    icon.innerHTML = night ? SUN : MOON;
+    try { localStorage.setItem('dd-theme', t); } catch (e) {}
+    drawCharts();
+  }
+  btn.addEventListener('click', () => setTheme(root.getAttribute('data-theme') === 'night' ? 'light' : 'night'));
+  let saved = null; try { saved = localStorage.getItem('dd-theme'); } catch (e) {}
+  if (saved) setTheme(saved);
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function v(name) { return getComputedStyle(root).getPropertyValue(name).trim(); }
+
+  // ---------- Scroll reveal + progress ribbon ----------
+  (function () {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.reveal').forEach(el => {
+      if (reduceMotion) { el.classList.add('in'); } else { io.observe(el); }
+    });
+
+    const fill = document.getElementById('ribbonFill');
+    const bm = document.getElementById('bmPct');
+    function onScroll() {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const pct = max > 0 ? Math.min(100, Math.round((h.scrollTop / max) * 100)) : 0;
+      fill.style.width = pct + '%';
+      bm.textContent = pct + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+
+  // ---------- Mood ring + legend ----------
+  (function () {
+    const moods = [
+      ['Calm','#8A9A5B',28],['Happy','#C9A961',22],['Thoughtful','#A67C52',14],
+      ['Tired','#7D5A3C',10],['Anxious','#B76E79',8],['Loved','#D98A7E',7],
+      ['Sad','#6B7B8C',5],['Excited','#E0A458',4],['Cool','#5B8C9A',1],
+      ['Mindblown','#9B7BB8',1],['Angry','#C0504D',0],['Adoring','#C98A9A',0]
+    ];
+    const legend = document.getElementById('moodLegend');
+    moods.forEach(([name,color,pct]) => {
+      const row = document.createElement('div'); row.className = 'lg-row';
+      row.innerHTML = '<span class="sw" style="background:'+color+'"></span><span class="nm">'+name+'</span><span class="pc">'+pct+'%</span>';
+      legend.appendChild(row);
+    });
+    window.__drawRing = function () {
+      const svg = document.querySelector('#moodRing svg');
+      svg.innerHTML = '';
+      const NS='http://www.w3.org/2000/svg';
+      const cx=86, cy=86, r=70, C=2*Math.PI*r;
+      const bg=document.createElementNS(NS,'circle');
+      bg.setAttribute('cx',cx);bg.setAttribute('cy',cy);bg.setAttribute('r',r);
+      bg.setAttribute('fill','none');bg.setAttribute('stroke',v('--border-soft'));bg.setAttribute('stroke-width','18');
+      svg.appendChild(bg);
+      let offset=0;
+      moods.forEach(([name,color,pct])=>{
+        if(pct<=0) return;
+        const len=C*pct/100;
+        const arc=document.createElementNS(NS,'circle');
+        arc.setAttribute('cx',cx);arc.setAttribute('cy',cy);arc.setAttribute('r',r);
+        arc.setAttribute('fill','none');arc.setAttribute('stroke',color);arc.setAttribute('stroke-width','18');
+        arc.setAttribute('stroke-dasharray',(len-4)+' '+(C-len+4));
+        arc.setAttribute('stroke-dashoffset',-offset);
+        arc.setAttribute('stroke-linecap','butt');
+        svg.appendChild(arc);
+        offset+=len;
+      });
+    };
+    window.__drawRing();
+  })();
+
+  // ---------- Charts ----------
+  function drawCharts() { if (window.__drawRing) window.__drawRing(); drawLine(); drawHours(); }
+
+  function drawLine() {
+    const weeks=['Apr 6','Apr 20','May 4','May 18','Jun 1','Jun 22'];
+    const data=[9,11,14,23,13,14];
+    const W=720,H=180,pad={l:14,r:16,t:22,b:24};
+    const max=Math.max(...data)*1.2;
+    const x=i=>pad.l+i*(W-pad.l-pad.r)/(data.length-1);
+    const y=v0=>H-pad.b-(v0/max)*(H-pad.t-pad.b);
+    const svg=document.getElementById('lineChart'); const NS='http://www.w3.org/2000/svg'; svg.innerHTML='';
+    [0,max/2,max].forEach(g=>{
+      const ln=document.createElementNS(NS,'line');
+      ln.setAttribute('x1',pad.l);ln.setAttribute('x2',W-pad.r);ln.setAttribute('y1',y(g));ln.setAttribute('y2',y(g));
+      ln.setAttribute('stroke',v('--grid-line'));ln.setAttribute('stroke-dasharray','3 3');ln.setAttribute('opacity','0.6');
+      svg.appendChild(ln);
+    });
+    let d='M '+x(0)+' '+y(data[0]);
+    for(let i=1;i<data.length;i++){const xc=(x(i-1)+x(i))/2;d+=' Q '+xc+' '+y(data[i-1])+' '+x(i)+' '+y(data[i]);}
+    // area fill
+    const area=document.createElementNS(NS,'path');
+    area.setAttribute('d',d+' L '+x(data.length-1)+' '+(H-pad.b)+' L '+x(0)+' '+(H-pad.b)+' Z');
+    area.setAttribute('fill',v('--gold'));area.setAttribute('opacity','0.14');
+    svg.appendChild(area);
+    const path=document.createElementNS(NS,'path');
+    path.setAttribute('d',d);path.setAttribute('fill','none');path.setAttribute('stroke',v('--gold'));
+    path.setAttribute('stroke-width','2.6');path.setAttribute('stroke-linecap','round');
+    svg.appendChild(path);
+    const peakIdx=data.indexOf(Math.max(...data));
+    const dot=document.createElementNS(NS,'circle');
+    dot.setAttribute('cx',x(peakIdx));dot.setAttribute('cy',y(data[peakIdx]));dot.setAttribute('r','6');
+    dot.setAttribute('fill',v('--gold'));dot.setAttribute('stroke',v('--ink'));dot.setAttribute('stroke-width','2');
+    svg.appendChild(dot);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x(peakIdx));t.setAttribute('y',y(data[peakIdx])-12);t.setAttribute('text-anchor','middle');
+    t.setAttribute('style','font-family:JetBrains Mono,monospace;font-weight:700;font-size:15px;fill:'+v('--ink')+';');
+    t.textContent=data[peakIdx];svg.appendChild(t);
+    weeks.forEach((lab,i)=>{
+      const tx=document.createElementNS(NS,'text');
+      tx.setAttribute('x',x(i));tx.setAttribute('y',H-6);tx.setAttribute('text-anchor','middle');
+      tx.setAttribute('class','axis-label');tx.textContent=lab;svg.appendChild(tx);
+    });
+  }
+
+  function drawHours() {
+    const hours=[4,7,10,13,16,19,21,23];
+    const vals=[8,22,34,18,41,72,96,30];
+    const W=720,H=170,pad={l:14,r:16,t:16,b:24};
+    const max=Math.max(...vals)*1.12;
+    const bw=(W-pad.l-pad.r)/hours.length;
+    const y=v0=>H-pad.b-(v0/max)*(H-pad.t-pad.b);
+    const svg=document.getElementById('hourChart'); const NS='http://www.w3.org/2000/svg'; svg.innerHTML='';
+    const peakIdx=vals.indexOf(Math.max(...vals));
+    hours.forEach((h,i)=>{
+      const bx=pad.l+i*bw+bw*0.2, bwid=bw*0.6;
+      const r=document.createElementNS(NS,'rect');
+      r.setAttribute('x',bx);r.setAttribute('y',y(vals[i]));r.setAttribute('width',bwid);r.setAttribute('height',H-pad.b-y(vals[i]));
+      r.setAttribute('rx','4');r.setAttribute('fill', i===peakIdx ? v('--gold') : v('--sage'));
+      r.setAttribute('opacity', i===peakIdx ? '1':'0.68');
+      svg.appendChild(r);
+      const tx=document.createElementNS(NS,'text');
+      tx.setAttribute('x',bx+bwid/2);tx.setAttribute('y',H-6);tx.setAttribute('text-anchor','middle');
+      tx.setAttribute('class','axis-label');tx.textContent=h+':00';svg.appendChild(tx);
+    });
+    const px=pad.l+peakIdx*bw+bw/2;
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',px);t.setAttribute('y',y(vals[peakIdx])-8);t.setAttribute('text-anchor','middle');
+    t.setAttribute('style','font-family:JetBrains Mono,monospace;font-weight:700;font-size:14px;fill:'+v('--gold-deep')+';');
+    t.textContent=vals[peakIdx];svg.appendChild(t);
+  }
+
+  drawCharts();
+
+  // ---------- Deterministic heatmap ----------
+  (function () {
+    let seed=20251013;
+    function rand(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
+    const weeks=53,days=7;
+    const start=new Date(2024,9,6);
+    const heat=document.getElementById('heatmap');
+    const months=document.getElementById('hmMonths');
+    let lastMonth=-1;
+    for(let w=0;w<weeks;w++){
+      const col=document.createElement('div');col.className='heat-week';
+      for(let d=0;d<days;d++){
+        const idx=w*days+d;
+        const date=new Date(start);date.setDate(start.getDate()+idx);
+        const r=rand();const m=date.getMonth();
+        let p=0.52; if(m>=2&&m<=4)p=0.78; if(m>=8&&m<=10)p=0.7; if(m===6||m===7)p=0.4;
+        let count=r<p?1:0; if(r<p-0.22)count=2; if(r<p-0.34)count=3; if(r<p-0.42)count=4;
+        let level=0; if(count>=3)level=4;else if(count===2)level=3;else if(count===1)level=2;
+        const cell=document.createElement('span');
+        cell.className='cell'+(level?' l'+level:'');
+        cell.title=date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' — '+count+(count===1?' entry':' entries');
+        col.appendChild(cell);
+        if(d===0){
+          if(date.getMonth()!==lastMonth){
+            lastMonth=date.getMonth();
+            const seg=document.createElement('span');seg.style.width='17px';seg.style.flex='0 0 auto';
+            seg.textContent=date.toLocaleDateString('en-US',{month:'short'});months.appendChild(seg);
+          }else{
+            const sp=document.createElement('span');sp.style.width='17px';sp.style.flex='0 0 auto';months.appendChild(sp);
+          }
+        }
+      }
+      heat.appendChild(col);
+    }
+  })();
+</script>
+</body>
+</html>

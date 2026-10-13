@@ -19,6 +19,10 @@ export default {
         },
         accent: {
           gold: '#C9A961',
+          // Darkened gold for small text on cream. Plain `gold` is only 1.98:1 against
+          // accent-cream, so delta chips and tag hashes use this to clear AA (≈5.9:1).
+          // In night mode the variable swaps to gold itself, which is 7.43:1 there.
+          'gold-deep': 'var(--accent-gold-deep)',
           ink: '#1A237E',
           cream: '#F5F0E6',
           rose: '#B76E79',
@@ -27,6 +31,10 @@ export default {
         success: '#4CAF50',
         warning: '#FF9800',
         error: '#E53935',
+        // The soft red rule down a ledger's left margin. Decorative only — it never
+        // carries meaning, so it is allowed to sit below the 3:1 non-text threshold.
+        // Swaps per theme so it stays visible on dark paper.
+        'ledger-rule': 'var(--ledger-rule)',
         // Theme-aware error text. The base `error` red is only ~3.7:1 on cream and ~4:1 on
         // night, which fails AA for the small text it is used on. The values swap per theme
         // via CSS variables so both land above 4.5:1; `error` stays for icons and fills.

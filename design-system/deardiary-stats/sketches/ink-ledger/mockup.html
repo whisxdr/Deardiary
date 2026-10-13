@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DearDiary — Statistics (Archivist's Ledger sketch)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper:        #FAF6F0;   /* primary-50 page */
+    --card:         #F5F0E6;   /* accent-cream card */
+    --rule:         #E0C9A6;   /* primary-200 ruled lines */
+    --margin-line:  #D98A7E;   /* a soft ledger red margin rule */
+    --ink:          #3E2723;   /* primary-700 body ink */
+    --ink-soft:     #5D4037;   /* primary-600 */
+    --muted:        #7D5A3C;   /* primary-500 hints */
+    --muted-2:      #A67C52;   /* primary-400 large only */
+    --gold:         #C9A961;   /* accent-gold */
+    --gold-deep:    #6F5220;   /* small gold text on cream */
+    --sage:         #8A9A5B;   /* accent-sage */
+    --rose:         #B76E79;   /* accent-rose */
+    --ink-accent:   #1A237E;   /* accent-ink stamps */
+    --border:       #E0C9A6;
+    --border-soft:  #E7D9C4;
+    --stamp-ring:   rgba(26,35,126,0.55);
+    --shadow-soft:  0 2px 8px rgba(62, 39, 35, 0.08);
+    --shadow-med:   0 4px 16px rgba(62, 39, 35, 0.12);
+    --grid-line:    #E0C9A6;
+    --radius: 12px;
+    --radius-sm: 6px;
+  }
+  [data-theme="night"] {
+    --paper:        #1A0F0A;
+    --card:         #2A1A14;
+    --rule:         #4E342E;
+    --margin-line:  #A15B52;
+    --ink:          #F0E6D2;
+    --ink-soft:     #E0C9A6;
+    --muted:        #C9A961;
+    --muted-2:      #C9A961;
+    --gold:         #C9A961;
+    --gold-deep:    #C9A961;
+    --sage:         #C9A961;
+    --rose:         #B76E79;
+    --ink-accent:   #D9CBB0;   /* night stamp ink = light */
+    --border:       #5D4037;
+    --border-soft:  #3E2723;
+    --stamp-ring:   rgba(217,203,176,0.6);
+    --shadow-soft:  0 2px 8px rgba(0, 0, 0, 0.45);
+    --shadow-med:   0 4px 16px rgba(0, 0, 0, 0.5);
+    --grid-line:    #5D4037;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    /* subtle paper grain */
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(201,169,97,0.05), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(183,110,121,0.04), transparent 45%);
+    background-attachment: fixed;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 32px 96px; }
+
+  /* ---------- Ledger header ---------- */
+  .ledger-head { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 2px solid var(--ink); }
+  .ledger-head .wordmark { font-family: 'Caveat', cursive; font-weight: 700; font-size: 34px; color: var(--ink); line-height: 1; }
+  .ledger-head .meta { margin-left: auto; text-align: right; }
+  .ledger-head h1 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 34px; margin: 0; letter-spacing: -0.5px; }
+  .ledger-head .sub { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 17px; color: var(--muted); }
+  .ledger-head .stampfolio { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+
+  /* ---------- Theme toggle ---------- */
+  .theme-toggle {
+    position: fixed; top: 20px; right: 22px; z-index: 50;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Inter'; font-size: 13px; font-weight: 600; color: var(--ink);
+    background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+    padding: 10px 16px; cursor: pointer; box-shadow: var(--shadow-soft);
+    transition: box-shadow 250ms cubic-bezier(0.16,1,0.3,1), transform 250ms, border-color 250ms;
+  }
+  .theme-toggle:hover { box-shadow: var(--shadow-med); transform: translateY(-1px); border-color: var(--gold); }
+  .theme-toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  /* ---------- Ruled ledger sheet ---------- */
+  .sheet {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-soft);
+    margin-top: 26px;
+    padding: 8px 8px 8px 0;
+    overflow: hidden;
+  }
+  /* left ruled margin column */
+  .sheet::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 132px; width: 2px;
+    background: var(--margin-line); opacity: 0.55;
+  }
+  /* faint horizontal ruled lines behind content */
+  .sheet::after {
+    content: ""; position: absolute; inset: 0; left: 0;
+    background-image: repeating-linear-gradient(to bottom, transparent 0 33px, var(--rule) 33px 34px);
+    opacity: 0.16; pointer-events: none;
+  }
+  .ledger-grid { display: grid; grid-template-columns: 132px 1fr; position: relative; z-index: 1; }
+  .gutter { padding: 14px 10px; }
+  .content { padding: 10px 28px 10px 30px; }
+
+  .margin-note { font-family: 'Caveat', cursive; font-weight: 600; font-size: 21px; line-height: 1.25; color: var(--ink-soft); opacity: 0.85; }
+  .margin-note .arrow { color: var(--gold-deep); }
+  .margin-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+  /* ---------- Ledger rows (each stat) ---------- */
+  .lrow { display: grid; grid-template-columns: 200px 1fr; gap: 18px; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-soft); min-height: 68px; }
+  .lrow:last-child { border-bottom: none; }
+  .lrow .lbl { display: flex; align-items: baseline; gap: 10px; }
+  .lrow .lbl .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted-2); }
+  .lrow .lbl .name { font-family: 'Inter'; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); }
+  .lrow .body { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .big { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 44px; line-height: 1; color: var(--ink); }
+  .big .unit { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500; font-size: 18px; color: var(--muted); margin-left: 6px; }
+  .hint { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 16px; color: var(--muted); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ---------- Ink stamp (mood) ---------- */
+  .stamp {
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 76px; height: 76px; border-radius: 50%;
+    border: 3px double var(--stamp-ring);
+    color: var(--ink-accent);
+    transform: rotate(-7deg);
+    text-align: center; line-height: 1.05;
+    flex: 0 0 auto;
+  }
+  .stamp .top { font-family: 'Inter'; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; }
+  .stamp .mid { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; margin: 1px 0; }
+  .stamp .pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; }
+  .stamp svg { margin-top: 1px; }
+
+  /* ---------- Streak ---------- */
+  .streak { display: flex; align-items: center; gap: 18px; }
+  .streak .flame { color: var(--rose); }
+  .streak .cur { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 46px; color: var(--ink); line-height: 1; }
+  .streak .lbl-sm { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 15px; }
+  .streak .longest { margin-left: 8px; text-align: right; }
+  .streak .longest .v { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 20px; color: var(--ink-soft); }
+  .streak .longest .k { font-family: 'Inter'; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+  /* ---------- Mood distribution ledger list ---------- */
+  .moodlist { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 220px; }
+  .moodrow { display: grid; grid-template-columns: 16px 92px 1fr 44px; align-items: center; gap: 10px; font-size: 13px; }
+  .moodrow .sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(62,39,35,0.25); }
+  .moodrow .nm { font-family: 'Inter'; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .moodrow .bar { height: 8px; background: var(--rule); border-radius: 4px; overflow: hidden; }
+  .moodrow .bar i { display: block; height: 100%; border-radius: 4px; }
+  .moodrow .pc { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); text-align: right; }
+
+  /* ---------- Charts ---------- */
+  .chart-box { width: 100%; }
+  .peak-chip { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold-deep); background: rgba(201,169,97,0.14); border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px; }
+  [data-theme="night"] .peak-chip { color: var(--gold); }
+  .axis-label { font-family: 'Inter'; font-size: 10px; fill: var(--muted); }
+
+  /* ---------- Tags (ink index) ---------- */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    display: inline-flex; align-items: baseline; gap: 5px; cursor: pointer;
+    font-family: 'Inter'; font-size: 13px; color: var(--ink-soft);
+    background: var(--paper); border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px;
+    transition: transform 200ms cubic-bezier(0.16,1,0.3,1), border-color 200ms, background 200ms;
+  }
+  .tag:hover { border-color: var(--gold); background: rgba(201,169,97,0.10); transform: translateY(-1px); }
+  .tag:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .tag .hash { color: var(--gold-deep); font-weight: 700; }
+  [data-theme="night"] .tag .hash { color: var(--gold); }
+  .tag .c { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  /* ---------- Heatmap ---------- */
+  .hm-scroll { overflow-x: auto; padding-bottom: 4px; }
+  .hm-inner { display: inline-block; min-width: 760px; }
+  .hm-grid { display: flex; gap: 4px; }
+  .heat-week { display: flex; flex-direction: column; gap: 4px; }
+  .cell { width: 13px; height: 13px; border-radius: 3px; background: var(--border-soft); }
+  .cell.l2 { background: color-mix(in srgb, var(--sage) 45%, var(--card)); }
+  .cell.l3 { background: color-mix(in srgb, var(--sage) 70%, var(--card)); }
+  .cell.l4 { background: var(--sage); }
+  .cell.l5 { background: var(--gold); }
+  .hm-months { display: flex; gap: 4px; margin-bottom: 6px; font-family: 'Inter'; font-size: 10px; color: var(--muted); }
+  .hm-legend { display: flex; align-items: center; gap: 6px; font-family: 'Inter'; font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .hm-legend .cell { width: 12px; height: 12px; }
+
+  /* ---------- Tabbed chapter divider ---------- */
+  .tabdiv { display: flex; align-items: flex-end; gap: 2px; margin: 30px 0 0; }
+  .tab {
+    font-family: 'Inter'; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--muted); background: var(--border-soft); border: 1px solid var(--border); border-bottom: none;
+    border-radius: 8px 8px 0 0; padding: 7px 16px 6px; cursor: default;
+  }
+  .tab.active { color: var(--ink); background: var(--card); border-color: var(--ink); box-shadow: 0 -2px 0 var(--ink) inset; }
+  .tab-rule { flex: 1; height: 2px; background: var(--ink); margin-bottom: 0; opacity: 0.5; }
+
+  .footnote { margin-top: 26px; font-family: 'Caveat', cursive; font-size: 20px; color: var(--muted); }
+  .footnote .arrow { color: var(--gold-deep); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 820px) {
+    .wrap { padding: 20px 16px 80px; }
+    .sheet::before { left: 0; opacity: 0; }
+    .ledger-grid { grid-template-columns: 1fr; }
+    .gutter { padding: 6px 16px 0; }
+    .margin-note { font-size: 19px; }
+    .content { padding: 8px 18px 14px; }
+    .lrow { grid-template-columns: 1fr; gap: 6px; padding: 12px 0; }
+    .ledger-head .meta { margin-left: 0; text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Switch to night mode" aria-pressed="false">
+  <span id="toggleIcon" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>
+  </span>
+  <span id="toggleLabel">Night</span>
+</button>
+
+<div class="wrap">
+
+  <header class="ledger-head">
+    <div>
+      <div class="wordmark">DearDiary</div>
+      <div class="stampfolio">Folio&nbsp;No.&nbsp;2025&nbsp;·&nbsp;Statistics&nbsp;Ledger</div>
+    </div>
+    <div class="meta">
+      <h1>Your writing year</h1>
+      <div class="sub">Oct 2024 &ndash; Sep 2025 &nbsp;·&nbsp; kept beside the diary</div>
+    </div>
+  </header>
+
+  <!-- Chapter tabs -->
+  <nav class="tabdiv" aria-label="Ledger sections">
+    <span class="tab active">The Habit</span>
+    <span class="tab">The Feelings</span>
+    <span class="tab">The Rhythm</span>
+    <span class="tab">The Archive</span>
+    <span class="tab-rule"></span>
+  </nav>
+
+  <!-- ===== The ruled ledger sheet ===== -->
+  <section class="sheet" aria-label="Diary statistics ledger">
+
+    <!-- Row: Total entries -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">01</div>
+        <div class="margin-note">every page you turned<br><span class="arrow">&rarr;</span> a year of them</div>
+      </div>
+      <div class="content">
+        <div class="lrow">
+          <div class="lbl"><span class="num">01</span><span class="name">Total entries</span></div>
+          <div class="body">
+            <span class="big">1,847</span>
+            <span class="peak-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5l7 8h-4v6h-6v-6H5z"/></svg> 21.7% vs last month</span>
+            <span class="hint">142 entries this month &middot; faithfully filled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Writing streak -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">02</div>
+        <div class="margin-note">don't break the chain<br><span class="arrow">&rarr;</span> the flame holds</div>
+      </div>
+      <div class="content">
+        <div class="lrow">
+          <div class="lbl"><span class="num">02</span><span class="name">Writing streak</span></div>
+          <div class="body streak">
+            <span class="flame" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 21a6 6 0 0 0 6-6c0-3.6-3-6.6-6-12.5C9 8.4 6 11.4 6 15a6 6 0 0 0 6 6z" fill="currentColor" opacity="0.85"/><path d="M12 21a2.4 2.4 0 0 0 2.4-2.4c0-1.6-1.2-2.9-2.4-4.7-1.2 1.8-2.4 3.1-2.4 4.7A2.4 2.4 0 0 0 12 21z" fill="#F5F0E6"/></svg>
+            </span>
+            <span class="cur">12</span>
+            <span class="lbl-sm">days in a row</span>
+            <span class="longest"><span class="v">34</span><br><span class="k">longest streak</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Top mood (ink stamp) -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">03</div>
+        <div class="margin-note">the feeling you reach for<br><span class="arrow">&rarr;</span> stamped &amp; sealed</div>
+      </div>
+      <div class="content">
+        <div class="lrow">
+          <div class="lbl"><span class="num">03</span><span class="name">Top mood</span></div>
+          <div class="body">
+            <span class="stamp" aria-label="Top mood: Calm, 28 percent of all entries">
+              <span class="top">Stamp</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><path d="M9 14c1 1.4 4 1.4 5 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9.5" cy="10" r="1" fill="currentColor"/><circle cx="14.5" cy="10" r="1" fill="currentColor"/></svg>
+              <span class="mid">Calm</span>
+              <span class="pct">28%</span>
+            </span>
+            <span class="hint">of all entries &middot; your most common feeling</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Total words -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">04</div>
+        <div class="margin-note">ink spent<br><span class="arrow">&rarr;</span> word by word</div>
+      </div>
+      <div class="content">
+        <div class="lrow">
+          <div class="lbl"><span class="num">04</span><span class="name">Total words</span></div>
+          <div class="body">
+            <span class="big">118,640<span class="unit">words</span></span>
+            <span class="hint">64 words per entry on average</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Average per week (line chart) -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">05</div>
+        <div class="margin-note">a steady hand<br><span class="arrow">&rarr;</span> week by week</div>
+      </div>
+      <div class="content">
+        <div class="lrow" style="align-items:stretch">
+          <div class="lbl"><span class="num">05</span><span class="name">Average per week</span><br><span class="hint" style="margin-top:4px">14 entries &middot; last 8 weeks</span></div>
+          <div class="body chart-box">
+            <svg id="lineChart" width="100%" height="150" viewBox="0 0 520 150" preserveAspectRatio="none" role="img" aria-label="Entries per week line chart, peaking at 23 in the week of May 18"></svg>
+            <span class="peak-chip" style="align-self:flex-start">peak 23 &middot; wk of May 18</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Mood distribution -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">06</div>
+        <div class="margin-note">the weather of your year<br><span class="arrow">&rarr;</span> all twelve moods</div>
+      </div>
+      <div class="content">
+        <div class="lrow">
+          <div class="lbl"><span class="num">06</span><span class="name">Mood distribution</span><br><span class="hint" style="margin-top:4px">how your feelings split up</span></div>
+          <div class="body moodlist" id="moodList" role="img" aria-label="Mood distribution across twelve moods"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Activity by hour (bar chart) -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">07</div>
+        <div class="margin-note">when the pen moves<br><span class="arrow">&rarr;</span> evening, mostly</div>
+      </div>
+      <div class="content">
+        <div class="lrow" style="align-items:stretch">
+          <div class="lbl"><span class="num">07</span><span class="name">Activity by hour</span><br><span class="hint" style="margin-top:4px">your most productive hour</span></div>
+          <div class="body chart-box">
+            <svg id="hourChart" width="100%" height="140" viewBox="0 0 520 140" preserveAspectRatio="none" role="img" aria-label="Entries by hour bar chart, peaking at 21:00 with 96 entries"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Popular tags -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">08</div>
+        <div class="margin-note">threads you return to<br><span class="arrow">&rarr;</span> tap to filter</div>
+      </div>
+      <div class="content">
+        <div class="lrow" style="align-items:flex-start">
+          <div class="lbl"><span class="num">08</span><span class="name">Popular tags</span></div>
+          <div class="body tags" id="tagList">
+            <button class="tag"><span class="hash">#</span>reflection<span class="c">148</span></button>
+            <button class="tag"><span class="hash">#</span>gratitude<span class="c">132</span></button>
+            <button class="tag"><span class="hash">#</span>work<span class="c">98</span></button>
+            <button class="tag"><span class="hash">#</span>family<span class="c">91</span></button>
+            <button class="tag"><span class="hash">#</span>travel<span class="c">64</span></button>
+            <button class="tag"><span class="hash">#</span>books<span class="c">52</span></button>
+            <button class="tag"><span class="hash">#</span>morning<span class="c">40</span></button>
+            <button class="tag"><span class="hash">#</span>rain<span class="c">33</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Favorites -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">09</div>
+        <div class="margin-note">the keepers<br><span class="arrow">&rarr;</span> starred pages</div>
+      </div>
+      <div class="content">
+        <div class="lrow">
+          <div class="lbl"><span class="num">09</span><span class="name">Favorites</span></div>
+          <div class="body">
+            <span class="big">132</span>
+            <span class="flame" style="color:var(--gold)" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg></span>
+            <span class="hint">entries you starred</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: Writing activity (heatmap) -->
+    <div class="ledger-grid">
+      <div class="gutter">
+        <div class="margin-num">10</div>
+        <div class="margin-note">the whole year, squared<br><span class="arrow">&rarr;</span> 302 active days</div>
+      </div>
+      <div class="content">
+        <div class="lrow" style="align-items:stretch">
+          <div class="lbl"><span class="num">10</span><span class="name">Writing activity</span><br><span class="hint" style="margin-top:4px">each square is a day</span></div>
+          <div class="body chart-box">
+            <div class="hm-scroll">
+              <div class="hm-inner">
+                <div class="hm-months" id="hmMonths"></div>
+                <div class="hm-grid" id="heatmap" role="img" aria-label="Writing activity heatmap for the last 53 weeks"></div>
+              </div>
+            </div>
+            <div class="hm-legend">Less <span class="cell"></span><span class="cell l2"></span><span class="cell l3"></span><span class="cell l4"></span><span class="cell l5"></span> More</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <p class="footnote">* every figure tallied from entries kept in this browser <span class="arrow">&rarr;</span> nothing leaves the page.</p>
+</div>
+
+<script>
+  // ---------- Theme toggle ----------
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  const label = document.getElementById('toggleLabel');
+  const icon = document.getElementById('toggleIcon');
+  const SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></g></svg>';
+  const MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>';
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    const night = t === 'night';
+    btn.setAttribute('aria-pressed', night ? 'true' : 'false');
+    btn.setAttribute('aria-label', night ? 'Switch to light mode' : 'Switch to night mode');
+    label.textContent = night ? 'Light' : 'Night';
+    icon.innerHTML = night ? SUN : MOON;
+    try { localStorage.setItem('dd-theme', t); } catch (e) {}
+  }
+  btn.addEventListener('click', () => setTheme(root.getAttribute('data-theme') === 'night' ? 'light' : 'night'));
+  let saved = null; try { saved = localStorage.getItem('dd-theme'); } catch (e) {}
+  if (saved) setTheme(saved);
+
+  // ---------- CSS var helper (so charts pick up the active theme) ----------
+  function v(name) { return getComputedStyle(root).getPropertyValue(name).trim(); }
+
+  // ---------- Line chart (entries per week) ----------
+  (function () {
+    const weeks = ['Apr 6','Apr 13','Apr 20','Apr 27','May 4','May 11','May 18','May 25','Jun 1','Jun 8','Jun 15','Jun 22'];
+    const data = [9,12,11,15,14,19,23,17,13,16,12,14];
+    const W=520,H=150,pad={l:8,r:12,t:18,b:22};
+    const max=Math.max(...data)*1.15;
+    const x=i=>pad.l+i*(W-pad.l-pad.r)/(data.length-1);
+    const y=v0=>H-pad.b-(v0/max)*(H-pad.t-pad.b);
+    const svg=document.getElementById('lineChart');
+    const NS='http://www.w3.org/2000/svg';
+    // gridlines
+    [0,max/2,max].forEach(g=>{
+      const ln=document.createElementNS(NS,'line');
+      ln.setAttribute('x1',pad.l);ln.setAttribute('x2',W-pad.r);ln.setAttribute('y1',y(g));ln.setAttribute('y2',y(g));
+      ln.setAttribute('stroke',v('--grid-line'));ln.setAttribute('stroke-dasharray','3 3');ln.setAttribute('opacity','0.6');
+      svg.appendChild(ln);
+    });
+    // smooth path (monotone-ish via quadratic midpoints)
+    let d='M '+x(0)+' '+y(data[0]);
+    for(let i=1;i<data.length;i++){const xc=(x(i-1)+x(i))/2;d+=' Q '+xc+' '+y(data[i-1])+' '+x(i)+' '+y(data[i]);}
+    const path=document.createElementNS(NS,'path');
+    path.setAttribute('d',d);path.setAttribute('fill','none');
+    path.setAttribute('stroke',v('--gold'));path.setAttribute('stroke-width','2.4');path.setAttribute('stroke-linecap','round');
+    svg.appendChild(path);
+    // peak dot + direct label
+    const peakIdx=data.indexOf(Math.max(...data));
+    const dot=document.createElementNS(NS,'circle');
+    dot.setAttribute('cx',x(peakIdx));dot.setAttribute('cy',y(data[peakIdx]));dot.setAttribute('r','5');
+    dot.setAttribute('fill',v('--gold'));dot.setAttribute('stroke',v('--ink'));dot.setAttribute('stroke-width','1.5');
+    svg.appendChild(dot);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x(peakIdx));t.setAttribute('y',y(data[peakIdx])-10);t.setAttribute('text-anchor','middle');
+    t.setAttribute('class','axis-label');t.setAttribute('style','font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;fill:'+v('--ink')+';');
+    t.textContent=data[peakIdx];svg.appendChild(t);
+    // x labels (first/mid/last)
+    [[0,'Apr 6'],[peakIdx,'May 18'],[data.length-1,'Jun 22']].forEach(([i,lab])=>{
+      const tx=document.createElementNS(NS,'text');
+      tx.setAttribute('x',x(i));tx.setAttribute('y',H-4);tx.setAttribute('text-anchor','middle');
+      tx.setAttribute('class','axis-label');tx.textContent=lab;svg.appendChild(tx);
+    });
+  })();
+
+  // ---------- Hour bar chart ----------
+  (function () {
+    const hours=[4,7,10,13,16,19,21,23];
+    const vals=[8,22,34,18,41,72,96,30];
+    const W=520,H=140,pad={l:8,r:12,t:14,b:20};
+    const max=Math.max(...vals)*1.1;
+    const bw=(W-pad.l-pad.r)/hours.length;
+    const y=v0=>H-pad.b-(v0/max)*(H-pad.t-pad.b);
+    const svg=document.getElementById('hourChart');
+    const NS='http://www.w3.org/2000/svg';
+    const peakIdx=vals.indexOf(Math.max(...vals));
+    hours.forEach((h,i)=>{
+      const bx=pad.l+i*bw+bw*0.18, bwid=bw*0.64;
+      const r=document.createElementNS(NS,'rect');
+      r.setAttribute('x',bx);r.setAttribute('y',y(vals[i]));r.setAttribute('width',bwid);r.setAttribute('height',H-pad.b-y(vals[i]));
+      r.setAttribute('rx','3');
+      r.setAttribute('fill', i===peakIdx ? v('--gold') : v('--sage'));
+      r.setAttribute('opacity', i===peakIdx ? '1':'0.7');
+      svg.appendChild(r);
+      const tx=document.createElementNS(NS,'text');
+      tx.setAttribute('x',bx+bwid/2);tx.setAttribute('y',H-5);tx.setAttribute('text-anchor','middle');
+      tx.setAttribute('class','axis-label');tx.textContent=h+':00';svg.appendChild(tx);
+    });
+    // peak direct label
+    const px=pad.l+peakIdx*bw+bw/2;
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',px);t.setAttribute('y',y(vals[peakIdx])-6);t.setAttribute('text-anchor','middle');
+    t.setAttribute('style','font-family:JetBrains Mono,monospace;font-weight:700;font-size:12px;fill:'+v('--gold-deep')+';');
+    t.textContent=vals[peakIdx];svg.appendChild(t);
+  })();
+
+  // ---------- Mood distribution ledger list ----------
+  (function () {
+    const moods=[
+      ['Calm','#8A9A5B',28,516],['Happy','#C9A961',22,406],['Thoughtful','#A67C52',14,258],
+      ['Tired','#7D5A3C',10,185],['Anxious','#B76E79',8,148],['Loved','#D98A7E',7,129],
+      ['Sad','#6B7B8C',5,92],['Excited','#E0A458',4,74],['Cool','#5B8C9A',1,18],
+      ['Mindblown','#9B7BB8',1,18],['Angry','#C0504D',0,3],['Adoring','#C98A9A',0,2]
+    ];
+    const list=document.getElementById('moodList');
+    moods.forEach(([name,color,pct,count])=>{
+      const row=document.createElement('div');row.className='moodrow';
+      row.innerHTML='<span class="sw" style="background:'+color+'"></span>'+
+        '<span class="nm">'+name+'</span>'+
+        '<span class="bar"><i style="width:'+pct+'%;background:'+color+'"></i></span>'+
+        '<span class="pc">'+pct+'%</span>';
+      list.appendChild(row);
+    });
+  })();
+
+  // ---------- Deterministic heatmap (last 53 weeks) ----------
+  (function () {
+    let seed=20251013;
+    function rand(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
+    const weeks=53,days=7,total=weeks*days;
+    const start=new Date(2024,9,6);
+    const heat=document.getElementById('heatmap');
+    const months=document.getElementById('hmMonths');
+    let lastMonth=-1;
+    for(let w=0;w<weeks;w++){
+      const col=document.createElement('div');col.className='heat-week';
+      for(let d=0;d<days;d++){
+        const idx=w*days+d;
+        const date=new Date(start);date.setDate(start.getDate()+idx);
+        const r=rand();const m=date.getMonth();
+        let p=0.52; if(m>=2&&m<=4)p=0.78; if(m>=8&&m<=10)p=0.7; if(m===6||m===7)p=0.4;
+        let count=r<p?1:0; if(r<p-0.22)count=2; if(r<p-0.34)count=3; if(r<p-0.42)count=4;
+        let level=0; if(count>=3)level=4;else if(count===2)level=3;else if(count===1)level=2;
+        const cell=document.createElement('span');
+        cell.className='cell'+(level?' l'+level:'');
+        cell.title=date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' — '+count+(count===1?' entry':' entries');
+        col.appendChild(cell);
+        if(d===0){
+          if(date.getMonth()!==lastMonth){
+            lastMonth=date.getMonth();
+            const seg=document.createElement('span');
+            seg.style.width='17px';seg.style.flex='0 0 auto';
+            seg.textContent=date.toLocaleDateString('en-US',{month:'short'});
+            months.appendChild(seg);
+          }else{
+            const sp=document.createElement('span');sp.style.width='17px';sp.style.flex='0 0 auto';months.appendChild(sp);
+          }
+        }
+      }
+      heat.appendChild(col);
+    }
+  })();
+</script>
+</body>
+</html>

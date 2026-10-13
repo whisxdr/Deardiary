@@ -19,11 +19,20 @@ export default function Stats() {
   return (
     <AppLayout>
       <div className="flex flex-col gap-5">
-        <header className="flex flex-col gap-1">
-          <h1 className="font-display text-2xl text-primary-800 dark:text-primary-100 sm:text-3xl">Your writing habits</h1>
-          <p className="font-body text-sm text-primary-500 dark:text-primary-300">
-            Everything here is calculated from entries stored in this browser.
-          </p>
+        <header className="flex flex-col gap-1 border-b-2 border-primary-800 pb-4 dark:border-primary-100">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="font-display text-2xl text-primary-800 sm:text-3xl dark:text-primary-100">
+                Your writing year
+              </h1>
+              <p className="font-sub text-base italic text-muted">
+                Everything here is calculated from entries stored in this browser.
+              </p>
+            </div>
+            <p aria-hidden="true" className="font-mono text-[11px] tracking-[1px] text-muted uppercase">
+              Folio No. 2025 · Statistics Ledger
+            </p>
+          </div>
         </header>
 
         {entries.length === 0 ? (
