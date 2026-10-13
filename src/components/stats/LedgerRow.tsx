@@ -24,9 +24,7 @@ export interface LedgerRowProps {
 }
 
 /**
- * One line of the statistics ledger.
- *
- * The row is the unit that replaces `StatCard`: a numbered label column and a body
+ * One line of the statistics ledger: a numbered label column and a body
  * column, separated by a ruled hairline. The sheet draws the margin rule and the
  * horizontal ruled lines; the row only supplies its own bottom hairline.
  */

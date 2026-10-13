@@ -5,5 +5,3 @@ export { EntriesLineChart } from './EntriesLineChart';
 export type { EntriesLineChartProps } from './EntriesLineChart';
 export { HeatmapChart } from './HeatmapChart';
 export type { HeatmapChartProps } from './HeatmapChart';
-export { MoodPieChart } from './MoodPieChart';
-export type { MoodPieChartProps } from './MoodPieChart';

@@ -78,8 +78,7 @@ function FavoritesRow({ stats }: { stats: StatsSummary }) {
 
 /**
  * The statistics page as a single continuous ledger: one ruled sheet of ten
- * numbered rows, read top to bottom. Replaces the old flat grid of equal-weight
- * `StatCard`s.
+ * numbered rows, read top to bottom.
  */
 export function StatsGrid({ stats, onTagClick }: StatsGridProps) {
   return (
