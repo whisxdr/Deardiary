@@ -87,7 +87,7 @@ export function StatsMargin() {
   return (
     <div className="stats-margin" aria-hidden="true">
       <div className="stats-margin__col stats-margin__col--left">
-        <span className="stats-margin__label">Folio No. 2025</span>
+        <span className="stats-margin__label">Folio No. {new Date().getFullYear()}</span>
         <p className="stats-margin__note">a line a day still counts</p>
         <NibIllustration />
         <span className="stats-margin__rule" />

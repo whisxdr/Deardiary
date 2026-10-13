@@ -30,7 +30,7 @@ export default function Stats() {
               </p>
             </div>
             <p className="font-mono text-[12px] tracking-[0.4px] text-primary-600 dark:text-primary-200">
-              Folio No. 2025 · Statistics Ledger
+              Folio No. {new Date().getFullYear()} · Statistics Ledger
             </p>
           </div>
         </header>
