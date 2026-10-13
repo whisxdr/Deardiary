@@ -1,5 +1,6 @@
 import { DEFAULT_MOOD, LIMITS } from '@/constants';
 import { createId } from '@/lib/id';
+import { clipContent } from '@/lib/contentClip';
 import { sanitizeTitle } from '@/lib/validate';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 import { byNewest, resolveTitle, withDerivedFields } from './entryFields';
@@ -27,7 +28,7 @@ export function createEntry(draft: Partial<EntryDraft>): Entry {
   const entry = withDerivedFields({
     id: createId(),
     title: sanitizeTitle(draft.title ?? ''),
-    content: (draft.content ?? '').slice(0, LIMITS.contentMaxLength),
+    content: clipContent(draft.content ?? ''),
     mood: draft.mood ?? DEFAULT_MOOD,
     tags: draft.tags ?? [],
     date: draft.date ?? now,
@@ -55,7 +56,7 @@ export function updateEntry(id: string, patch: EntryUpdate, expectedUpdatedAt?: 
     ...entries[index],
     ...patch,
     title: resolveTitle(patch, entries[index].title),
-    content: (patch.content ?? entries[index].content).slice(0, LIMITS.contentMaxLength),
+    content: clipContent(patch.content ?? entries[index].content),
     location: (patch.location ?? entries[index].location)?.slice(0, LIMITS.locationMaxLength),
     updatedAt: stamp(),
   });

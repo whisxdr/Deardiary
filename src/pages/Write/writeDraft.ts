@@ -1,4 +1,5 @@
 import { DEFAULT_MOOD, LIMITS } from '@/constants';
+import { clipContent } from '@/lib/contentClip';
 import type { Entry, EntryDraft, Mood } from '@/types';
 
 /** Shape stored under the draft key while a new entry is still being written. */
@@ -76,7 +77,7 @@ export function draftDeps(draft: StoredDraft): unknown[] {
 export function draftPayload(draft: StoredDraft): EntryDraft {
   return {
     title: draft.title,
-    content: draft.content.slice(0, LIMITS.contentMaxLength),
+    content: clipContent(draft.content),
     mood: draft.mood,
     tags: draft.tags,
     date: draft.date,

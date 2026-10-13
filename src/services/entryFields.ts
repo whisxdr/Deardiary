@@ -2,6 +2,7 @@ import { DEFAULT_MOOD, LIMITS, MOODS } from '@/constants';
 import { createIdFrom } from '@/lib/id';
 import { countWords, readingTimeMinutes } from '@/lib';
 import { looksUnsafe, sanitizeEntryHtml } from '@/lib/sanitize';
+import { clipContent } from '@/lib/contentClip';
 import { sanitizeTags, sanitizeTitle } from '@/lib/validate';
 import type { Entry, Mood } from '@/types';
 
@@ -70,7 +71,7 @@ export function coerceEntry(raw: Partial<Entry>): Entry {
   // Bounded before sanitizing: a backup can carry a multi-megabyte body, and an unbounded
   // value reaches localStorage (quota) and DOMPurify (a full parse on every render).
   // `contentMaxLength` existed as a constant and was enforced nowhere.
-  const rawContent = typeof raw.content === 'string' ? raw.content.slice(0, LIMITS.contentMaxLength) : '';
+  const rawContent = typeof raw.content === 'string' ? clipContent(raw.content) : '';
   const content = sanitizeEntryHtml(rawContent);
   const words = countWords(content);
   const date = safeIso(raw.date, now);

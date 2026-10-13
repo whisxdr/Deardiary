@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { TIMING } from '@/constants';
 import { countCharacters, countWords } from '@/lib';
+import { stripImageDataUrls } from '@/lib/contentClip';
 
 /**
  * Live word, character and raw-length counters for the editor.
+ *
+ * Image payloads are stripped before every measure: a photo's base64 runs to hundreds of
+ * thousands of characters, and counting it made the near-limit warning fire permanently
+ * the moment one image was inserted even though images do not count against the budget.
  *
  * `countWords` and `countCharacters` each run a full-body regex, so calling them on every
  * `onUpdate` put a regex pass over the whole entry on the keystroke path. Only the raw
@@ -26,18 +31,20 @@ export function useEditorCounts() {
 
   /** Recomputes every counter at once; used when content is loaded, not typed. */
   const measureNow = (html: string) => {
-    setWords(countWords(html));
-    setCharacters(countCharacters(html));
-    setContentLength(html.length);
+    const text = stripImageDataUrls(html);
+    setWords(countWords(text));
+    setCharacters(countCharacters(text));
+    setContentLength(text.length);
   };
 
   /** Records the raw length at once (cheap) and defers the two regex passes. */
   const scheduleMeasure = (html: string) => {
-    setContentLength(html.length);
+    const text = stripImageDataUrls(html);
+    setContentLength(text.length);
     if (timer.current !== null) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
-      setWords(countWords(html));
-      setCharacters(countCharacters(html));
+      setWords(countWords(text));
+      setCharacters(countCharacters(text));
     }, TIMING.counterDebounceMs);
   };
 
