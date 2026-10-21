@@ -7,6 +7,7 @@ import { useEntries } from '@/hooks';
 import { useEntryStore } from '@/store';
 import { addMonths, startOfMonth, toDateKey } from '@/utils';
 import { buttonVariants } from '@/components/ui';
+import { formatCount, formatWordCount } from '@/lib';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/constants';
 
@@ -22,6 +23,16 @@ export default function Calendar() {
     return entries.filter((entry) => toDateKey(entry.date) === key);
   }, [entries, selected]);
 
+  const monthSummary = useMemo(() => {
+    const inMonth = entries.filter((entry) => {
+      const date = new Date(entry.date);
+      return date.getFullYear() === month.getFullYear() && date.getMonth() === month.getMonth();
+    });
+    const days = new Set(inMonth.map((entry) => toDateKey(entry.date))).size;
+    const words = inMonth.reduce((total, entry) => total + entry.wordCount, 0);
+    return `${formatCount(inMonth.length, 'entry', 'entries')} on ${formatCount(days, 'day', 'days')} · ${formatWordCount(words)}`;
+  }, [entries, month]);
+
   // Moving the month also moves the selection into it, so the detail panel never shows a
   // day that is off-screen and the new grid always has a highlighted cell.
   const goToMonth = (offset: number) => {
@@ -36,6 +47,7 @@ export default function Calendar() {
         <h1 className="sr-only">Calendar of entries</h1>
         <CalendarHeader
           month={month}
+          summary={monthSummary}
           onPrevious={() => goToMonth(-1)}
           onNext={() => goToMonth(1)}
           onToday={() => {
