@@ -27,7 +27,7 @@ export const EntryCard = memo(function EntryCard({
     <article
       className={cn(
         'group flex flex-col gap-3 rounded-lg border border-primary-200/70 bg-accent-cream/95 p-4 shadow-soft',
-        'transition-all duration-normal hover:-translate-y-0.5 hover:shadow-medium paper-texture',
+        'transition-all duration-normal hover:-translate-y-0.5 hover:border-accent-gold/60 hover:shadow-medium paper-texture',
         'dark:border-primary-700 dark:bg-primary-800/80',
         layout === 'list' && 'sm:flex-row sm:items-start sm:gap-6',
         className,

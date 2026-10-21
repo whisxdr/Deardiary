@@ -46,7 +46,11 @@ export function DataSection() {
         <Button variant="outline" onClick={() => fileRef.current?.click()}>
           Import backup
         </Button>
-        <Button variant="danger" onClick={() => setConfirmClear(true)}>
+        <Button
+          variant="outline"
+          className="border-error/40 text-error-text hover:border-error hover:bg-error/5"
+          onClick={() => setConfirmClear(true)}
+        >
           Clear all entries
         </Button>
         <RestoreDefaultsButton />

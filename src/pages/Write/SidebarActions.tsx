@@ -21,7 +21,11 @@ export function SidebarActions({ onSaveDraft, onPublish, onDelete, canDelete }: 
         Publish
       </Button>
       {canDelete ? (
-        <Button variant="danger" onClick={onDelete}>
+        <Button
+          variant="outline"
+          className="border-error/40 text-error-text hover:border-error hover:bg-error/5"
+          onClick={onDelete}
+        >
           <Trash size={16} weight="regular" aria-hidden="true" />
           Delete
         </Button>

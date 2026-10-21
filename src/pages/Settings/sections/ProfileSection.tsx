@@ -13,8 +13,10 @@ function PortraitButton({ choice, active, onSelect }: { choice: AvatarChoice; ac
       aria-label={`Use the ${choice.seed} portrait`}
       aria-pressed={active}
       className={cn(
-        'relative h-11 w-11 overflow-hidden rounded-md border transition-colors duration-fast',
-        active ? 'border-accent-gold ring-1 ring-accent-gold' : 'border-primary-200 dark:border-primary-700',
+        'relative h-11 w-11 cursor-pointer overflow-hidden rounded-md border transition-colors duration-fast',
+        active
+          ? 'border-accent-gold ring-1 ring-accent-gold'
+          : 'border-primary-200 hover:border-primary-300 dark:border-primary-700 dark:hover:border-primary-500',
       )}
     >
       <Avatar
@@ -53,7 +55,7 @@ export function ProfileSection() {
           hair={active.hair}
           size="lg"
         />
-        <div className="flex flex-wrap gap-1.5">
+        <div className="grid grid-cols-7 gap-1.5">
           {AVATAR_CHOICES.map((choice) => (
             <PortraitButton
               key={choice.seed}

@@ -73,7 +73,7 @@ export function HeatmapChart({ cells, title = 'Writing activity' }: HeatmapChart
         <div className="flex min-w-0 flex-col">
           <div className="mb-1 flex gap-1" aria-hidden="true">
             {weeks.map((week) => (
-              <span key={`label-${week.key}`} className="w-[13px] shrink-0 font-body text-[11px] text-primary-600 dark:text-primary-200">
+              <span key={`label-${week.key}`} className="w-[13px] shrink-0 whitespace-nowrap font-body text-[11px] text-primary-600 dark:text-primary-200">
                 {week.monthLabel === null ? '' : MONTH_NAMES[week.monthLabel]}
               </span>
             ))}

@@ -143,11 +143,9 @@
 }
 
 /*
- * Below 1280px the `max-w-7xl` column fills the viewport, so the gutters — and
- * therefore the whole layer — disappear. This also keeps the furniture from
- * squeezing the main content on tablets and phones.
+ * Below 1536px the gutters are narrower than the furniture, so it would clip.
  */
-@media (max-width: 1279.98px) {
+@media (max-width: 1535.98px) {
   .stats-margin {
     display: none;
   }

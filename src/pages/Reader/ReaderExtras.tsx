@@ -44,14 +44,18 @@ export function ReaderDeleteDialog({
 
 /** Secondary export actions that do not need a confirmation step. */
 export function ReaderExportRow({ entry }: { entry: Entry }) {
+  const linkClass =
+    'cursor-pointer underline decoration-primary-300/60 underline-offset-2 transition-colors duration-fast hover:text-primary-800 dark:hover:text-primary-100';
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="ghost" size="sm" onClick={() => exportEntryAsMarkdown(entry)}>
-        Export Markdown
-      </Button>
-      <Button variant="ghost" size="sm" onClick={() => exportEntryAsText(entry)}>
-        Export plain text
-      </Button>
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-body text-xs text-muted">
+      <span className="text-[10px] uppercase tracking-wide">Download as</span>
+      <button type="button" className={linkClass} onClick={() => exportEntryAsMarkdown(entry)}>
+        Markdown
+      </button>
+      <span aria-hidden="true">·</span>
+      <button type="button" className={linkClass} onClick={() => exportEntryAsText(entry)}>
+        Plain text
+      </button>
     </div>
   );
 }

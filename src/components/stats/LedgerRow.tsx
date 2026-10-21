@@ -30,7 +30,7 @@ export interface LedgerRowProps {
  */
 export function LedgerRow({ id, number, label, sublabel, marginNote, children, bodyClassName }: LedgerRowProps) {
   return (
-    <div className="ledger-row grid items-center gap-x-lg gap-y-xs py-3.5 min-h-[68px] border-b border-primary-200/50 last:border-b-0 lg:grid-cols-[200px_1fr]">
+    <div className="ledger-row grid items-start gap-x-lg gap-y-xs py-3.5 min-h-[68px] border-b border-primary-200/50 last:border-b-0 lg:grid-cols-[200px_1fr]">
       <div className="flex flex-col gap-1">
         <div className="flex items-baseline gap-2.5">
           <span aria-hidden="true" className="font-mono text-[13px] text-primary-600 dark:text-primary-200">
