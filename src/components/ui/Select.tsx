@@ -24,7 +24,7 @@ export function Select({ label, options, leading, className, id, ...props }: Sel
       <select
         id={selectId}
         className={cn(
-          'h-9 rounded-md border border-primary-200 bg-primary-50/80 px-2 font-body text-xs text-primary-700',
+          'h-9 cursor-pointer rounded-md border border-primary-200 bg-primary-50/80 px-2 font-body text-xs text-primary-700',
           'focus:border-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-gold/40',
           'dark:border-primary-700 dark:bg-primary-800/60 dark:text-primary-100',
           className,

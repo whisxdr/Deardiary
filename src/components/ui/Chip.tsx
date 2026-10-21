@@ -23,7 +23,7 @@ export function Chip({ children, onRemove, onClick, active, className }: ChipPro
     BASE,
     'border-primary-200 bg-primary-100/70 text-primary-600',
     'dark:border-primary-700 dark:bg-primary-800/70 dark:text-primary-200',
-    onClick && 'hover:border-accent-gold hover:text-primary-800',
+    onClick && 'cursor-pointer hover:border-accent-gold hover:text-primary-800',
     active && 'border-accent-gold bg-accent-gold/25 text-primary-800 dark:text-primary-100',
     className,
   );

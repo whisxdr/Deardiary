@@ -21,7 +21,7 @@ export function ToolbarButton({ label, icon, onClick, active, disabled, shortcut
       aria-pressed={active}
       title={shortcut ? `${label} (${shortcut})` : label}
       className={cn(
-        'inline-flex h-8 w-8 items-center justify-center rounded-md text-primary-600 transition-colors duration-fast',
+        'inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-primary-600 transition-colors duration-fast',
         'hover:bg-primary-100 hover:text-primary-800 focus-visible:outline-none focus-visible:ring-2',
         'focus-visible:ring-accent-gold disabled:opacity-40',
         'dark:text-primary-200 dark:hover:bg-primary-700',

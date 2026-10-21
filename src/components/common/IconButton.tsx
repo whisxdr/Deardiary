@@ -19,7 +19,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       aria-pressed={active}
       title={label}
       className={cn(
-        'inline-flex items-center justify-center rounded-md text-primary-600 transition-colors duration-fast',
+        'inline-flex cursor-pointer items-center justify-center rounded-md text-primary-600 transition-colors duration-fast',
         'hover:bg-primary-100/70 hover:text-primary-800 focus-visible:outline-none focus-visible:ring-2',
         'focus-visible:ring-accent-gold disabled:opacity-50 dark:text-primary-200 dark:hover:bg-primary-700/60',
         size === 'sm' ? 'h-7 w-7' : 'h-9 w-9',

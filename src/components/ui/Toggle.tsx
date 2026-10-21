@@ -31,7 +31,7 @@ export function Toggle({ checked, onChange, label, description, disabled }: Togg
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(
-          'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-fast focus-visible:outline-none',
+          'relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-fast focus-visible:outline-none',
           'focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 disabled:opacity-50',
           checked ? 'bg-accent-gold' : 'bg-primary-200 dark:bg-primary-700',
         )}
