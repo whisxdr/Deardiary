@@ -41,7 +41,7 @@ export function ActivityBarChart({ data }: ActivityBarChartProps) {
             {data.map((bucket, index) => (
               <Cell
                 key={bucket.hour}
-                fill={index === peak ? 'var(--accent-gold)' : CHART_TOKENS.bar}
+                fill={index === peak ? 'rgb(var(--color-gold))' : CHART_TOKENS.bar}
                 fillOpacity={index === peak ? 1 : 0.7}
               />
             ))}
