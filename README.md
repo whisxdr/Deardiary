@@ -30,7 +30,16 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` | Run the TypeScript compiler in check-only mode |
 | `npm run lint:emoji` | ESLint, including the rules that keep Unicode emoji out of the UI |
+| `npm run check:invariants` | Enforce the structural rules (line ceilings, no `any`, no emoji, no stray logging) |
+| `npm run verify` | Typecheck, lint, invariants and tests in one pass — run this before review |
+| `npm run hooks:install` | Point git at `.githooks/` so the pre-commit gate runs (once per clone) |
 | `npm test` | Run the pure-Node suites (CSP parity, week buckets, export parsing) |
+
+## Quality gates
+
+`docs/engineering-standards.md` is the contract: the gate ladder, the review rubric, and how the
+invariant baseline works. In short — pre-commit catches the obvious, CI catches the rest, and
+`scripts/.invariants-baseline.json` freezes existing debt so it can shrink but never grow.
 
 ## Pages
 
@@ -69,7 +78,8 @@ The diary starts empty. Write your first entry, or import a JSON backup from Set
 
 The codebase is split by responsibility so no file grows into a "fat file":
 
-- `src/pages/` — composition only, each page under 100 lines
+- `src/pages/` — composition only, every page under 100 lines; `npm run check:invariants` enforces
+  the ceiling and fails any file that grows past it
 - `src/components/` — presentational components grouped by domain (`ui`, `book`, `entry`, `editor`, `calendar`, `stats`, `charts`, `layout`, `common`)
 - `src/hooks/` — one hook per file, all reusable behaviour
 - `src/services/` — storage, statistics, export and import logic
