@@ -14,6 +14,9 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit --pretty false",
     "lint:emoji": "eslint src --ext .ts,.tsx",
+    "check:invariants": "node scripts/check-invariants.mjs",
+    "verify": "npm run typecheck && npm run lint:emoji && npm run check:invariants && npm test",
+    "hooks:install": "git config core.hooksPath .githooks",
     "test": "node scripts/check-csp-parity.mjs && node scripts/check-week-bucket.mjs && node scripts/check-parse-export.mjs && node scripts/check-entry-writes.mjs && node scripts/check-image-upload.mjs && node scripts/check-content-clip.mjs"
   },
   "dependencies": {

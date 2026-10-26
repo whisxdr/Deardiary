@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "note": "Frozen legacy debt. May shrink, never grow. Regenerate only after a fix.",
+  "grandfathered": {
+    "src/components/splash/CelestialStars.tsx::line-limit": 226,
+    "src/components/splash/SplashScreen.tsx::line-limit": 179,
+    "src/pages/Stats/StatsGrid.tsx::line-limit": 174,
+    "src/services/entryQuery.ts::line-limit": 121,
+    "src/pages/Dashboard/Dashboard.tsx::line-limit": 111
+  }
+}

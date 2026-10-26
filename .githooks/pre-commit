@@ -1,0 +1,22 @@
+#!/bin/sh
+# Fast local gate. Runs in a few seconds so it never tempts anyone to reach for
+# `git commit --no-verify`.
+#
+# Install once per clone:  npm run hooks:install
+#
+# Deliberately NOT here: the full test suite and the build. Those belong to CI, where
+# minutes are cheap and blocking is not personal. This hook only catches the mistakes
+# that are embarrassing to push: a broken type, a stray `any`, a new 300-line file.
+
+set -e
+
+echo "pre-commit: typecheck"
+npm run --silent typecheck
+
+echo "pre-commit: lint"
+npm run --silent lint:emoji
+
+echo "pre-commit: invariants"
+npm run --silent check:invariants
+
+echo "pre-commit: ok"

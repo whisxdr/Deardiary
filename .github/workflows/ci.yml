@@ -1,0 +1,57 @@
+name: verify
+
+# Every gate the project already trusts, run on a machine instead of on memory.
+# A rule that only lives in the README is a rule that quietly rots.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node 22.18+ ships type stripping, which the pure-Node suites rely on
+          # when they import src/**/*.ts directly.
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint:emoji
+
+      - name: Structural invariants
+        run: npm run check:invariants
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # The build is the artefact users actually get. Report its weight on every run so a
+      # slow creep is visible in the PR instead of discovered on a phone.
+      - name: Bundle report
+        run: |
+          echo "### Bundle" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          du -sh dist | tee -a "$GITHUB_STEP_SUMMARY"
+          find dist/assets -name '*.js' -printf '%10s  %p\n' 2>/dev/null | sort -rn | head -12 >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
