@@ -1,5 +1,10 @@
-export { CelestialStars, Stardust } from './CelestialStars';
+export { CelestialStars } from './CelestialStars';
 export type { CelestialStarsProps } from './CelestialStars';
 export { randomSplashQuote, SPLASH_QUOTES } from './quotes';
+export { SplashGreeting } from './SplashGreeting';
+export type { SplashGreetingProps } from './SplashGreeting';
 export { SplashScreen } from './SplashScreen';
 export type { SplashScreenProps } from './SplashScreen';
+export { SplashSkipButton } from './SplashSkipButton';
+export type { SplashSkipButtonProps } from './SplashSkipButton';
+export { Stardust } from './Stardust';

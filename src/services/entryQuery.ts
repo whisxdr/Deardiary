@@ -1,6 +1,7 @@
 import { STORAGE_KEYS } from '@/constants';
 import { isPersistent, lastWriteFailed, readJson, writeJson } from '@/lib/storage';
 import type { Entry } from '@/types';
+import { rememberDeleted } from './deletedIds';
 import { byNewest, coerceEntry, looksLikeEntry, needsRepair } from './entryFields';
 
 /**
@@ -88,29 +89,11 @@ export function saveEntries(entries: Entry[]): boolean {
   return ok;
 }
 
-/** Finds one entry by id. */
+/**
+ * Finds one entry by id.
+ */
 export function findEntry(id: string): Entry | null {
   return listAllRecords().find((entry) => entry.id === id) ?? null;
-}
-
-/**
- * Remembers deleted ids so a backup written before the deletion cannot resurrect them.
- *
- * Id only: no content and no stamp, and the log is capped because the oldest deletions
- * matter least.
- */
-const DELETED_IDS_CAP = 1_000;
-
-export function rememberDeleted(ids: string[]): void {
-  if (ids.length === 0) return;
-  const known = readJson<string[]>(STORAGE_KEYS.deletedIds, []).filter((id) => typeof id === 'string');
-  const merged = [...new Set([...known, ...ids])].slice(-DELETED_IDS_CAP);
-  writeJson(STORAGE_KEYS.deletedIds, merged);
-}
-
-/** True when the user deleted this id, so an import must not restore it. */
-export function wasDeleted(id: string): boolean {
-  return readJson<string[]>(STORAGE_KEYS.deletedIds, []).includes(id);
 }
 
 /** Every distinct tag in use, sorted alphabetically. */

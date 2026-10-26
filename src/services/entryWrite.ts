@@ -4,7 +4,8 @@ import { clipContent } from '@/lib/contentClip';
 import { sanitizeTitle } from '@/lib/validate';
 import type { Entry, EntryDraft, EntryUpdate } from '@/types';
 import { byNewest, resolveTitle, withDerivedFields } from './entryFields';
-import { listAllRecords, rememberDeleted, saveEntries, wasDeleted } from './entryQuery';
+import { listAllRecords, saveEntries } from './entryQuery';
+import { rememberDeleted, wasDeleted } from './deletedIds';
 
 /**
  * Monotonic stamp source.

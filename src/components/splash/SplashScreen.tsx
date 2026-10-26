@@ -1,42 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { STORAGE_NAMESPACE } from '@/constants';
 import { useKeyboard, usePrefersReducedMotion } from '@/hooks';
 import { cn } from '@/utils';
-import { CelestialStars, Stardust } from './CelestialStars';
+import { Stardust } from './Stardust';
 import { randomSplashQuote } from './quotes';
-
-/** Session flag, so the opening can be limited to the first visit of a session. */
-const SPLASH_SESSION_KEY = `${STORAGE_NAMESPACE}:splash-shown`;
-
-/** Time on screen before the opening fades itself out. */
-const AUTO_EXIT_MS = 5_500;
-
-/** A visitor who asked for reduced motion gets the still card, not a five second wait. */
-const REDUCED_MOTION_MS = 1_400;
-
-/** Start of the lift, kept in step with `splash-lift` in tailwind.config.js. */
-const LIFT_DELAY_S = 2;
-
-/** Greeting and quote reveal one after the other; same table as `splash-rise`. */
-const TITLE_DELAY_S = 2.2;
-const QUOTE_DELAY_S = 3.4;
-
-function hasSeenSplash(): boolean {
-  try {
-    return window.sessionStorage.getItem(SPLASH_SESSION_KEY) === '1';
-  } catch {
-    // Storage can be blocked, in which case every visit gets the opening.
-    return false;
-  }
-}
-
-function markSplashSeen(): void {
-  try {
-    window.sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
-  } catch {
-    // Same as above; a refused write is not worth failing a launch over.
-  }
-}
+import { SplashGreeting } from './SplashGreeting';
+import { SplashSkipButton } from './SplashSkipButton';
+import { AUTO_EXIT_MS, REDUCED_MOTION_MS, hasSeenSplash, markSplashSeen } from './splashSession';
 
 export interface SplashScreenProps {
   /** Called once the opening has faded out and can be unmounted. */
@@ -60,11 +29,7 @@ export interface SplashScreenProps {
  * The main app stays mounted behind this overlay, so the fade reveals a page that has
  * already painted and its lazy route chunk has already loaded.
  */
-export function SplashScreen({
-  onComplete,
-  duration = AUTO_EXIT_MS,
-  oncePerSession = false,
-}: SplashScreenProps) {
+export function SplashScreen({ onComplete, duration = AUTO_EXIT_MS, oncePerSession = false }: SplashScreenProps) {
   const reducedMotion = usePrefersReducedMotion();
   const [skipped] = useState(() => oncePerSession && hasSeenSplash());
   const [quote] = useState(randomSplashQuote);
@@ -123,53 +88,9 @@ export function SplashScreen({
       />
       <Stardust />
 
-      {/*
-        The star sits exactly on the viewport centre, where the static shell drew it, and
-        the greeting hangs below it. Both match the shell's geometry, so the handover moves
-        nothing.
-      */}
-      <div className="relative flex flex-col items-center">
-        <div
-          className="h-[min(58vw,280px,44vh)] w-[min(58vw,280px,44vh)] [will-change:transform] motion-safe:animate-splash-lift"
-          style={{ animationDelay: `${LIFT_DELAY_S}s` }}
-        >
-          <CelestialStars />
-        </div>
+      <SplashGreeting quote={quote} />
 
-        <div className="absolute left-1/2 top-full flex w-[min(88vw,40rem)] -translate-x-1/2 flex-col items-center gap-4 pt-6 text-center">
-          <h1
-            className="animate-splash-rise font-display text-3xl tracking-[0.08em] text-accent-cream [text-shadow:0_0_28px_rgba(201,169,97,0.35)] sm:text-4xl md:text-5xl"
-            style={{ animationDelay: `${TITLE_DELAY_S}s` }}
-          >
-            Welcome to Dear Diary
-          </h1>
-
-          <figure
-            className="animate-splash-rise flex flex-col items-center gap-3"
-            style={{ animationDelay: `${QUOTE_DELAY_S}s` }}
-          >
-            <span
-              aria-hidden="true"
-              className="h-px w-16 bg-gradient-to-r from-transparent via-accent-gold/60 to-transparent"
-            />
-            <blockquote className="font-sub text-base italic leading-relaxed text-accent-gold/90 sm:text-lg">
-              &ldquo;{quote}&rdquo;
-            </blockquote>
-          </figure>
-        </div>
-      </div>
-
-      {/* Serif-only screen: an Inter glyph here fetches the 39 KB body font while the
-          entry chunk is still arriving. */}
-      <button
-        type="button"
-        autoFocus
-        onClick={finish}
-        aria-label="Skip the opening"
-        className="absolute right-4 top-4 min-h-[44px] rounded-full border border-accent-gold/30 bg-accent-gold/10 px-5 font-display text-xs uppercase tracking-[0.2em] text-accent-cream/75 backdrop-blur-sm transition-colors duration-fast hover:border-accent-gold/50 hover:bg-accent-gold/20 hover:text-accent-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold sm:right-6 sm:top-6"
-      >
-        Skip
-      </button>
+      <SplashSkipButton onSkip={finish} />
 
       <p role="status" className="sr-only font-display">
         Opening Dear Diary

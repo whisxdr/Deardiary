@@ -1,3 +1,4 @@
+export { FavoritesValue } from './FavoritesValue';
 export { LedgerRow } from './LedgerRow';
 export type { LedgerRowProps } from './LedgerRow';
 export { LedgerSheet } from './LedgerSheet';
@@ -11,5 +12,10 @@ export { StatNumber } from './StatNumber';
 export type { StatNumberProps } from './StatNumber';
 export { TagIndex } from './TagIndex';
 export type { TagIndexProps } from './TagIndex';
+export { TopMoodValue } from './TopMoodValue';
+export { TotalEntriesValue } from './TotalEntriesValue';
+export { TotalWordsValue } from './TotalWordsValue';
+export { WeeklyAverageValue } from './WeeklyAverageValue';
+export type { WeeklyAverageValueProps } from './WeeklyAverageValue';
 export { WritingStreak } from './WritingStreak';
 export type { WritingStreakProps } from './WritingStreak';

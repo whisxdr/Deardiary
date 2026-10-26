@@ -1,80 +1,15 @@
-import { useMemo } from 'react';
-import { usePrefersReducedMotion } from '@/hooks';
 import { cn } from '@/utils';
-
-/** Square viewBox, so the orbit centre and the SVG centre are the same point. */
-const SIZE = 320;
-const CENTER = SIZE / 2;
-
-const GOLD = '#C9A961';
-const CREAM = '#F5F0E6';
-
-/** Spikes of the little travelling stars, in viewBox units; orbits scale from this. */
-const SPARKLE_UNIT = 6;
-
-/**
- * Star outline as an SVG path.
- *
- * Walks `points` spikes, alternating the outer and inner radius, so the shape is
- * generated instead of pasted in as a long `d` string. The static shell in index.html
- * carries the same two paths in plain markup, so the first painted frame and this one
- * sit on exactly the same pixels.
- */
-function starPath(outer: number, inner: number, points: number): string {
-  const step = Math.PI / points;
-  let path = '';
-  for (let index = 0; index < points * 2; index += 1) {
-    const radius = index % 2 === 0 ? outer : inner;
-    const angle = index * step - Math.PI / 2;
-    const x = (Math.cos(angle) * radius).toFixed(2);
-    const y = (Math.sin(angle) * radius).toFixed(2);
-    path += `${index === 0 ? 'M' : 'L'}${x} ${y}`;
-  }
-  return `${path}Z`;
-}
-
-/** Four-point spikes, plus the same spikes turned 45°: together the vintage 8-point star. */
-const STAR_SPIKES = starPath(46, 13, 4);
-const STAR_CROSS = starPath(33, 9, 4);
-const SPARKLE = starPath(SPARKLE_UNIT, 2, 4);
-
-interface OrbitStar {
-  /** Position on the ring, in degrees. */
-  angle: number;
-  /** Spike length in viewBox units. */
-  size: number;
-  /** Twinkle offset, so the stars on one ring do not pulse in step. */
-  delay: number;
-}
-
-interface Orbit {
-  radius: number;
-  dash: string;
-  /** `-1` runs the ring backwards, which reads as depth without a second effect. */
-  direction: 1 | -1;
-  stars: OrbitStar[];
-}
-
-const ORBITS: Orbit[] = [
-  {
-    radius: 88,
-    dash: '3 10',
-    direction: 1,
-    stars: [
-      { angle: 18, size: 7, delay: 0 },
-      { angle: 205, size: 5, delay: 1.1 },
-    ],
-  },
-  {
-    radius: 126,
-    dash: '2 14',
-    direction: -1,
-    stars: [
-      { angle: 96, size: 6, delay: 0.6 },
-      { angle: 292, size: 4.5, delay: 1.7 },
-    ],
-  },
-];
+import {
+  CENTER,
+  CREAM,
+  GOLD,
+  ORBITS,
+  SIZE,
+  SPARKLE,
+  SPARKLE_UNIT,
+  STAR_CROSS,
+  STAR_SPIKES,
+} from './starGeometry';
 
 export interface CelestialStarsProps {
   className?: string;
@@ -164,63 +99,5 @@ export function CelestialStars({ className }: CelestialStarsProps) {
         </g>
       </g>
     </svg>
-  );
-}
-
-/** Motes scattered across the screen; small screens get fewer. */
-const MOTE_COUNT = 12;
-const MOTE_COUNT_SMALL = 8;
-
-interface Mote {
-  id: number;
-  left: number;
-  top: number;
-  size: number;
-  delay: number;
-  duration: number;
-}
-
-/**
- * Twinkling stardust behind the star system.
- *
- * CSS keyframes rather than a script loop: this is a dozen infinite animations, and the
- * cover's rising dust already learned that many JS-driven loops keep a phone's main
- * thread busy while a compositor animation costs nothing per frame.
- */
-export function Stardust({ count }: { count?: number }) {
-  const reducedMotion = usePrefersReducedMotion();
-
-  const motes = useMemo<Mote[]>(() => {
-    const total =
-      count ?? (typeof window !== 'undefined' && window.innerWidth < 640 ? MOTE_COUNT_SMALL : MOTE_COUNT);
-    return Array.from({ length: total }, (_, index) => ({
-      id: index,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      size: 1.5 + Math.random() * 2.5,
-      delay: Math.random() * 4,
-      duration: 3 + Math.random() * 4,
-    }));
-  }, [count]);
-
-  if (reducedMotion) return null;
-
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      {motes.map((mote) => (
-        <span
-          key={mote.id}
-          className="absolute rounded-full bg-accent-cream/70 motion-safe:animate-twinkle [will-change:transform,opacity]"
-          style={{
-            left: `${mote.left}%`,
-            top: `${mote.top}%`,
-            width: mote.size,
-            height: mote.size,
-            animationDelay: `${mote.delay}s`,
-            animationDuration: `${mote.duration}s`,
-          }}
-        />
-      ))}
-    </div>
   );
 }
